@@ -20,8 +20,6 @@ plugins:
 paginate: 5
 paginate_path: "/page:num/"
 
-author:
-  name: Onlydreams
-  email: Onlydreams@users.noreply.github.com
+author: Onlydreams
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
