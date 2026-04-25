@@ -37,8 +37,12 @@
   function sendGiscusMessage(message, retries) {
     retries = retries || 0;
     const iframe = document.querySelector('iframe.giscus-frame');
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+    if (iframe && iframe.src && iframe.src.indexOf('giscus.app') !== -1 && iframe.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      } catch (e) {
+        // Silently ignore cross-origin errors during iframe load
+      }
     } else if (retries < 10) {
       setTimeout(function() {
         sendGiscusMessage(message, retries + 1);
@@ -62,7 +66,7 @@
   // Listen for giscus iframe ready events and re-apply theme
   window.addEventListener('message', function(event) {
     if (event.origin !== 'https://giscus.app') return;
-    if (event.data && event.data.giscus && event.data.giscus.discussion) {
+    if (event.data && event.data.giscus) {
       var theme = getTheme();
       updateGiscusTheme(theme);
     }
