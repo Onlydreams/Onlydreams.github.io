@@ -1,0 +1,27 @@
+title: Onlydreams
+email: Onlydreams@users.noreply.github.com
+description: >-
+  技术笔记与个人博客，记录开发工具配置、效率提升技巧
+baseurl: ""
+url: "https://onlydreams.github.io"
+
+twitter_username:
+github_username: Onlydreams
+
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+paginate: 5
+paginate_path: "/page:num/"
+
+author:
+  name: Onlydreams
+  email: Onlydreams@users.noreply.github.com
+
+google_analytics: "" # 如需追踪访问，可填入 GA ID
