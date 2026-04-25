@@ -277,17 +277,20 @@ pre code {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   box-shadow: none;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 [data-theme="dark"] thead,
 [data-theme="dark"] th {
   background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
-  border-bottom: 2px solid var(--border-color) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 [data-theme="dark"] tbody tr {
   background: var(--bg-card) !important;
+  border: none !important;
 }
 
 [data-theme="dark"] tbody tr:nth-child(even) {
@@ -296,7 +299,7 @@ pre code {
 
 [data-theme="dark"] td {
   color: var(--text-primary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 /* ---- Dark Mode: Inline Code ---- */
