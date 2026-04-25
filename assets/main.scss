@@ -274,15 +274,29 @@ pre code {
 
 /* ---- Dark Mode: Tables ---- */
 [data-theme="dark"] table {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
 }
 
-[data-theme="dark"] tr:nth-child(even) {
-  background: rgba(255,255,255,0.03);
+[data-theme="dark"] thead,
+[data-theme="dark"] th {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 2px solid var(--border-color) !important;
 }
 
-[data-theme="dark"] tr:nth-child(even) td {
-  color: var(--text-primary);
+[data-theme="dark"] tbody tr {
+  background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+[data-theme="dark"] td {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 /* ---- Dark Mode: Inline Code ---- */
