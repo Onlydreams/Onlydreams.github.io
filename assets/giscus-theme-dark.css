@@ -4,12 +4,12 @@
  */
 
 :root {
-  --color-canvas-default: #1A1917;
-  --color-canvas-inset: #242320;
-  --color-canvas-overlay: #2D2A26;
-  --color-canvas-subtle: #242320;
+  --color-canvas-default: #1E1D1A;
+  --color-canvas-inset: #2A2926;
+  --color-canvas-overlay: #2B2A26;
+  --color-canvas-subtle: #2A2926;
 
-  --color-fg-default: #E8E4DC;
+  --color-fg-default: #E8E6DF;
   --color-fg-muted: #A8A29E;
   --color-fg-subtle: #78716C;
   --color-fg-on-emphasis: #FFFFFF;
@@ -33,8 +33,8 @@
   --color-danger-muted: rgba(255, 122, 122, 0.15);
   --color-danger-subtle: rgba(255, 122, 122, 0.08);
 
-  --color-btn-text: #E8E4DC;
-  --color-btn-bg: #2D2A26;
+  --color-btn-text: #E8E6DF;
+  --color-btn-bg: #2B2A26;
   --color-btn-border: #3D3830;
   --color-btn-shadow: 0 1px 0 rgba(0,0,0,0.2);
   --color-btn-inset-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
@@ -63,40 +63,40 @@
   --color-switch-knob-bg: #E8E4DC;
   --color-switch-knob-checked-bg: #E8E4DC;
 
-  --color-segmented-control-bg: #242320;
-  --color-segmented-control-button-bg: #2D2A26;
-  --color-segmented-control-button-selected-bg: #2D2A26;
+  --color-segmented-control-bg: #2A2926;
+  --color-segmented-control-button-bg: #2B2A26;
+  --color-segmented-control-button-selected-bg: #2B2A26;
   --color-segmented-control-button-selected-border: #3D3830;
 
-  --color-timeline-badge-bg: #242320;
+  --color-timeline-badge-bg: #2A2926;
 
   --color-select-menu-backdrop-bg: rgba(0,0,0,0.5);
   --color-select-menu-tap-highlight: rgba(139, 122, 230, 0.2);
-  --color-select-menu-modal-bg: #2D2A26;
+  --color-select-menu-modal-bg: #2B2A26;
   --color-select-menu-modal-border: #3D3830;
 
   --color-overlay-shadow: 0 4px 20px rgba(0,0,0,0.3);
   --color-overlay-backdrop: rgba(0,0,0,0.5);
 
-  --color-header-text: #E8E4DC;
-  --color-header-bg: #2D2A26;
+  --color-header-text: #E8E6DF;
+  --color-header-bg: #2B2A26;
   --color-header-divider: #3D3830;
-  --color-header-logo: #E8E4DC;
+  --color-header-logo: #E8E6DF;
 
   --color-primer-canvas-backdrop: rgba(0,0,0,0.5);
-  --color-primer-canvas-sticky: rgba(26, 25, 23, 0.95);
+  --color-primer-canvas-sticky: rgba(30, 29, 26, 0.95);
 
   --color-menu-bg-active: #3D3830;
 
   --color-sponsors-fg: #8B7AE6;
 
   --color-marketing-icon-primary: #8B7AE6;
-  --color-marketing-icon-secondary: #F0A050;
+  --color-marketing-icon-secondary: #E88C6A;
 }
 
 /* Smooth scroll */
 .gsc-main {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-family: "Lora", Georgia, "Times New Roman", serif !important;
 }
 
 /* Rounded corners for comment boxes */
