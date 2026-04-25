@@ -107,8 +107,12 @@ html body .page-content {
   padding: 3rem 0;
 }
 
-html body .wrapper {
+html body .wrapper,
+html body article,
+html body .post-content {
   max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ---- Posts List ---- */
@@ -198,6 +202,85 @@ html body pre code {
   padding: 0;
 }
 
+/* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
+.highlight {
+  border-radius: 10px;
+}
+
+.highlight .c,
+.highlight .cm,
+.highlight .c1,
+.highlight .cp {
+  color: #9c9a92;
+}
+
+.highlight .k,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt {
+  color: #788c5d;
+}
+
+.highlight .s,
+.highlight .sb,
+.highlight .sc,
+.highlight .sd,
+.highlight .s2,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx,
+.highlight .sr,
+.highlight .s1,
+.highlight .ss {
+  color: #6a9bcc;
+}
+
+.highlight .m,
+.highlight .mf,
+.highlight .mh,
+.highlight .mi,
+.highlight .mo,
+.highlight .il {
+  color: #4a4842;
+}
+
+.highlight .n,
+.highlight .na,
+.highlight .nb,
+.highlight .nc,
+.highlight .no,
+.highlight .nd,
+.highlight .ni,
+.highlight .ne,
+.highlight .nl,
+.highlight .nn,
+.highlight .nt,
+.highlight .nv,
+.highlight .vc,
+.highlight .vg,
+.highlight .vi,
+.highlight .bp {
+  color: #5c5c5c;
+}
+
+.highlight .nf {
+  color: #d97757;
+}
+
+.highlight .o,
+.highlight .ow {
+  color: #b0aea5;
+}
+
+.highlight .err {
+  color: #c45c5c;
+  background: rgba(196, 92, 92, 0.08);
+}
+
 /* ---- Syntax Highlighting (Rouge) - Dark Mode ---- */
 [data-theme="dark"] .highlight {
   background: #1E1C1A;
@@ -208,7 +291,7 @@ html body pre code {
 [data-theme="dark"] .highlight .cm,
 [data-theme="dark"] .highlight .c1,
 [data-theme="dark"] .highlight .cp {
-  color: #6B8E6B;
+  color: #7a7870;
 }
 
 [data-theme="dark"] .highlight .k,
@@ -218,7 +301,7 @@ html body pre code {
 [data-theme="dark"] .highlight .kp,
 [data-theme="dark"] .highlight .kr,
 [data-theme="dark"] .highlight .kt {
-  color: #C4A0F0;
+  color: #788c5d;
 }
 
 [data-theme="dark"] .highlight .s,
@@ -233,7 +316,7 @@ html body pre code {
 [data-theme="dark"] .highlight .sr,
 [data-theme="dark"] .highlight .s1,
 [data-theme="dark"] .highlight .ss {
-  color: #7EC8A0;
+  color: #6a9bcc;
 }
 
 [data-theme="dark"] .highlight .m,
@@ -242,7 +325,7 @@ html body pre code {
 [data-theme="dark"] .highlight .mi,
 [data-theme="dark"] .highlight .mo,
 [data-theme="dark"] .highlight .il {
-  color: #7AB8D9;
+  color: #a8a29e;
 }
 
 [data-theme="dark"] .highlight .n,
@@ -253,7 +336,6 @@ html body pre code {
 [data-theme="dark"] .highlight .nd,
 [data-theme="dark"] .highlight .ni,
 [data-theme="dark"] .highlight .ne,
-[data-theme="dark"] .highlight .nf,
 [data-theme="dark"] .highlight .nl,
 [data-theme="dark"] .highlight .nn,
 [data-theme="dark"] .highlight .nt,
@@ -262,17 +344,21 @@ html body pre code {
 [data-theme="dark"] .highlight .vg,
 [data-theme="dark"] .highlight .vi,
 [data-theme="dark"] .highlight .bp {
-  color: #D4CFC7;
+  color: #a8a29e;
+}
+
+[data-theme="dark"] .highlight .nf {
+  color: #d97757;
 }
 
 [data-theme="dark"] .highlight .o,
 [data-theme="dark"] .highlight .ow {
-  color: #D4A0D0;
+  color: #78716c;
 }
 
 [data-theme="dark"] .highlight .err {
-  color: #FF7A7A;
-  background: rgba(255, 122, 122, 0.1);
+  color: #c45c5c;
+  background: rgba(196, 92, 92, 0.1);
 }
 
 /* ---- Dark Mode: Tables ---- */
@@ -312,17 +398,46 @@ html body pre code {
 }
 
 /* ---- Blockquotes ---- */
+/* Default citation quote: neutral warm gray, transparent bg, italic */
 html body blockquote {
-  border-left: 3px solid var(--accent-purple);
-  background: var(--accent-purple-light);
-  padding: 1rem 1.2rem;
+  border-left: 4px solid #b0aea5;
+  background: transparent;
+  padding: 1rem 1.25rem;
   border-radius: 0 8px 8px 0;
-  font-style: normal;
+  font-style: italic;
   color: var(--text-secondary);
 }
 
 html body blockquote p:last-child {
   margin-bottom: 0;
+}
+
+/* Callout / Note / Warning / Tip: terracotta accent, tinted bg, normal */
+html body blockquote.note,
+html body blockquote.warning,
+html body blockquote.tip,
+html body blockquote.alert,
+html body .note,
+html body .warning,
+html body .tip,
+html body .alert {
+  border-left: 4px solid #d97757;
+  background: rgba(217, 119, 87, 0.08);
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-style: normal;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] blockquote.note,
+[data-theme="dark"] blockquote.warning,
+[data-theme="dark"] blockquote.tip,
+[data-theme="dark"] blockquote.alert,
+[data-theme="dark"] .note,
+[data-theme="dark"] .warning,
+[data-theme="dark"] .tip,
+[data-theme="dark"] .alert {
+  background: rgba(217, 119, 87, 0.15);
 }
 
 /* ---- Tables ---- */
@@ -419,29 +534,40 @@ html body .theme-toggle {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  color: var(--accent-purple);
-  font-size: 1.3rem;
+  border-radius: 40px;
+  border: 1px solid #d97757;
+  background: transparent;
+  color: #d97757;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   transition: all 0.3s ease;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.35rem;
 }
 
 html body .theme-toggle:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  background: rgba(217, 119, 87, 0.1);
+  box-shadow: 0 4px 16px rgba(217, 119, 87, 0.15);
 }
 
 html body .theme-toggle:active {
   transform: scale(0.96);
+}
+
+[data-theme="dark"] .theme-toggle {
+  color: #e8e6df;
+  border-color: rgba(217, 119, 87, 0.7);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: rgba(217, 119, 87, 0.15);
 }
 
 /* ---- Mobile ---- */
@@ -458,7 +584,9 @@ html body .theme-toggle:active {
     font-size: 1.3rem;
   }
 
-  html body .wrapper {
+  html body .wrapper,
+  html body article,
+  html body .post-content {
     padding: 0 1rem;
   }
 

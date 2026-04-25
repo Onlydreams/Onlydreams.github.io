@@ -64,13 +64,23 @@
   function updateToggleButton(theme) {
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
-    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.innerHTML = theme === 'dark' ? '☀️<span>浅色</span>' : '🌙<span>深色</span>';
     btn.setAttribute('aria-label', theme === 'dark' ? '切换到日间模式' : '切换到夜间模式');
+  }
+
+  function autoTagCallouts() {
+    const keywords = /注意|提示|警告|warning|note|tip|caution|alert|important/i;
+    document.querySelectorAll('blockquote').forEach(function(bq) {
+      if (keywords.test(bq.textContent) && !bq.classList.contains('note')) {
+        bq.classList.add('note');
+      }
+    });
   }
 
   function init() {
     const theme = getTheme();
     applyTheme(theme);
+    autoTagCallouts();
 
     // Create toggle button if not exists
     let btn = document.getElementById('theme-toggle');
