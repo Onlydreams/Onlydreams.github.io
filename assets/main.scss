@@ -272,6 +272,25 @@ pre code {
   background: rgba(255, 122, 122, 0.1);
 }
 
+/* ---- Dark Mode: Tables ---- */
+[data-theme="dark"] table {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] tr:nth-child(even) {
+  background: rgba(255,255,255,0.03);
+}
+
+[data-theme="dark"] tr:nth-child(even) td {
+  color: var(--text-primary);
+}
+
+/* ---- Dark Mode: Inline Code ---- */
+[data-theme="dark"] code {
+  border: 1px solid var(--border-color);
+  background: var(--code-bg);
+}
+
 /* ---- Blockquotes ---- */
 blockquote {
   border-left: 3px solid var(--accent-purple);
