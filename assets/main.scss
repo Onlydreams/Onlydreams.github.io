@@ -16,9 +16,8 @@
   --text-primary: #141413;
   --text-secondary: #5C5C5C;
   --text-muted: #8A8A8A;
-  --accent-purple: #6B4EE6;
-  --accent-purple-light: #E8E0F7;
   --accent-orange: #D97757;
+  --accent-orange-light: rgba(217, 119, 87, 0.12);
   --border-color: #E0DCD3;
   --code-bg: #EDE9E0;
 }
@@ -30,9 +29,8 @@
   --text-primary: #E8E6DF;
   --text-secondary: #A8A29E;
   --text-muted: #78716C;
-  --accent-purple: #8B7AE6;
-  --accent-purple-light: rgba(139, 122, 230, 0.15);
   --accent-orange: #E88C6A;
+  --accent-orange-light: rgba(217, 119, 87, 0.15);
   --border-color: #3D3830;
   --code-bg: #2A2723;
 }
@@ -65,7 +63,7 @@ html body p {
 
 html body a,
 html body a:visited {
-  color: var(--accent-purple);
+  color: var(--accent-orange);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -98,7 +96,7 @@ html body .site-header {
 }
 
 .site-nav .page-link:hover {
-  color: var(--accent-purple);
+  color: var(--accent-orange);
   text-decoration: none;
 }
 
@@ -145,7 +143,7 @@ html body .post-list h3 a {
 }
 
 html body .post-list h3 a:hover {
-  color: var(--accent-purple);
+  color: var(--accent-orange);
 }
 
 html body .post-meta {
@@ -165,12 +163,12 @@ html body .post-title {
 }
 
 html body .post-content h2 {
-  border-bottom: 2px solid var(--accent-purple-light);
+  border-bottom: 2px solid var(--accent-orange-light);
   padding-bottom: 0.5rem;
 }
 
 html body .post-content h3 {
-  color: var(--accent-purple);
+  color: var(--accent-orange);
 }
 
 /* ---- Code Blocks ---- */
@@ -182,7 +180,7 @@ html body code {
 
 html body code {
   background-color: var(--code-bg);
-  color: var(--accent-purple);
+  color: var(--accent-orange);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }
@@ -508,8 +506,8 @@ html body hr {
 
 /* ---- Selection ---- */
 html body ::selection {
-  background: var(--accent-purple-light);
-  color: var(--accent-purple);
+  background: var(--accent-orange-light);
+  color: var(--accent-orange);
 }
 
 /* ---- Scrollbar ---- */

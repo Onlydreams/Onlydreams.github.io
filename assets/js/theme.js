@@ -34,24 +34,39 @@
     updateGiscusTheme(theme);
   }
 
-  function updateGiscusTheme(theme) {
-    const giscusScript = document.querySelector('script[src*="giscus.app"]');
-    if (giscusScript) {
-      giscusScript.setAttribute('data-theme', theme === 'dark' ? GISCUS_DARK : GISCUS_LIGHT);
-    }
-
-    // Update existing giscus iframe via postMessage
+  function sendGiscusMessage(message, retries) {
+    retries = retries || 0;
     const iframe = document.querySelector('iframe.giscus-frame');
     if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({
-        giscus: {
-          setConfig: {
-            theme: theme === 'dark' ? GISCUS_DARK : GISCUS_LIGHT
-          }
-        }
-      }, 'https://giscus.app');
+      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+    } else if (retries < 10) {
+      setTimeout(function() {
+        sendGiscusMessage(message, retries + 1);
+      }, 300);
     }
   }
+
+  function updateGiscusTheme(theme) {
+    var newTheme = theme === 'dark' ? GISCUS_DARK : GISCUS_LIGHT;
+
+    // Update script tag for future loads
+    var giscusScript = document.querySelector('script[src*="giscus.app"]');
+    if (giscusScript) {
+      giscusScript.setAttribute('data-theme', newTheme);
+    }
+
+    // Update existing giscus iframe via postMessage with retry
+    sendGiscusMessage({ setConfig: { theme: newTheme } });
+  }
+
+  // Listen for giscus iframe ready events and re-apply theme
+  window.addEventListener('message', function(event) {
+    if (event.origin !== 'https://giscus.app') return;
+    if (event.data && event.data.giscus && event.data.giscus.discussion) {
+      var theme = getTheme();
+      updateGiscusTheme(theme);
+    }
+  });
 
   function toggleTheme() {
     const current = getTheme();
