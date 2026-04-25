@@ -201,10 +201,11 @@ html body pre code {
 }
 
 /* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
+/* Override minima default .highlighter-rouge .highlight background */
 html body .highlighter-rouge .highlight,
-.highlight {
-  background: transparent;
-  border-radius: 0;
+html body .highlight {
+  background: var(--code-bg) !important;
+  border-radius: 10px;
 }
 
 /* Override minima default token backgrounds */
@@ -213,7 +214,7 @@ html body .highlight .gd,
 html body .highlight .gd .x,
 html body .highlight .gi,
 html body .highlight .gi .x {
-  background: none;
+  background: none !important;
 }
 
 /* Ensure no stray backgrounds inside pre spans */
@@ -298,8 +299,8 @@ html body .highlight pre span {
 /* ---- Syntax Highlighting (Rouge) - Dark Mode ---- */
 [data-theme="dark"] .highlighter-rouge .highlight,
 [data-theme="dark"] .highlight {
-  background: transparent;
-  border-radius: 0;
+  background: var(--code-bg) !important;
+  border-radius: 10px;
 }
 
 [data-theme="dark"] .highlight .err,
@@ -307,7 +308,7 @@ html body .highlight pre span {
 [data-theme="dark"] .highlight .gd .x,
 [data-theme="dark"] .highlight .gi,
 [data-theme="dark"] .highlight .gi .x {
-  background: none;
+  background: none !important;
 }
 
 [data-theme="dark"] .highlight .c,
