@@ -212,7 +212,18 @@ html body .highlight {
   background: var(--code-bg) !important;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 1.2rem;
+  padding: 1.5rem;
+}
+
+/* Ensure pre.highlight does NOT inherit border/padding from .highlight */
+html body pre.highlight,
+html body .highlighter-rouge pre.highlight {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto;
 }
 
 /* Override minima default token backgrounds */
@@ -315,7 +326,17 @@ html body .highlight tr {
   background: var(--code-bg) !important;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 1.2rem;
+  padding: 1.5rem;
+}
+
+[data-theme="dark"] pre.highlight,
+[data-theme="dark"] .highlighter-rouge pre.highlight {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto;
 }
 
 [data-theme="dark"] .highlight .err,
