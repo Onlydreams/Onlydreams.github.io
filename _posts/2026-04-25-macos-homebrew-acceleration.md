@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "macOS 开发环境加速配置全记录"
+title: "MacOS 开发环境加速配置全记录"
 date: 2026-04-25 17:00:00 +0800
-categories: [macOS, Homebrew, 效率]
+categories: [MacOS, Homebrew, 效率]
 tags: [homebrew, pip, proxy, mirror]
 ---
 
-记录本次为加速 macOS 开发环境所做的全部配置，涵盖 Homebrew、pip 以及终端代理。
+记录本次为加速 MacOS 开发环境所做的全部配置，涵盖 Homebrew、pip 以及终端代理。
 
 ---
 
@@ -146,7 +146,7 @@ pip3 config set global.trusted-host "mirrors.aliyun.com"
 
 ## 五、当前环境信息
 
-- **系统**：macOS (Intel)
+- **系统**：MacOS (Intel)
 - **Shell**：zsh
 - **Homebrew**：较新版本
 - **代理工具**：本地代理客户端（规则模式）
