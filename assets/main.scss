@@ -199,6 +199,7 @@ html body pre code {
   color: var(--text-primary);
   padding: 0;
   border-radius: 0;
+  border: none;
 }
 
 /* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
@@ -465,6 +466,11 @@ html body .highlight tr {
 [data-theme="dark"] code {
   border: 1px solid var(--border-color);
   background: var(--code-bg);
+}
+
+[data-theme="dark"] pre code {
+  border: none;
+  background: none;
 }
 
 /* ---- Blockquotes ---- */
