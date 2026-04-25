@@ -198,14 +198,21 @@ html body pre code {
   background: none;
   color: var(--text-primary);
   padding: 0;
+  border-radius: 0;
 }
 
 /* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
 /* Override minima default .highlighter-rouge .highlight background */
+html body .highlighter-rouge {
+  margin: 1.5rem 0;
+}
+
 html body .highlighter-rouge .highlight,
 html body .highlight {
   background: var(--code-bg) !important;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
+  padding: 1.2rem;
 }
 
 /* Override minima default token backgrounds */
@@ -217,8 +224,14 @@ html body .highlight .gi .x {
   background: none !important;
 }
 
-/* Ensure no stray backgrounds inside pre spans */
-html body .highlight pre span {
+/* Ensure no stray backgrounds inside highlight at all */
+html body .highlight pre,
+html body .highlight code,
+html body .highlight span,
+html body .highlight div,
+html body .highlight table,
+html body .highlight td,
+html body .highlight tr {
   background: transparent !important;
 }
 
@@ -300,7 +313,9 @@ html body .highlight pre span {
 [data-theme="dark"] .highlighter-rouge .highlight,
 [data-theme="dark"] .highlight {
   background: var(--code-bg) !important;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
+  padding: 1.2rem;
 }
 
 [data-theme="dark"] .highlight .err,
@@ -309,6 +324,16 @@ html body .highlight pre span {
 [data-theme="dark"] .highlight .gi,
 [data-theme="dark"] .highlight .gi .x {
   background: none !important;
+}
+
+[data-theme="dark"] .highlight pre,
+[data-theme="dark"] .highlight code,
+[data-theme="dark"] .highlight span,
+[data-theme="dark"] .highlight div,
+[data-theme="dark"] .highlight table,
+[data-theme="dark"] .highlight td,
+[data-theme="dark"] .highlight tr {
+  background: transparent !important;
 }
 
 [data-theme="dark"] .highlight .c,
