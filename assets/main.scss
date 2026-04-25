@@ -201,9 +201,19 @@ html body pre code {
 }
 
 /* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
+html body .highlighter-rouge .highlight,
 .highlight {
   background: var(--code-bg);
   border-radius: 10px;
+}
+
+/* Override minima default token backgrounds */
+html body .highlight .err,
+html body .highlight .gd,
+html body .highlight .gd .x,
+html body .highlight .gi,
+html body .highlight .gi .x {
+  background: none;
 }
 
 .highlight .c,
@@ -281,9 +291,18 @@ html body pre code {
 }
 
 /* ---- Syntax Highlighting (Rouge) - Dark Mode ---- */
+[data-theme="dark"] .highlighter-rouge .highlight,
 [data-theme="dark"] .highlight {
   background: var(--code-bg);
   border-radius: 10px;
+}
+
+[data-theme="dark"] .highlight .err,
+[data-theme="dark"] .highlight .gd,
+[data-theme="dark"] .highlight .gd .x,
+[data-theme="dark"] .highlight .gi,
+[data-theme="dark"] .highlight .gi .x {
+  background: none;
 }
 
 [data-theme="dark"] .highlight .c,
