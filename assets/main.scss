@@ -73,10 +73,6 @@ html body .skip-link:focus {
   top: 0;
 }
 
-html body main:focus {
-  outline: none;
-}
-
 /* ---- Typography ---- */
 h1, h2, h3, h4, h5, h6 {
   font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -180,13 +176,22 @@ html body .post-list h3 a::after {
   z-index: 1;
 }
 
+/* Fallback: keep focus ring on the anchor itself for browsers without :has() */
 html body .post-list h3 a:focus-visible {
-  outline: none;
-}
-
-html body .post-list > li:has(h3 a:focus-visible) {
   outline: 2px solid var(--accent-orange);
   outline-offset: 2px;
+}
+
+/* Progressive enhancement: move focus ring to the whole card when :has() is supported */
+@supports selector(:has(*)) {
+  html body .post-list h3 a:focus-visible {
+    outline: none;
+  }
+
+  html body .post-list > li:has(h3 a:focus-visible) {
+    outline: 2px solid var(--accent-orange);
+    outline-offset: 2px;
+  }
 }
 
 html body .post-list .post-meta {
