@@ -1,0 +1,21 @@
+# Jekyll
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# Bundler
+vendor/
+.bundle/
+Gemfile.lock
+
+# macOS
+.DS_Store
+
+# Obsidian
+.obsidian/
+_posts/.obsidian/
+
+# Local AI assistant configs
+CLAUDE.md
+.claude/
