@@ -182,16 +182,14 @@ html body .post-list h3 a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Progressive enhancement: move focus ring to the whole card when :has() is supported */
-@supports selector(:has(*)) {
-  html body .post-list h3 a:focus-visible {
-    outline: none;
-  }
+/* Move focus ring to the whole card via :has() — browsers that don't support :has() ignore this and use the fallback above */
+html body .post-list h3 a:focus-visible {
+  outline: none;
+}
 
-  html body .post-list > li:has(h3 a:focus-visible) {
-    outline: 2px solid var(--accent-orange);
-    outline-offset: 2px;
-  }
+html body .post-list > li:has(h3 a:focus-visible) {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
 }
 
 html body .post-list .post-meta {
