@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
 
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
 Sitemap: https://onlydreams.github.io/sitemap.xml

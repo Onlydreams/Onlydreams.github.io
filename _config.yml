@@ -25,6 +25,9 @@ paginate_path: "/page:num/"
 author: Onlydreams
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
+google_site_verification: "KJozLMpKRqvQjQ-rSbF0ckh80OGVb_qcfpYUWUMBqCQ"
+bing_site_verification: ""   # Bing Webmaster Tools 验证码
+baidu_site_verification: ""  # 百度站长平台验证码
 
 exclude:
   - README.md
