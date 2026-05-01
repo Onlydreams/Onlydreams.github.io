@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "MacOS Claude 客户端接入 DeepSeek V4 作为第三方模型"
-date: 2026-04-25 17:00:00 +0800
+date: 2026-04-30 17:00:00 +0800
 categories: [MacOS, 效率]
 tags: [claude, deepseek]
 ---

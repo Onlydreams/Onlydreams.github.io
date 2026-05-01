@@ -1,0 +1,46 @@
+---
+layout: default
+---
+
+<div class="home">
+  <h1 class="page-heading">欢迎来到 Onlydreams 的技术博客</h1>
+  <p>这里记录开发工具配置、效率提升技巧以及日常踩坑总结。</p>
+
+  {%- if paginator.posts.size > 0 -%}
+    <h2 class="post-list-heading">{{ page.list_title | default: "最新文章" }}</h2>
+    <ul class="post-list">
+      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+      {%- for post in paginator.posts -%}
+      <li>
+        <span class="post-meta">{{ post.date | date: date_format }}</span>
+        <h3>
+          <a class="post-link" href="{{ post.url | relative_url }}">
+            {{ post.title | escape }}
+          </a>
+        </h3>
+        {%- if site.show_excerpts -%}
+          {{ post.excerpt }}
+        {%- endif -%}
+      </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if paginator.total_pages > 1 -%}
+    <nav class="pagination" aria-label="分页导航">
+      {%- if paginator.previous_page -%}
+        <a class="pagination-prev" href="{{ paginator.previous_page_path | relative_url }}">« 上一页</a>
+      {%- endif -%}
+
+      <span class="pagination-info">
+        第 {{ paginator.page }} / {{ paginator.total_pages }} 页
+      </span>
+
+      {%- if paginator.next_page -%}
+        <a class="pagination-next" href="{{ paginator.next_page_path | relative_url }}">下一页 »</a>
+      {%- endif -%}
+    </nav>
+    {%- endif -%}
+
+    <p class="rss-subscribe">订阅 <a href="{{ "/feed.xml" | relative_url }}">RSS</a></p>
+  {%- endif -%}
+</div>

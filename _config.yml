@@ -4,6 +4,7 @@ description: >-
   技术笔记与个人博客，记录开发工具配置、效率提升技巧
 baseurl: ""
 url: "https://onlydreams.github.io"
+lang: zh-CN
 
 twitter_username:
 github_username: Onlydreams
@@ -16,6 +17,7 @@ plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
+  - jekyll-paginate
 
 paginate: 5
 paginate_path: "/page:num/"
@@ -23,3 +25,14 @@ paginate_path: "/page:num/"
 author: Onlydreams
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
+
+exclude:
+  - README.md
+  - CLAUDE.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - .bundle/
+  - .claude/
+  - .jekyll-cache/
+  - .obsidian/
