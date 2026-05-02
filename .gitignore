@@ -7,7 +7,13 @@ _site/
 # Bundler
 vendor/
 .bundle/
-Gemfile.lock
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
 
 # macOS
 .DS_Store
