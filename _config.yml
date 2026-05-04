@@ -30,6 +30,7 @@ bing_site_verification: ""   # Bing Webmaster Tools 验证码
 baidu_site_verification: ""  # 百度站长平台验证码
 
 exclude:
+  - AGENTS.md
   - README.md
   - CLAUDE.md
   - Gemfile
