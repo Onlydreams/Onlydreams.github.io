@@ -23,5 +23,4 @@ vendor/
 _posts/.obsidian/
 
 # Local AI assistant configs
-CLAUDE.md
 .claude/
