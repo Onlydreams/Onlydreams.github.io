@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Git 自动代理配置指南"
-date: 2026-05-04 17:00:00 +0800
+date: 2026-05-04 13:00:00 +0800
 categories: [Git, 代理, 效率]
 tags: [git, proxy, ssh]
 ---
