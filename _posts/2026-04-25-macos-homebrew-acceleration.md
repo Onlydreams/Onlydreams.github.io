@@ -2,8 +2,8 @@
 layout: post
 title: "MacOS 开发环境加速配置全记录"
 date: 2026-04-25 17:00:00 +0800
-categories: [MacOS, Homebrew, 效率]
-tags: [homebrew, pip, proxy, mirror]
+categories: [MacOS, Homebrew, 代理, 效率]
+tags: [homebrew, pip, proxy, mirror, zsh]
 ---
 
 记录本次为加速 MacOS 开发环境所做的全部配置，涵盖 Homebrew、pip 以及终端代理。
