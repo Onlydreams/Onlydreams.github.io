@@ -123,18 +123,18 @@ skillshare sync
 
 ## 常用命令
 
-| 命令 | 作用 |
-|---|---|
-| `skillshare status` | 查看当前状态 |
-| `skillshare list` | 查看已安装的 skills |
-| `skillshare target list` | 查看已配置同步目标 |
-| `skillshare sync` | 同步到所有目标 |
-| `skillshare update --all` | 更新所有 skill 仓库 |
-| `skillshare uninstall <name>` | 卸载指定 skill |
-| `skillshare enable <name>` | 启用指定 skill |
-| `skillshare disable <name>` | 禁用指定 skill |
-| `skillshare audit` | 执行安全扫描 |
-| `skillshare ui` | 打开 Web 管理面板 |
+| 命令                          | 作用                |
+| ----------------------------- | ------------------- |
+| `skillshare status`           | 查看当前状态        |
+| `skillshare list`             | 查看已安装的 skills |
+| `skillshare target list`      | 查看已配置同步目标  |
+| `skillshare sync`             | 同步到所有目标      |
+| `skillshare update --all`     | 更新所有 skill 仓库 |
+| `skillshare uninstall <name>` | 卸载指定 skill      |
+| `skillshare enable <name>`    | 启用指定 skill      |
+| `skillshare disable <name>`   | 禁用指定 skill      |
+| `skillshare audit`            | 执行安全扫描        |
+| `skillshare ui`               | 打开 Web 管理面板   |
 
 ## 跨机器同步
 

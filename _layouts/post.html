@@ -1,48 +1,71 @@
 ---
 layout: default
 ---
-<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-  <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">{{ page.title | escape }}</h1>
-    <p class="post-meta">
-      <time class="dt-published" datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
-        {{ page.date | date: date_format }}
-      </time>
-      {%- if page.author -%}
-        • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">{{ page.author }}</span></span>
-      {%- endif -%}
-    </p>
-  </header>
+<div class="post-layout">
+  <article
+    class="post h-entry"
+    itemscope
+    itemtype="http://schema.org/BlogPosting"
+  >
+    <header class="post-header">
+      <h1 class="post-title p-name" itemprop="name headline">
+        {{ page.title | escape }}
+      </h1>
+      <p class="post-meta">
+        <time
+          class="dt-published"
+          datetime="{{ page.date | date_to_xmlschema }}"
+          itemprop="datePublished"
+        >
+          {%- assign fmt = site.minima.date_format | default: "%b %-d, %Y" -%}
+          {{ page.date | date: fmt }}
+        </time>
+        {%- if page.author -%} •
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"
+          ><span class="p-author h-card" itemprop="name"
+            >{{ page.author }}</span
+          ></span
+        >
+        {%- endif -%}
+      </p>
+    </header>
 
-  <div class="post-content e-content" itemprop="articleBody">
-    {{ content }}
-  </div>
+    <div class="post-content e-content" itemprop="articleBody">
+      {{ content }}
+    </div>
 
-  <div class="giscus-comments" style="margin-top: 3rem;">
-    <script src="https://giscus.app/client.js"
-            data-repo="Onlydreams/Onlydreams.github.io"
-            data-repo-id="R_kgDOSMNeyw"
-            data-category="Announcements"
-            data-category-id="DIC_kwDOSMNey84C7rBn"
-            data-mapping="pathname"
-            data-strict="0"
-            data-reactions-enabled="1"
-            data-emit-metadata="0"
-            data-input-position="bottom"
-            data-theme="https://onlydreams.github.io/assets/giscus-theme.css"
-            data-lang="zh-CN"
-            crossorigin="anonymous"
-            async>
-    </script>
-  </div>
+    <div class="giscus-comments" style="margin-top: 3rem">
+      <script
+        src="https://giscus.app/client.js"
+        data-repo="Onlydreams/Onlydreams.github.io"
+        data-repo-id="R_kgDOSMNeyw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOSMNey84C7rBn"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="https://onlydreams.github.io/assets/giscus-theme.css"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async
+      ></script>
+    </div>
 
-  <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
-</article>
+    <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+  </article>
 
-<button id="back-to-top" class="back-to-top" aria-label="返回顶部">&uarr;</button>
+  {%- include toc.html html=content -%}
+</div>
+
+<button id="back-to-top" class="back-to-top" aria-label="返回顶部">
+  &uarr;
+</button>
 
 <nav class="post-bottom-nav">
-  <a href="{{ '/' | relative_url }}" class="back-to-list">&larr; 返回文章列表</a>
+  <a href="{{ '/' | relative_url }}" class="back-to-list"
+    >&larr; 返回文章列表</a
+  >
 </nav>

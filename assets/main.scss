@@ -1,7 +1,7 @@
 ---
 ---
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap");
 @import "minima";
 
 /* ========================================
@@ -10,29 +10,29 @@
 
 /* ---- Color Palette ---- */
 :root {
-  --bg-primary: #FAF9F5;
-  --bg-secondary: #F0EDE6;
-  --bg-card: #FFFFFF;
+  --bg-primary: #faf9f5;
+  --bg-secondary: #f0ede6;
+  --bg-card: #ffffff;
   --text-primary: #141413;
-  --text-secondary: #5C5C5C;
-  --text-muted: #6B6B6B;
-  --accent-orange: #D97757;
+  --text-secondary: #5c5c5c;
+  --text-muted: #6b6b6b;
+  --accent-orange: #d97757;
   --accent-orange-light: rgba(217, 119, 87, 0.12);
-  --border-color: #E0DCD3;
-  --code-bg: #EDE9E0;
+  --border-color: #e0dcd3;
+  --code-bg: #ede9e0;
 }
 
 [data-theme="dark"] {
-  --bg-primary: #1E1D1A;
-  --bg-secondary: #2A2926;
-  --bg-card: #2B2A26;
-  --text-primary: #E8E6DF;
-  --text-secondary: #A8A29E;
-  --text-muted: #9A9690;
-  --accent-orange: #E88C6A;
+  --bg-primary: #1e1d1a;
+  --bg-secondary: #2a2926;
+  --bg-card: #2b2a26;
+  --text-primary: #e8e6df;
+  --text-secondary: #a8a29e;
+  --text-muted: #9a9690;
+  --accent-orange: #e88c6a;
   --accent-orange-light: rgba(217, 119, 87, 0.15);
-  --border-color: #3D3830;
-  --code-bg: #2A2723;
+  --border-color: #3d3830;
+  --code-bg: #2a2723;
 }
 
 /* ---- Base ---- */
@@ -74,16 +74,37 @@ html body .skip-link:focus {
 }
 
 /* ---- Typography ---- */
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
-h1 { font-size: 2.2rem; }
-h2 { font-size: 1.6rem; margin-top: 2.5rem; }
-h3 { font-size: 1.3rem; margin-top: 2rem; }
+h1 {
+  font-size: 2.2rem;
+}
+h2 {
+  font-size: 1.6rem;
+  margin-top: 2.5rem;
+}
+h3 {
+  font-size: 1.3rem;
+  margin-top: 2rem;
+}
 
 html body p {
   margin-bottom: 1.2rem;
@@ -110,7 +131,15 @@ html body .site-header {
 }
 
 .site-title {
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-primary) !important;
@@ -159,7 +188,9 @@ html body .post-list > li {
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 html body .post-list > li:hover {
@@ -169,7 +200,7 @@ html body .post-list > li:hover {
 
 /* Stretched link: entire card becomes clickable */
 html body .post-list h3 a::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 12px;
@@ -240,7 +271,8 @@ html body .post-content h3 {
 /* ---- Code Blocks ---- */
 html body pre,
 html body code {
-  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -521,7 +553,7 @@ html body .highlight tr {
 }
 
 [data-theme="dark"] tbody tr:nth-child(even) {
-  background: rgba(255,255,255,0.02) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
 }
 
 [data-theme="dark"] td {
@@ -592,7 +624,7 @@ html body table {
   background: var(--bg-card);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 html body th {
@@ -687,8 +719,12 @@ html body .back-to-top {
   font-size: 1.3rem;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    visibility 0.3s ease,
+    background-color 0.3s ease;
   z-index: 999;
   display: flex;
   align-items: center;
@@ -728,10 +764,21 @@ html body .back-to-list {
   border-radius: 8px;
   background: var(--bg-card);
   color: var(--text-secondary) !important;
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 html body .back-to-list:hover {
@@ -739,6 +786,85 @@ html body .back-to-list:hover {
   border-color: var(--accent-orange);
   background: rgba(217, 119, 87, 0.06);
   text-decoration: none;
+}
+
+/* ---- Post Layout: article + TOC sidebar ---- */
+html body[data-page="post"] .wrapper {
+  max-width: 1000px;
+}
+
+html body .post-layout {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+html body .post-layout > .post {
+  flex: 1;
+  min-width: 0;
+  max-width: 720px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* ---- TOC Sidebar ---- */
+html body .post-toc {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+html body .toc-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--text-primary);
+}
+
+html body .post-toc ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+html body .post-toc ul ul {
+  padding-left: 1rem;
+}
+
+html body .post-toc li {
+  margin-bottom: 0.35rem;
+}
+
+html body .post-toc a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+html body .post-toc a:hover {
+  color: var(--accent-orange);
+}
+
+/* Hide TOC on tablet/mobile */
+@media screen and (max-width: 900px) {
+  html body[data-page="post"] .wrapper {
+    max-width: 720px;
+  }
+
+  html body .post-layout {
+    display: block;
+  }
+
+  html body .post-toc {
+    display: none;
+  }
 }
 
 /* ---- Theme Toggle Button ---- */
@@ -753,12 +879,23 @@ html body .theme-toggle {
   border: 1px solid #d97757;
   background: var(--bg-card);
   color: #d97757;
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.15s ease;
   z-index: 1000;
   display: inline-flex;
   align-items: center;

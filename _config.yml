@@ -27,8 +27,8 @@ author: Onlydreams
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
 google_site_verification: "B-hXn9Cx-yQQaaAPbNdy8e3dOZikOumMq6wwktxotgU"
-bing_site_verification: ""   # Bing Webmaster Tools 验证码
-baidu_site_verification: ""  # 百度站长平台验证码
+bing_site_verification: "" # Bing Webmaster Tools 验证码
+baidu_site_verification: "" # 百度站长平台验证码
 
 exclude:
   - AGENTS.md
