@@ -1,0 +1,85 @@
+name: Submit URLs to IndexNow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "_posts/**"
+      - "_config.yml"
+      - "index.html"
+      - "about.md"
+      - "robots.txt"
+      - "34366ad016cd48238ee20158d2a43852.txt"
+      - ".github/workflows/indexnow.yml"
+  workflow_dispatch:
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for key file deployment
+        env:
+          INDEXNOW_KEY: 34366ad016cd48238ee20158d2a43852
+          KEY_URL: https://onlydreams.github.io/34366ad016cd48238ee20158d2a43852.txt
+        run: |
+          for attempt in {1..30}; do
+            body="$(curl -fsSL "$KEY_URL" || true)"
+            if [ "$body" = "$INDEXNOW_KEY" ]; then
+              exit 0
+            fi
+            echo "Key file is not live yet, retrying in 10s ($attempt/30)"
+            sleep 10
+          done
+
+          echo "IndexNow key file was not available at $KEY_URL"
+          exit 1
+
+      - name: Submit sitemap URLs
+        env:
+          INDEXNOW_ENDPOINT: https://api.indexnow.org/indexnow
+          INDEXNOW_HOST: onlydreams.github.io
+          INDEXNOW_KEY: 34366ad016cd48238ee20158d2a43852
+          INDEXNOW_KEY_LOCATION: https://onlydreams.github.io/34366ad016cd48238ee20158d2a43852.txt
+          SITEMAP_URL: https://onlydreams.github.io/sitemap.xml
+        run: |
+          ruby -rnet/http -ruri -rrexml/document -rjson -e '
+            sitemap_uri = URI(ENV.fetch("SITEMAP_URL"))
+            sitemap_xml = Net::HTTP.get(sitemap_uri)
+            doc = REXML::Document.new(sitemap_xml)
+
+            urls = []
+            REXML::XPath.each(doc, "//*[local-name() = \"loc\"]") do |loc|
+              value = loc.text.to_s.strip
+              urls << value if value.start_with?("https://#{ENV.fetch("INDEXNOW_HOST")}/")
+            end
+
+            if urls.empty?
+              warn "No URLs found in #{sitemap_uri}"
+              exit 1
+            end
+
+            payload = {
+              host: ENV.fetch("INDEXNOW_HOST"),
+              key: ENV.fetch("INDEXNOW_KEY"),
+              keyLocation: ENV.fetch("INDEXNOW_KEY_LOCATION"),
+              urlList: urls.uniq
+            }
+
+            endpoint = URI(ENV.fetch("INDEXNOW_ENDPOINT"))
+            request = Net::HTTP::Post.new(endpoint)
+            request["Content-Type"] = "application/json; charset=utf-8"
+            request.body = JSON.generate(payload)
+
+            response = Net::HTTP.start(endpoint.host, endpoint.port, use_ssl: true) do |http|
+              http.request(request)
+            end
+
+            puts "Submitted #{payload[:urlList].size} URLs to IndexNow"
+            puts "IndexNow response: #{response.code} #{response.message}"
+
+            unless ["200", "202"].include?(response.code)
+              warn response.body
+              exit 1
+            end
+          '
