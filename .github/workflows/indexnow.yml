@@ -10,6 +10,8 @@ on:
       - ".github/scripts/indexnow.rb"
       - "index.html"
       - "about.md"
+      - "categories.md"
+      - "tags.md"
       - "robots.txt"
       - "34366ad016cd48238ee20158d2a43852.txt"
       - ".github/workflows/indexnow.yml"

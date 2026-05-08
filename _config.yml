@@ -36,6 +36,7 @@ exclude:
   - CLAUDE.md
   - Gemfile
   - Gemfile.lock
+  - test/
   - vendor/
   - .bundle/
   - .claude/

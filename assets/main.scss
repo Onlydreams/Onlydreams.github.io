@@ -315,6 +315,50 @@ html body .highlight {
   padding: 1.5rem;
 }
 
+html body .code-block-with-copy {
+  position: relative;
+}
+
+html body .code-copy-button {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  min-height: 32px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  z-index: 2;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+html body .code-copy-button:hover {
+  color: var(--accent-orange);
+  border-color: var(--accent-orange);
+  background: var(--bg-card);
+}
+
+html body .code-copy-button:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
 /* Ensure pre.highlight does NOT inherit border/padding from .highlight */
 html body pre.highlight,
 html body .highlighter-rouge pre.highlight {
@@ -786,6 +830,40 @@ html body .back-to-list:hover {
   border-color: var(--accent-orange);
   background: rgba(217, 119, 87, 0.06);
   text-decoration: none;
+}
+
+/* ---- Taxonomy Pages ---- */
+html body .taxonomy-intro {
+  margin-bottom: 2rem;
+}
+
+html body .taxonomy-section {
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .taxonomy-section h2 {
+  margin-top: 0;
+  margin-bottom: 0.9rem;
+}
+
+html body .taxonomy-post-list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+html body .taxonomy-post-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+}
+
+html body .taxonomy-post-list time {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 /* ---- Post Layout: article + TOC sidebar ---- */
