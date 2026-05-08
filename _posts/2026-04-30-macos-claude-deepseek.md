@@ -10,6 +10,9 @@ tags: [claude, deepseek, api, third-party-inference]
 
 ---
 
+## 最新更新
+随着 Claude Desktop 的版本更新，直接接入三方模型的方式已经无法起作用，目前需要利用本地代理在Claude Desktop和第三方模型API之间进行“中间人”转换，通过模型ID映射来绕过客户端白名单的限制。可以参考 https://github.com/Ltb2539/UpstreamKit 的解决方案，或者选用cc-switch 的本地路由功能解决。
+
 ## 安装步骤
 
 ### 1. 下载 Claude 桌面客户端并安装
