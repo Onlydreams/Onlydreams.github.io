@@ -2,8 +2,9 @@
 layout: post
 title: "Git 自动代理配置指南"
 date: 2026-05-04 13:00:00 +0800
+updated: 2026-05-09
 categories: [Git, 代理, 效率]
-tags: [git, proxy, ssh]
+tags: [git, proxy, ssh, zsh, github, http-proxy]
 ---
 
 记录 Git HTTP/HTTPS 与 SSH 自动走本地代理的配置方法，覆盖命令行、安装脚本和常见远程仓库访问场景。
