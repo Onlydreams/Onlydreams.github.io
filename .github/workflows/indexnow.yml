@@ -12,6 +12,8 @@ on:
       - "about.md"
       - "categories.md"
       - "tags.md"
+      - "search.md"
+      - "search.json"
       - "robots.txt"
       - "34366ad016cd48238ee20158d2a43852.txt"
       - ".github/workflows/indexnow.yml"

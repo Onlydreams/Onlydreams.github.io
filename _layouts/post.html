@@ -21,6 +21,16 @@ layout: default
           {%- assign fmt = site.minima.date_format | default: "%b %-d, %Y" -%}
           {{ page.date | date: fmt }}
         </time>
+        {%- if page.updated -%}
+          • 更新于
+          <time
+            class="dt-updated"
+            datetime="{{ page.updated | date_to_xmlschema }}"
+            itemprop="dateModified"
+          >
+            {{ page.updated | date: "%Y-%m-%d" }}
+          </time>
+        {%- endif -%}
         {%- if page.author -%} •
         <span itemprop="author" itemscope itemtype="http://schema.org/Person"
           ><span class="p-author h-card" itemprop="name"

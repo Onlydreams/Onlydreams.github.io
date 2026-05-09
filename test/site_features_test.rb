@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require "json"
 
 class SiteFeaturesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
@@ -51,5 +52,31 @@ class SiteFeaturesTest < Minitest::Test
 
     styles = File.read(File.join(ROOT, "assets/main.scss"))
     assert_includes styles, ".code-copy-button:focus-visible"
+  end
+
+  def test_search_page_and_index_are_available
+    html = read_site("search/index.html")
+    index = JSON.parse(read_site("search.json"))
+    script = File.read(File.join(ROOT, "assets/js/theme.js"))
+
+    assert_includes html, 'id="search-input"'
+    assert_includes html, 'id="search-results"'
+    assert_includes html, "/search.json"
+    assert index.any? { |item| item["title"].include?("Claude") && item["url"] == "/posts/macos-claude-deepseek/" }
+    assert index.all? { |item| item["content"].length <= 320 }
+    assert_includes script, "initSiteSearch"
+    assert_includes script, "renderSearchResults"
+    assert_includes script, "加载搜索索引"
+    assert_includes script, "compositionstart"
+    assert_includes script, "compositionend"
+    assert_includes script, "if (composing) return"
+  end
+
+  def test_posts_render_updated_time_when_present
+    html = read_site("posts/macos-claude-deepseek/index.html")
+
+    assert_includes html, "更新于"
+    assert_includes html, "2026-05-09"
+    assert_includes html, 'itemprop="dateModified"'
   end
 end
