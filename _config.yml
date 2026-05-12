@@ -25,6 +25,19 @@ permalink: /posts/:slug/
 
 author: Onlydreams
 
+giscus:
+  repo: Onlydreams/Onlydreams.github.io
+  repo_id: R_kgDOSMNeyw
+  category: Announcements
+  category_id: DIC_kwDOSMNey84C7rBn
+  mapping: pathname
+  strict: 0
+  reactions_enabled: 1
+  emit_metadata: 0
+  input_position: bottom
+  theme: https://onlydreams.github.io/assets/giscus-theme.css
+  lang: zh-CN
+
 google_analytics: "" # 如需追踪访问，可填入 GA ID
 google_site_verification: "B-hXn9Cx-yQQaaAPbNdy8e3dOZikOumMq6wwktxotgU"
 bing_site_verification: "" # Bing Webmaster Tools 验证码

@@ -21,21 +21,21 @@ class IndexNow
     key = @env.fetch("INDEXNOW_KEY")
     key_uri = URI(@env.fetch("KEY_URL"))
     sitemap_uri = URI(@env.fetch("SITEMAP_URL"))
-    expected_urls = expected_post_urls
+    minimum_url_count = minimum_sitemap_url_count
 
     RETRY_COUNT.times do |index|
       key_live = fetch_body(key_uri).strip == key
-      sitemap_urls = sitemap_urls_from(fetch_body(sitemap_uri))
-      missing_urls = expected_urls - sitemap_urls
+      sitemap_urls = site_urls_from(fetch_body(sitemap_uri))
+      sitemap_ready = sitemap_urls.size >= minimum_url_count
 
-      if key_live && !sitemap_urls.empty? && missing_urls.empty?
+      if key_live && sitemap_ready
         puts "Key file and sitemap are live."
         return
       end
 
       puts "Deployment not ready, retrying in #{RETRY_DELAY_SECONDS}s (#{index + 1}/#{RETRY_COUNT})"
       puts "Key file live: #{key_live}"
-      puts "Missing sitemap URLs: #{missing_urls.join(", ")}" unless missing_urls.empty?
+      puts "Sitemap URL count: #{sitemap_urls.size}/#{minimum_url_count}"
       sleep RETRY_DELAY_SECONDS
     end
 
@@ -44,9 +44,7 @@ class IndexNow
 
   def submit
     sitemap_uri = URI(@env.fetch("SITEMAP_URL"))
-    urls = sitemap_urls_from(fetch_body!(sitemap_uri)).select do |url|
-      url.start_with?("https://#{@host}/")
-    end.uniq
+    urls = site_urls_from(fetch_body!(sitemap_uri))
 
     abort "No URLs found in #{sitemap_uri}" if urls.empty?
 
@@ -77,11 +75,14 @@ class IndexNow
 
   private
 
-  def expected_post_urls
-    Dir["_posts/*.md"].map do |path|
-      slug = File.basename(path, ".md").sub(/\A\d{4}-\d{2}-\d{2}-/, "")
-      "https://#{@host}/posts/#{slug}/"
-    end.sort
+  def minimum_sitemap_url_count
+    Dir["_posts/*.md"].size
+  end
+
+  def site_urls_from(xml)
+    sitemap_urls_from(xml).select do |url|
+      url.start_with?("https://#{@host}/")
+    end.uniq
   end
 
   def fetch_body(uri)

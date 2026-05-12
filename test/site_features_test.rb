@@ -79,4 +79,13 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "2026-05-09"
     assert_includes html, 'itemprop="dateModified"'
   end
+
+  def test_posts_render_giscus_comments
+    html = read_site("posts/macos-claude-deepseek/index.html")
+
+    assert_includes html, "https://giscus.app/client.js"
+    assert_includes html, 'data-repo="Onlydreams/Onlydreams.github.io"'
+    assert_includes html, 'data-category="Announcements"'
+    assert_includes html, 'data-lang="zh-CN"'
+  end
 end

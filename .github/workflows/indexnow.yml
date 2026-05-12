@@ -6,8 +6,12 @@ on:
       - main
     paths:
       - "_posts/**"
+      - "_includes/**"
+      - "_layouts/**"
+      - "assets/**"
       - "_config.yml"
       - ".github/scripts/indexnow.rb"
+      - "**/*.html"
       - "index.html"
       - "about.md"
       - "categories.md"
