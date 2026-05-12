@@ -14,6 +14,7 @@
   let lastPostedGiscusTheme = null;
   let pendingGiscusTheme = null;
 
+  // Theme state
   function getSystemTheme() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
@@ -45,6 +46,7 @@
     updateGiscusTheme(theme);
   }
 
+  // Giscus theme sync
   function sendGiscusMessage(message, retries, onPost, onGiveUp) {
     retries = retries || 0;
     const iframe = document.querySelector("iframe.giscus-frame");
@@ -139,6 +141,7 @@
     );
   }
 
+  // Navigation and article enhancements
   function markActiveNav() {
     const path = window.location.pathname.replace(/\/$/, "") || "/";
     document.querySelectorAll(".site-nav .page-link").forEach(function (link) {
@@ -166,6 +169,7 @@
     });
   }
 
+  // Back to top
   function initBackToTop() {
     const btn = document.getElementById("back-to-top");
     if (!btn) return;
@@ -197,6 +201,7 @@
     onScroll();
   }
 
+  // Code copy buttons
   function copyText(text) {
     if (navigator.clipboard && window.isSecureContext) {
       return navigator.clipboard.writeText(text).catch(function () {
@@ -276,6 +281,7 @@
       });
   }
 
+  // Site search
   function normalizeSearchText(value) {
     return (value || "").toString().trim().toLowerCase();
   }
@@ -389,6 +395,7 @@
       });
   }
 
+  // Page bootstrap
   function init() {
     const theme = getTheme();
     applyTheme(theme);
