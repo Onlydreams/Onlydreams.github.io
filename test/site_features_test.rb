@@ -81,7 +81,7 @@ class SiteFeaturesTest < Minitest::Test
   end
 
   def test_code_copy_button_behavior_is_available
-    script = File.read(File.join(ROOT, "assets/js/theme.js"))
+    script = File.read(File.join(ROOT, "assets/js/code-copy.js"))
 
     assert_includes script, "initCodeCopyButtons"
     assert_includes script, "navigator.clipboard.writeText"
@@ -99,7 +99,7 @@ class SiteFeaturesTest < Minitest::Test
   def test_search_page_and_index_are_available
     html = read_site("search/index.html")
     index = JSON.parse(read_site("search.json"))
-    script = File.read(File.join(ROOT, "assets/js/theme.js"))
+    script = File.read(File.join(ROOT, "assets/js/search.js"))
 
     assert_includes html, 'id="search-input"'
     assert_includes html, 'id="search-results"'
@@ -184,10 +184,28 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, 'data-theme-dark="https://onlydreams.github.io/assets/giscus-theme-dark.css"'
     assert_includes html, 'data-lang="zh-CN"'
 
-    script = File.read(File.join(ROOT, "assets/js/theme.js"))
+    script = File.read(File.join(ROOT, "assets/js/theme-toggle.js"))
     refute_includes script, "const GISCUS_LIGHT ="
     refute_includes script, "const GISCUS_DARK ="
     assert_includes script, "getGiscusThemeUrl"
+  end
+
+  def test_default_layout_loads_split_javascript_modules
+    html = read_site("posts/auto-proxy-setup/index.html")
+    expected_scripts = [
+      "/assets/js/theme-toggle.js",
+      "/assets/js/page-enhancements.js",
+      "/assets/js/code-copy.js",
+      "/assets/js/search.js"
+    ]
+
+    script_positions = expected_scripts.map do |script_path|
+      assert_includes html, %("#{script_path}" defer)
+      html.index(script_path)
+    end
+
+    assert_equal script_positions.sort, script_positions
+    refute_includes html, "/assets/js/theme.js"
   end
 
   def test_cross_platform_test_entrypoints_are_available
