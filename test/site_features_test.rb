@@ -5,6 +5,7 @@ require "json"
 require "tmpdir"
 
 require_relative "../.github/scripts/indexnow"
+require_relative "../_plugins/toc_filter"
 
 class SiteFeaturesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
@@ -39,6 +40,44 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_includes html, 'class="post-toc"'
     assert_includes html, 'href="#shell-环境变量"'
+  end
+
+  def test_toc_filter_reads_rendered_heading_elements
+    toc = TocFilter.toc_from_html(<<~HTML)
+      <h1 id="page-title">Page Title</h1>
+      <h2 class="section" id="default-heading">Default <code>Heading</code></h2>
+      <h3 data-extra="1" id="custom-heading">Custom Heading</h3>
+      <h4 id="ignored-heading">Ignored Heading</h4>
+    HTML
+
+    assert_includes toc, 'href="#default-heading"'
+    assert_includes toc, "Default Heading"
+    assert_includes toc, 'href="#custom-heading"'
+    assert_includes toc, "Custom Heading"
+    refute_includes toc, "Ignored Heading"
+  end
+
+  def test_toc_filter_ignores_non_xml_body_html
+    toc = TocFilter.toc_from_html(<<~HTML)
+      <h2 id="first">First</h2>
+      <p>Raw HTML can contain a void tag<br>without XML closing syntax.</p>
+      <h2 id="second">Second</h2>
+    HTML
+
+    assert_includes toc, 'href="#first"'
+    assert_includes toc, 'href="#second"'
+  end
+
+  def test_toc_filter_handles_heading_entities_and_escaping
+    toc = TocFilter.toc_from_html(<<~HTML)
+      <h2 id="a&amp;b">A&nbsp;&amp;&nbsp;B</h2>
+      <h3 id="danger">&lt;script&gt;</h3>
+    HTML
+
+    assert_includes toc, 'href="#a&amp;b"'
+    assert_includes toc, "A\u00A0&amp;\u00A0B"
+    assert_includes toc, "&lt;script&gt;"
+    refute_includes toc, "<script>"
   end
 
   def test_code_copy_button_behavior_is_available
@@ -155,9 +194,9 @@ class SiteFeaturesTest < Minitest::Test
     bash_script = File.read(File.join(ROOT, "bin/test"))
     powershell_script = File.read(File.join(ROOT, "bin/test.ps1"))
 
-    assert_includes bash_script, "ruby test/site_features_test.rb"
+    assert_includes bash_script, "bundle exec ruby test/site_features_test.rb"
     assert_includes powershell_script, "bundle exec jekyll build"
-    assert_includes powershell_script, "ruby test/site_features_test.rb"
+    assert_includes powershell_script, "bundle exec ruby test/site_features_test.rb"
   end
 
   def test_indexnow_wait_checks_expected_site_urls

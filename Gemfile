@@ -7,6 +7,7 @@ gem "jekyll-sitemap"
 gem "jekyll-seo-tag"
 gem "jekyll-paginate"
 gem "jekyll-sass-converter", "~> 2.2"
+gem "minitest"
 
 # Ruby 3.4+ 移除了一些标准库，需要显式声明。
 gem "csv"

@@ -1,31 +1,5 @@
 {%- comment -%}
-  Pure Liquid TOC generator: extracts h2/h3 headings from rendered HTML.
-  When no h2 headings exist, outputs nothing.
+  Generates a h2/h3 table of contents from rendered post HTML.
   Usage: {% include toc.html html=content %}
 {%- endcomment -%}
-{%- assign sections = include.html | split: '<h2 id="' -%}
-{%- if sections.size > 1 -%}
-<aside class="post-toc">
-  <h2 class="toc-title">目录</h2>
-  <ul id="markdown-toc">
-{%- for section in sections offset: 1 -%}
-  {%- assign pre = section | split: '</h2>' | first -%}
-  {%- assign h2_id = pre | split: '"' | first -%}
-  {%- assign h2_text = pre | split: '">' | last | strip_html | strip_newlines | strip -%}
-    <li><a href="#{{ h2_id }}">{{ h2_text }}</a>
-  {%- assign subs = section | split: '<h3 id="' -%}
-  {%- if subs.size > 1 -%}
-      <ul>
-  {%- for sub in subs offset: 1 -%}
-    {%- assign sub_pre = sub | split: '</h3>' | first -%}
-    {%- assign h3_id = sub_pre | split: '"' | first -%}
-    {%- assign h3_text = sub_pre | split: '">' | last | strip_html | strip_newlines | strip -%}
-        <li><a href="#{{ h3_id }}">{{ h3_text }}</a></li>
-  {%- endfor -%}
-      </ul>
-  {%- endif -%}
-    </li>
-{%- endfor -%}
-  </ul>
-</aside>
-{%- endif -%}
+{{- include.html | toc_from_html -}}
