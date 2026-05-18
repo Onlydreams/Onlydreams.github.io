@@ -28,8 +28,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Build local sitemap
+        run: bundle exec jekyll build
+
       - name: Wait for sitemap deployment
         env:
+          EXPECTED_SITEMAP_PATH: _site/sitemap.xml
           INDEXNOW_HOST: onlydreams.github.io
           INDEXNOW_KEY: 34366ad016cd48238ee20158d2a43852
           KEY_URL: https://onlydreams.github.io/34366ad016cd48238ee20158d2a43852.txt

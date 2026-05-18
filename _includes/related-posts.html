@@ -1,0 +1,43 @@
+{%- capture related_posts -%}
+  {%- assign related_count = 0 -%}
+  {%- assign related_urls = "|" -%}
+  {%- for post in site.posts -%}
+    {%- if post.url != page.url and related_count < 4 -%}
+      {%- assign is_related = false -%}
+      {%- for tag in page.tags -%}
+        {%- if post.tags contains tag -%}
+          {%- assign is_related = true -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- for category in page.categories -%}
+        {%- if post.categories contains category -%}
+          {%- assign is_related = true -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- assign url_marker = post.url | append: "|" | prepend: "|" -%}
+      {%- unless related_urls contains url_marker -%}
+        {%- if is_related -%}
+          {%- assign related_urls = related_urls | append: post.url | append: "|" -%}
+          {%- assign related_count = related_count | plus: 1 -%}
+          <li>
+            <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+            {%- if post.tags.size > 0 -%}
+              <span class="related-post-tags">
+                {{ post.tags | slice: 0, 3 | join: " / " }}
+              </span>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endunless -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if related_count > 0 -%}
+  <section class="related-posts" aria-labelledby="related-posts-title">
+    <h2 id="related-posts-title">相关文章</h2>
+    <ul>
+      {{ related_posts }}
+    </ul>
+  </section>
+{%- endif -%}

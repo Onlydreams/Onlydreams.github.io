@@ -2,6 +2,9 @@
 
 require "minitest/autorun"
 require "json"
+require "tmpdir"
+
+require_relative "../.github/scripts/indexnow"
 
 class SiteFeaturesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
@@ -138,6 +141,58 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "https://giscus.app/client.js"
     assert_includes html, 'data-repo="Onlydreams/Onlydreams.github.io"'
     assert_includes html, 'data-category="Announcements"'
+    assert_includes html, 'data-theme-light="https://onlydreams.github.io/assets/giscus-theme.css"'
+    assert_includes html, 'data-theme-dark="https://onlydreams.github.io/assets/giscus-theme-dark.css"'
     assert_includes html, 'data-lang="zh-CN"'
+
+    script = File.read(File.join(ROOT, "assets/js/theme.js"))
+    refute_includes script, "const GISCUS_LIGHT ="
+    refute_includes script, "const GISCUS_DARK ="
+    assert_includes script, "getGiscusThemeUrl"
+  end
+
+  def test_cross_platform_test_entrypoints_are_available
+    bash_script = File.read(File.join(ROOT, "bin/test"))
+    powershell_script = File.read(File.join(ROOT, "bin/test.ps1"))
+
+    assert_includes bash_script, "ruby test/site_features_test.rb"
+    assert_includes powershell_script, "bundle exec jekyll build"
+    assert_includes powershell_script, "ruby test/site_features_test.rb"
+  end
+
+  def test_indexnow_wait_checks_expected_site_urls
+    script = File.read(File.join(ROOT, ".github/scripts/indexnow.rb"))
+
+    assert_includes script, "expected_site_urls"
+    assert_includes script, "missing_urls"
+    assert_includes script, "Missing sitemap URLs"
+    refute_includes script, "minimum_sitemap_url_count"
+  end
+
+  def test_indexnow_expected_urls_come_from_built_sitemap
+    Dir.mktmpdir do |dir|
+      sitemap_path = File.join(dir, "sitemap.xml")
+      File.write(sitemap_path, <<~XML)
+        <?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url><loc>https://onlydreams.github.io/custom-post-path/</loc></url>
+          <url><loc>https://other.example.com/ignored/</loc></url>
+        </urlset>
+      XML
+
+      indexnow = IndexNow.new(
+        "INDEXNOW_HOST" => "onlydreams.github.io",
+        "EXPECTED_SITEMAP_PATH" => sitemap_path
+      )
+
+      assert_equal ["https://onlydreams.github.io/custom-post-path/"], indexnow.send(:expected_site_urls)
+    end
+  end
+
+  def test_indexnow_workflow_builds_local_sitemap_before_waiting
+    workflow = File.read(File.join(ROOT, ".github/workflows/indexnow.yml"))
+
+    assert_includes workflow, "bundle exec jekyll build"
+    assert_includes workflow, "EXPECTED_SITEMAP_PATH: _site/sitemap.xml"
   end
 end

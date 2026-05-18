@@ -21,21 +21,21 @@ class IndexNow
     key = @env.fetch("INDEXNOW_KEY")
     key_uri = URI(@env.fetch("KEY_URL"))
     sitemap_uri = URI(@env.fetch("SITEMAP_URL"))
-    minimum_url_count = minimum_sitemap_url_count
+    expected_urls = expected_site_urls
 
     RETRY_COUNT.times do |index|
       key_live = fetch_body(key_uri).strip == key
       sitemap_urls = site_urls_from(fetch_body(sitemap_uri))
-      sitemap_ready = sitemap_urls.size >= minimum_url_count
+      missing_urls = expected_urls - sitemap_urls
 
-      if key_live && sitemap_ready
+      if key_live && missing_urls.empty?
         puts "Key file and sitemap are live."
         return
       end
 
       puts "Deployment not ready, retrying in #{RETRY_DELAY_SECONDS}s (#{index + 1}/#{RETRY_COUNT})"
       puts "Key file live: #{key_live}"
-      puts "Sitemap URL count: #{sitemap_urls.size}/#{minimum_url_count}"
+      puts "Missing sitemap URLs: #{missing_urls.join(", ")}" unless missing_urls.empty?
       sleep RETRY_DELAY_SECONDS
     end
 
@@ -75,8 +75,11 @@ class IndexNow
 
   private
 
-  def minimum_sitemap_url_count
-    Dir["_posts/*.md"].size
+  def expected_site_urls
+    sitemap_path = @env.fetch("EXPECTED_SITEMAP_PATH", "_site/sitemap.xml")
+    abort "Expected sitemap not found at #{sitemap_path}" unless File.file?(sitemap_path)
+
+    site_urls_from(File.read(sitemap_path)).sort
   end
 
   def site_urls_from(xml)

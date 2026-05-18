@@ -36,6 +36,7 @@ giscus:
   emit_metadata: 0
   input_position: bottom
   theme: https://onlydreams.github.io/assets/giscus-theme.css
+  theme_dark: https://onlydreams.github.io/assets/giscus-theme-dark.css
   lang: zh-CN
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
