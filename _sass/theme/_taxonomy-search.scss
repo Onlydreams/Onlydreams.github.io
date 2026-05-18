@@ -1,0 +1,161 @@
+/* ---- Taxonomy Pages ---- */
+html body .taxonomy-intro {
+  margin-bottom: 2rem;
+}
+
+html body .taxonomy-section {
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .taxonomy-section h2 {
+  margin-top: 0;
+  margin-bottom: 0.9rem;
+}
+
+html body .taxonomy-post-list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+html body .taxonomy-post-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+}
+
+html body .taxonomy-post-list time {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---- Search Page ---- */
+html body .search-page {
+  margin-top: 1.5rem;
+}
+
+html body .search-label {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: var(--text-primary);
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-weight: 600;
+}
+
+html body .search-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+html body .search-input:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+html body .search-status {
+  margin: 0.8rem 0 1.2rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+html body .search-results {
+  margin-left: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+html body .search-result {
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .search-result > a {
+  color: var(--text-primary);
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-weight: 600;
+}
+
+html body .search-result-meta {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+html body .search-result-excerpt {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ---- Related Posts ---- */
+html body .related-posts {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .related-posts h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+html body .related-posts ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+html body .related-posts li {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .related-posts li:first-child {
+  border-top: none;
+}
+
+html body .related-posts a {
+  color: var(--text-primary);
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-weight: 600;
+}
+
+html body .related-post-tags {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}

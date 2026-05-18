@@ -1,0 +1,26 @@
+/* ---- Color Palette ---- */
+:root {
+  --bg-primary: #faf9f5;
+  --bg-secondary: #f0ede6;
+  --bg-card: #ffffff;
+  --text-primary: #141413;
+  --text-secondary: #5c5c5c;
+  --text-muted: #6b6b6b;
+  --accent-orange: #d97757;
+  --accent-orange-light: rgba(217, 119, 87, 0.12);
+  --border-color: #e0dcd3;
+  --code-bg: #ede9e0;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1e1d1a;
+  --bg-secondary: #2a2926;
+  --bg-card: #2b2a26;
+  --text-primary: #e8e6df;
+  --text-secondary: #a8a29e;
+  --text-muted: #9a9690;
+  --accent-orange: #e88c6a;
+  --accent-orange-light: rgba(217, 119, 87, 0.15);
+  --border-color: #3d3830;
+  --code-bg: #2a2723;
+}

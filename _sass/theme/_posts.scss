@@ -1,0 +1,127 @@
+/* ---- Posts List ---- */
+html body .post-list {
+  margin-top: 2rem;
+}
+
+html body .post-list > li {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+html body .post-list > li:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Stretched link: entire card becomes clickable */
+html body .post-list h3 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* Fallback: keep focus ring on the anchor itself for browsers without :has() */
+html body .post-list h3 a:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+/* Move focus ring to the whole card via :has() — browsers that don't support :has() ignore this and use the fallback above */
+html body .post-list h3 a:focus-visible {
+  outline: none;
+}
+
+html body .post-list > li:has(h3 a:focus-visible) {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+html body .post-list .post-meta {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+html body .post-list h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+html body .post-list h3 a {
+  color: var(--text-primary);
+}
+
+html body .post-list h3 a:hover {
+  color: var(--accent-orange);
+}
+
+html body .post-card-excerpt {
+  position: relative;
+  z-index: 2;
+  margin: 0.65rem 0 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+html body .post-card-tags {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+html body .post-card-tags a {
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+html body .post-card-tags a:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  text-decoration: none;
+}
+
+html body .post-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---- Single Post ---- */
+html body .post-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+html body .post-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+html body .post-content h2 {
+  border-bottom: 2px solid var(--accent-orange-light);
+  padding-bottom: 0.5rem;
+}
+
+html body .post-content h3 {
+  color: var(--accent-orange);
+}

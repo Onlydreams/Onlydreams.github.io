@@ -1,0 +1,347 @@
+/* ---- Code Blocks ---- */
+html body pre,
+html body code {
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+html body code {
+  background-color: var(--code-bg);
+  color: var(--accent-orange);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+html body pre {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow-x: auto;
+  margin: 0;
+}
+
+html body pre code {
+  background: none;
+  color: var(--text-primary);
+  padding: 0;
+  border-radius: 0;
+  border: none;
+}
+
+/* ---- Syntax Highlighting (Rouge) - Light Mode ---- */
+/* Override minima default .highlighter-rouge .highlight background */
+html body .highlighter-rouge {
+  margin: 1.5rem 0;
+}
+
+html body .highlighter-rouge .highlight,
+html body .highlight {
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+html body .code-block-with-copy {
+  position: relative;
+}
+
+html body .code-copy-button {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  min-height: 32px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  z-index: 2;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+html body .code-copy-button:hover {
+  color: var(--accent-orange);
+  border-color: var(--accent-orange);
+  background: var(--bg-card);
+}
+
+html body .code-copy-button:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+/* Ensure pre.highlight does NOT inherit border/padding from .highlight */
+html body pre.highlight,
+html body .highlighter-rouge pre.highlight {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto;
+}
+
+/* Override minima default token backgrounds */
+html body .highlight .err,
+html body .highlight .gd,
+html body .highlight .gd .x,
+html body .highlight .gi,
+html body .highlight .gi .x {
+  background: none !important;
+}
+
+/* Ensure no stray backgrounds inside highlight at all */
+html body .highlight pre,
+html body .highlight code,
+html body .highlight span,
+html body .highlight div,
+html body .highlight table,
+html body .highlight td,
+html body .highlight tr {
+  background: transparent !important;
+}
+
+.highlight .c,
+.highlight .cm,
+.highlight .c1,
+.highlight .cp {
+  color: #9c9a92;
+}
+
+.highlight .k,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt {
+  color: #788c5d;
+}
+
+.highlight .s,
+.highlight .sb,
+.highlight .sc,
+.highlight .sd,
+.highlight .s2,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx,
+.highlight .sr,
+.highlight .s1,
+.highlight .ss {
+  color: #6a9bcc;
+}
+
+.highlight .m,
+.highlight .mf,
+.highlight .mh,
+.highlight .mi,
+.highlight .mo,
+.highlight .il {
+  color: #4a4842;
+}
+
+.highlight .n,
+.highlight .na,
+.highlight .nb,
+.highlight .nc,
+.highlight .no,
+.highlight .nd,
+.highlight .ni,
+.highlight .ne,
+.highlight .nl,
+.highlight .nn,
+.highlight .nt,
+.highlight .nv,
+.highlight .vc,
+.highlight .vg,
+.highlight .vi,
+.highlight .bp {
+  color: #5c5c5c;
+}
+
+.highlight .nf {
+  color: #d97757;
+}
+
+.highlight .o,
+.highlight .ow {
+  color: #b0aea5;
+}
+
+.highlight .err {
+  color: #c45c5c;
+  background: rgba(196, 92, 92, 0.08);
+}
+
+/* ---- Syntax Highlighting (Rouge) - Dark Mode ---- */
+[data-theme="dark"] .highlighter-rouge .highlight,
+[data-theme="dark"] .highlight {
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+[data-theme="dark"] pre.highlight,
+[data-theme="dark"] .highlighter-rouge pre.highlight {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto;
+}
+
+[data-theme="dark"] .highlight .err,
+[data-theme="dark"] .highlight .gd,
+[data-theme="dark"] .highlight .gd .x,
+[data-theme="dark"] .highlight .gi,
+[data-theme="dark"] .highlight .gi .x {
+  background: none !important;
+}
+
+[data-theme="dark"] .highlight pre,
+[data-theme="dark"] .highlight code,
+[data-theme="dark"] .highlight span,
+[data-theme="dark"] .highlight div,
+[data-theme="dark"] .highlight table,
+[data-theme="dark"] .highlight td,
+[data-theme="dark"] .highlight tr {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .highlight .c,
+[data-theme="dark"] .highlight .cm,
+[data-theme="dark"] .highlight .c1,
+[data-theme="dark"] .highlight .cp {
+  color: #7a7870;
+}
+
+[data-theme="dark"] .highlight .k,
+[data-theme="dark"] .highlight .kc,
+[data-theme="dark"] .highlight .kd,
+[data-theme="dark"] .highlight .kn,
+[data-theme="dark"] .highlight .kp,
+[data-theme="dark"] .highlight .kr,
+[data-theme="dark"] .highlight .kt {
+  color: #788c5d;
+}
+
+[data-theme="dark"] .highlight .s,
+[data-theme="dark"] .highlight .sb,
+[data-theme="dark"] .highlight .sc,
+[data-theme="dark"] .highlight .sd,
+[data-theme="dark"] .highlight .s2,
+[data-theme="dark"] .highlight .se,
+[data-theme="dark"] .highlight .sh,
+[data-theme="dark"] .highlight .si,
+[data-theme="dark"] .highlight .sx,
+[data-theme="dark"] .highlight .sr,
+[data-theme="dark"] .highlight .s1,
+[data-theme="dark"] .highlight .ss {
+  color: #6a9bcc;
+}
+
+[data-theme="dark"] .highlight .m,
+[data-theme="dark"] .highlight .mf,
+[data-theme="dark"] .highlight .mh,
+[data-theme="dark"] .highlight .mi,
+[data-theme="dark"] .highlight .mo,
+[data-theme="dark"] .highlight .il {
+  color: #a8a29e;
+}
+
+[data-theme="dark"] .highlight .n,
+[data-theme="dark"] .highlight .na,
+[data-theme="dark"] .highlight .nb,
+[data-theme="dark"] .highlight .nc,
+[data-theme="dark"] .highlight .no,
+[data-theme="dark"] .highlight .nd,
+[data-theme="dark"] .highlight .ni,
+[data-theme="dark"] .highlight .ne,
+[data-theme="dark"] .highlight .nl,
+[data-theme="dark"] .highlight .nn,
+[data-theme="dark"] .highlight .nt,
+[data-theme="dark"] .highlight .nv,
+[data-theme="dark"] .highlight .vc,
+[data-theme="dark"] .highlight .vg,
+[data-theme="dark"] .highlight .vi,
+[data-theme="dark"] .highlight .bp {
+  color: #a8a29e;
+}
+
+[data-theme="dark"] .highlight .nf {
+  color: #d97757;
+}
+
+[data-theme="dark"] .highlight .o,
+[data-theme="dark"] .highlight .ow {
+  color: #78716c;
+}
+
+[data-theme="dark"] .highlight .err {
+  color: #c45c5c;
+  background: rgba(196, 92, 92, 0.1);
+}
+
+/* ---- Dark Mode: Tables ---- */
+[data-theme="dark"] table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+[data-theme="dark"] thead,
+[data-theme="dark"] th {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] tbody tr {
+  background: var(--bg-card) !important;
+  border: none !important;
+}
+
+[data-theme="dark"] tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+[data-theme="dark"] td {
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* ---- Dark Mode: Inline Code ---- */
+[data-theme="dark"] code {
+  border: 1px solid var(--border-color);
+  background: var(--code-bg);
+}
+
+[data-theme="dark"] pre code {
+  border: none;
+  background: none;
+}
