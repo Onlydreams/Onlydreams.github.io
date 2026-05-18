@@ -80,6 +80,58 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, 'itemprop="dateModified"'
   end
 
+  def test_home_page_shows_excerpts_tags_and_updated_time
+    html = read_site("index.html")
+    tags_html = read_site("tags/index.html")
+
+    assert_includes html, 'class="post-card-excerpt"'
+    assert_includes html, 'class="post-card-tags"'
+    assert_includes html, "/tags/#tag-codex"
+    assert_includes tags_html, 'id="tag-codex"'
+    assert_includes html, 'class="post-updated"'
+    assert_includes html, "<time datetime="
+  end
+
+  def test_post_pages_render_adjacent_post_navigation
+    html = read_site("posts/global-agents-context/index.html")
+
+    assert_includes html, 'class="post-adjacent-nav"'
+    assert_includes html, "上一篇"
+    assert_includes html, "/posts/skillshare-guide/"
+    assert_includes html, "下一篇"
+    assert_includes html, "/posts/codex-desktop-gpu-rendering-bug/"
+  end
+
+  def test_post_adjacent_navigation_renders_before_comments
+    html = read_site("posts/codex-desktop-gpu-rendering-bug/index.html")
+
+    adjacent_index = html.index('class="post-adjacent-nav"')
+    comments_index = html.index('class="giscus-comments"')
+
+    refute_nil adjacent_index
+    refute_nil comments_index
+    assert_operator adjacent_index, :<, comments_index
+  end
+
+  def test_single_adjacent_post_navigation_uses_directional_half_width_on_desktop
+    styles = File.read(File.join(ROOT, "assets/main.scss"))
+
+    assert_includes styles, "grid-template-columns: repeat(2, minmax(0, 1fr))"
+    assert_includes styles, ".post-adjacent-link.next"
+    assert_includes styles, "grid-column: 2"
+    refute_includes styles, ".post-adjacent-link:only-child"
+  end
+
+  def test_post_pages_render_related_posts
+    html = read_site("posts/codex-desktop-gpu-rendering-bug/index.html")
+
+    assert_includes html, 'class="related-posts"'
+    assert_includes html, "相关文章"
+    assert_includes html, "/posts/macos-claude-deepseek/"
+    assert_includes html, '<span class="related-post-tags">'
+    assert_includes html, "claude / deepseek / api"
+  end
+
   def test_posts_render_giscus_comments
     html = read_site("posts/macos-claude-deepseek/index.html")
 
