@@ -1,5 +1,15 @@
 {%- comment -%}
-  Generates a h2/h3 table of contents from rendered post HTML.
+  Client-side h2/h3 table of contents placeholder.
   Usage: {% include toc.html html=content %}
 {%- endcomment -%}
-{{- include.html | toc_from_html -}}
+<aside
+  class="post-toc"
+  aria-labelledby="post-toc-title"
+  data-toc-source=".post-content"
+>
+  <h2 id="post-toc-title" class="toc-title">目录</h2>
+  <ul id="markdown-toc"></ul>
+  <noscript>
+    <p class="toc-fallback">目录需要启用 JavaScript 后显示。</p>
+  </noscript>
+</aside>

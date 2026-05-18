@@ -2,10 +2,10 @@
 
 require "minitest/autorun"
 require "json"
+require "open3"
 require "tmpdir"
 
 require_relative "../.github/scripts/indexnow"
-require_relative "../_plugins/toc_filter"
 
 class SiteFeaturesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
@@ -39,45 +39,49 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("posts/auto-proxy-setup/index.html")
 
     assert_includes html, 'class="post-toc"'
-    assert_includes html, 'href="#shell-环境变量"'
+    assert_includes html, 'data-toc-source=".post-content"'
+    assert_includes html, "目录需要启用 JavaScript 后显示。"
+    refute_includes html, "toc_from_html"
   end
 
-  def test_toc_filter_reads_rendered_heading_elements
-    toc = TocFilter.toc_from_html(<<~HTML)
-      <h1 id="page-title">Page Title</h1>
-      <h2 class="section" id="default-heading">Default <code>Heading</code></h2>
-      <h3 data-extra="1" id="custom-heading">Custom Heading</h3>
-      <h4 id="ignored-heading">Ignored Heading</h4>
-    HTML
+  def test_toc_is_generated_without_custom_jekyll_plugins
+    script = File.read(File.join(ROOT, "assets/js/page-enhancements.js"))
 
-    assert_includes toc, 'href="#default-heading"'
-    assert_includes toc, "Default Heading"
-    assert_includes toc, 'href="#custom-heading"'
-    assert_includes toc, "Custom Heading"
-    refute_includes toc, "Ignored Heading"
+    assert_includes script, "initPostToc"
+    assert_includes script, "querySelectorAll(\"h2[id], h3[id]\")"
+    assert_includes script, "data-toc-source"
+    assert_includes script, "window.SiteEnhancements.initPostToc"
+    refute_path_exists File.join(ROOT, "_plugins", "toc_filter.rb")
+    refute_path_exists File.join(ROOT, ".github", "workflows", "pages.yml")
   end
 
-  def test_toc_filter_ignores_non_xml_body_html
-    toc = TocFilter.toc_from_html(<<~HTML)
-      <h2 id="first">First</h2>
-      <p>Raw HTML can contain a void tag<br>without XML closing syntax.</p>
-      <h2 id="second">Second</h2>
-    HTML
+  def test_client_toc_builds_nested_links_from_article_headings
+    result = run_page_enhancements_dom_test(<<~JS)
+      const toc = buildToc([
+        new Element("h2", { id: "intro", textContent: "Intro <safe>" }),
+        new Element("h3", { id: "details", textContent: "Details" }),
+        new Element("h2", { id: "next", textContent: "Next" })
+      ]);
 
-    assert_includes toc, 'href="#first"'
-    assert_includes toc, 'href="#second"'
+      assert(toc.hidden === false, "toc should be visible");
+      assert(toc.list.children.length === 2, "toc should contain two top-level items");
+      assert(toc.list.children[0].children[0].href === "#intro", "first link should target first h2");
+      assert(toc.list.children[0].children[0].textContent === "Intro <safe>", "link text should use textContent");
+      assert(toc.list.children[0].children[1].children[0].children[0].href === "#details", "h3 should nest below previous h2");
+      assert(toc.list.children[1].children[0].href === "#next", "second h2 should be top-level");
+    JS
+
+    assert_equal "", result
   end
 
-  def test_toc_filter_handles_heading_entities_and_escaping
-    toc = TocFilter.toc_from_html(<<~HTML)
-      <h2 id="a&amp;b">A&nbsp;&amp;&nbsp;B</h2>
-      <h3 id="danger">&lt;script&gt;</h3>
-    HTML
+  def test_client_toc_hides_empty_heading_lists
+    result = run_page_enhancements_dom_test(<<~JS)
+      const toc = buildToc([]);
+      assert(toc.hidden === true, "toc should stay hidden without headings");
+      assert(toc.list.children.length === 0, "empty toc should not create items");
+    JS
 
-    assert_includes toc, 'href="#a&amp;b"'
-    assert_includes toc, "A\u00A0&amp;\u00A0B"
-    assert_includes toc, "&lt;script&gt;"
-    refute_includes toc, "<script>"
+    assert_equal "", result
   end
 
   def test_code_copy_button_behavior_is_available
@@ -251,5 +255,129 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_includes workflow, "bundle exec jekyll build"
     assert_includes workflow, "EXPECTED_SITEMAP_PATH: _site/sitemap.xml"
+  end
+
+  def run_page_enhancements_dom_test(scenario)
+    page_script = File.read(File.join(ROOT, "assets/js/page-enhancements.js"))
+    runner = <<~JS
+      const vm = require("node:vm");
+
+      class Element {
+        constructor(tagName, options = {}) {
+          this.tagName = tagName.toUpperCase();
+          this.id = options.id || "";
+          this.textContent = options.textContent || "";
+          this.dataset = options.dataset || {};
+          this.children = [];
+          this.hidden = Boolean(options.hidden);
+          this.href = "";
+        }
+
+        appendChild(child) {
+          this.children.push(child);
+          return child;
+        }
+
+        querySelector(selector) {
+          return this.querySelectorAll(selector)[0] || null;
+        }
+
+        querySelectorAll(selector) {
+          const matches = [];
+
+          function visit(node) {
+            if (selector === "#markdown-toc" && node.id === "markdown-toc") {
+              matches.push(node);
+            } else if (selector === "ul" && node.tagName === "UL") {
+              matches.push(node);
+            } else if (
+              selector === "h2[id], h3[id]" &&
+              (node.tagName === "H2" || node.tagName === "H3") &&
+              node.id
+            ) {
+              matches.push(node);
+            }
+
+            node.children.forEach(visit);
+          }
+
+          this.children.forEach(visit);
+          return matches;
+        }
+      }
+
+      function assert(condition, message) {
+        if (!condition) {
+          throw new Error(message);
+        }
+      }
+
+      const document = {
+        readyState: "loading",
+        nodes: {},
+        addEventListener() {},
+        createElement(tagName) {
+          return new Element(tagName);
+        },
+        getElementById() {
+          return null;
+        },
+        querySelector(selector) {
+          if (selector === ".post-toc[data-toc-source]") return this.nodes.toc || null;
+          if (selector === ".post-content") return this.nodes.source || null;
+          return null;
+        },
+        querySelectorAll() {
+          return [];
+        }
+      };
+
+      const window = {
+        document,
+        location: { pathname: "/" },
+        addEventListener() {},
+        requestAnimationFrame(callback) {
+          callback();
+        },
+        matchMedia() {
+          return { matches: false };
+        }
+      };
+
+      function buildToc(headings) {
+        const toc = new Element("aside", {
+          dataset: { tocSource: ".post-content" },
+          hidden: true
+        });
+        const list = new Element("ul", { id: "markdown-toc" });
+        const source = new Element("div");
+
+        headings.forEach((heading) => source.appendChild(heading));
+        toc.appendChild(list);
+        toc.list = list;
+        document.nodes = { toc, source };
+
+        window.SiteEnhancements.initPostToc();
+        return toc;
+      }
+
+      const sandbox = {
+        Element,
+        URL,
+        assert,
+        buildToc,
+        document,
+        window
+      };
+
+      vm.runInNewContext(#{JSON.generate(page_script)}, sandbox);
+      vm.runInNewContext(#{JSON.generate(scenario)}, sandbox);
+    JS
+
+    stdout, stderr, status = Open3.capture3("node", "-", stdin_data: runner)
+
+    assert status.success?, stderr
+
+    stdout.strip
   end
 end

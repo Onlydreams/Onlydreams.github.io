@@ -67,9 +67,58 @@
     onScroll();
   }
 
+  function initPostToc() {
+    const toc = document.querySelector(".post-toc[data-toc-source]");
+    if (!toc) return;
+
+    const source = document.querySelector(toc.dataset.tocSource);
+    const list = toc.querySelector("#markdown-toc");
+    if (!source || !list) {
+      toc.hidden = true;
+      return;
+    }
+
+    const headings = source.querySelectorAll("h2[id], h3[id]");
+    if (!headings.length) {
+      toc.hidden = true;
+      return;
+    }
+
+    let currentSection = null;
+
+    headings.forEach(function (heading) {
+      const link = document.createElement("a");
+      link.href = "#" + heading.id;
+      link.textContent = heading.textContent.trim();
+
+      const item = document.createElement("li");
+      item.appendChild(link);
+
+      if (heading.tagName === "H2") {
+        list.appendChild(item);
+        currentSection = item;
+      } else if (currentSection) {
+        let childList = currentSection.querySelector("ul");
+        if (!childList) {
+          childList = document.createElement("ul");
+          currentSection.appendChild(childList);
+        }
+        childList.appendChild(item);
+      }
+    });
+
+    if (list.children.length) {
+      toc.hidden = false;
+    }
+  }
+
+  window.SiteEnhancements = window.SiteEnhancements || {};
+  window.SiteEnhancements.initPostToc = initPostToc;
+
   onReady(function () {
     autoTagCallouts();
     markActiveNav();
     initBackToTop();
+    initPostToc();
   });
 })();
