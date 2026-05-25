@@ -98,13 +98,38 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "navigator.clipboard.writeText"
     assert_includes script, "copyTextFallback"
     assert_includes script, "return copyTextFallback(text)"
-    assert_includes script, "copyText(code.textContent)"
+    assert_includes script, "getPromptCommand"
+    assert_includes script, "isCommandBlock"
+    assert_includes script, "copyText(getCopyText(wrapper, code))"
     assert_includes script, "code-copy-button"
     assert_includes script, "existingButtons"
     assert_includes script, "button.remove()"
+    assert_includes script, "button.disabled = true"
+    assert_includes script, "button.dataset.defaultLabel"
+    assert_includes script, 'button.setAttribute("aria-live", "polite")'
 
     styles = read_scss_sources
+    assert_includes styles, "min-width: 4.75rem"
+    assert_includes styles, '.code-copy-button[data-state="success"]'
+    assert_includes styles, '.code-copy-button[data-state="error"]'
     assert_includes styles, ".code-copy-button:focus-visible"
+  end
+
+  def test_code_copy_button_strips_shell_prompts_only_for_command_blocks
+    result = run_code_copy_dom_test
+
+    assert_equal(
+      {
+        "button_labels" => ["复制命令", "复制", "复制命令", "复制命令"],
+        "copied_texts" => [
+          "brew install ruby\nbundle install",
+          "> keep this quoted text",
+          "# script comment\nbrew update\nbrew install ruby",
+          "cat <<'EOF'\nhello\nEOF\nprintf done \\\n  now"
+        ]
+      },
+      result
+    )
   end
 
   def test_search_page_and_index_are_available
@@ -294,6 +319,8 @@ class SiteFeaturesTest < Minitest::Test
         }
 
         appendChild(child) {
+          child.parentElement = this;
+          child.parentNode = this;
           this.children.push(child);
           return child;
         }
@@ -399,5 +426,180 @@ class SiteFeaturesTest < Minitest::Test
     assert status.success?, stderr
 
     stdout.strip
+  end
+
+  def run_code_copy_dom_test
+    code_copy_script = File.read(File.join(ROOT, "assets/js/code-copy.js"))
+    runner = <<~JS
+      const vm = require("node:vm");
+
+      class Element {
+        constructor(tagName, options = {}) {
+          this.tagName = tagName.toUpperCase();
+          this.className = options.className || "";
+          this.textContent = options.textContent || "";
+          this.children = [];
+          this.dataset = {};
+          this.attributes = {};
+          this.listeners = {};
+          this.disabled = false;
+          this.classList = {
+            add: (className) => {
+              if (!this.className.split(/\s+/).includes(className)) {
+                this.className = [this.className, className].filter(Boolean).join(" ");
+              }
+            }
+          };
+        }
+
+        appendChild(child) {
+          this.children.push(child);
+          return child;
+        }
+
+        remove() {
+          this.removed = true;
+        }
+
+        setAttribute(name, value) {
+          this.attributes[name] = value;
+        }
+
+        addEventListener(name, callback) {
+          this.listeners[name] = callback;
+        }
+
+        closest(selector) {
+          let node = this;
+
+          while (node) {
+            if (
+              selector === ".highlighter-rouge" &&
+              node.className.split(/\s+/).includes("highlighter-rouge")
+            ) {
+              return node;
+            }
+
+            node = node.parentElement;
+          }
+
+          return null;
+        }
+
+        querySelector(selector) {
+          return this.querySelectorAll(selector)[0] || null;
+        }
+
+        querySelectorAll(selector) {
+          const matches = [];
+
+          function visit(node) {
+            if (selector === "pre code" && node.tagName === "CODE") {
+              matches.push(node);
+            } else if (
+              selector === ".highlight" &&
+              node.className.split(/\s+/).includes("highlight")
+            ) {
+              matches.push(node);
+            } else if (selector === ".code-copy-button" && node.className === "code-copy-button") {
+              matches.push(node);
+            }
+
+            node.children.forEach(visit);
+          }
+
+          this.children.forEach(visit);
+          return matches;
+        }
+      }
+
+      function codeBlock(wrapperClass, text) {
+        const wrapper = new Element("div", { className: wrapperClass + " highlighter-rouge" });
+        const block = new Element("div", { className: "highlight" });
+        const pre = new Element("pre");
+        const code = new Element("code", { textContent: text });
+        pre.appendChild(code);
+        block.appendChild(pre);
+        wrapper.appendChild(block);
+        return wrapper;
+      }
+
+      const commandBlock = codeBlock(
+        "language-bash",
+        "$ brew install ruby\\ninstalled output\\n$ bundle install\\n"
+      );
+      const textBlock = codeBlock("language-text", "> keep this quoted text\\n");
+      const shellScriptBlock = codeBlock(
+        "language-bash",
+        "# script comment\\nbrew update\\nbrew install ruby\\n"
+      );
+      const heredocBlock = codeBlock(
+        "language-bash",
+        ["$ cat <<'EOF'", "hello", "EOF", "output", "$ printf done \\\\", "  now"].join("\\n") + "\\n"
+      );
+      const blocks = [commandBlock, textBlock, shellScriptBlock, heredocBlock];
+      const copiedTexts = [];
+
+      const document = {
+        readyState: "complete",
+        body: new Element("body"),
+        addEventListener() {},
+        createElement(tagName) {
+          return new Element(tagName);
+        },
+        querySelectorAll(selector) {
+          if (selector === ".highlighter-rouge") {
+            return blocks;
+          }
+          return [];
+        },
+        execCommand() {
+          return false;
+        }
+      };
+
+      const window = {
+        document,
+        isSecureContext: true,
+        setTimeout() {
+          return 1;
+        },
+        clearTimeout() {}
+      };
+
+      const navigator = {
+        clipboard: {
+          writeText(text) {
+            copiedTexts.push(text);
+            return Promise.resolve();
+          }
+        }
+      };
+
+      const sandbox = {
+        document,
+        navigator,
+        Promise,
+        window
+      };
+
+      vm.runInNewContext(#{JSON.generate(code_copy_script)}, sandbox);
+
+      const buttonLabels = blocks.map((block) => block.querySelector(".code-copy-button").textContent);
+      blocks.forEach((block) => block.querySelector(".code-copy-button").listeners.click());
+
+      Promise.resolve().then(() => {
+        process.stdout.write(JSON.stringify({
+          button_labels: buttonLabels,
+          copied_texts: copiedTexts
+        }));
+      });
+    JS
+
+    stdout, stderr, status = Open3.capture3("node", "-", stdin_data: runner)
+
+    assert status.success?, stderr
+
+    JSON.parse(stdout)
   end
 end

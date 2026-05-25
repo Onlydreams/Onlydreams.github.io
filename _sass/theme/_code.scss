@@ -53,6 +53,7 @@ html body .code-copy-button {
   position: absolute;
   top: 0.65rem;
   right: 0.65rem;
+  min-width: 4.75rem;
   min-height: 32px;
   padding: 0.25rem 0.65rem;
   border: 1px solid var(--border-color);
@@ -78,10 +79,25 @@ html body .code-copy-button {
     background-color 0.2s ease;
 }
 
+html body .code-copy-button:disabled {
+  cursor: default;
+  opacity: 0.82;
+}
+
 html body .code-copy-button:hover {
   color: var(--accent-orange);
   border-color: var(--accent-orange);
   background: var(--bg-card);
+}
+
+html body .code-copy-button[data-state="success"] {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+html body .code-copy-button[data-state="error"] {
+  color: var(--accent-orange);
+  border-color: var(--accent-orange);
 }
 
 html body .code-copy-button:focus-visible {
