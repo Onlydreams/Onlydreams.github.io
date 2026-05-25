@@ -15,6 +15,13 @@ class SiteFeaturesTest < Minitest::Test
     File.read(File.join(SITE, path))
   end
 
+  def read_scss_sources
+    scss_paths = [File.join(ROOT, "assets/main.scss")]
+    scss_paths.concat(Dir[File.join(ROOT, "_sass/**/*.scss")].sort)
+
+    scss_paths.map { |path| File.read(path) }.join("\n")
+  end
+
   def test_category_index_lists_existing_categories_and_posts
     html = read_site("categories/index.html")
 
@@ -96,7 +103,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "existingButtons"
     assert_includes script, "button.remove()"
 
-    styles = File.read(File.join(ROOT, "assets/main.scss"))
+    styles = read_scss_sources
     assert_includes styles, ".code-copy-button:focus-visible"
   end
 
@@ -160,7 +167,7 @@ class SiteFeaturesTest < Minitest::Test
   end
 
   def test_single_adjacent_post_navigation_uses_directional_half_width_on_desktop
-    styles = File.read(File.join(ROOT, "assets/main.scss"))
+    styles = read_scss_sources
 
     assert_includes styles, "grid-template-columns: repeat(2, minmax(0, 1fr))"
     assert_includes styles, ".post-adjacent-link.next"
@@ -192,6 +199,19 @@ class SiteFeaturesTest < Minitest::Test
     refute_includes script, "const GISCUS_LIGHT ="
     refute_includes script, "const GISCUS_DARK ="
     assert_includes script, "getGiscusThemeUrl"
+  end
+
+  def test_cloudflare_web_analytics_is_configurable_and_production_only
+    html = read_site("index.html")
+    config = File.read(File.join(ROOT, "_config.yml"))
+    custom_head = File.read(File.join(ROOT, "_includes/custom-head.html"))
+
+    assert_includes config, "cloudflare_web_analytics:"
+    assert_match(/token: "[a-f0-9]{32}"/, config)
+    assert_includes custom_head, "static.cloudflareinsights.com/beacon.min.js"
+    assert_includes custom_head, 'data-cf-beacon'
+    assert_includes custom_head, 'jekyll.environment == "production"'
+    refute_includes html, "static.cloudflareinsights.com/beacon.min.js"
   end
 
   def test_default_layout_loads_split_javascript_modules

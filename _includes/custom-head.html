@@ -12,3 +12,7 @@
     } catch (e) {}
   })();
 </script>
+{%- assign cloudflare_analytics = site.analytics.cloudflare_web_analytics -%}
+{%- if jekyll.environment == "production" and cloudflare_analytics.token -%}
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"{{ cloudflare_analytics.token | escape }}"}'></script>
+{%- endif -%}
