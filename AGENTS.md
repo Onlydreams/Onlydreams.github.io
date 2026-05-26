@@ -40,6 +40,25 @@ bundle exec jekyll build
 - 改动站点配置时，留意 `_config.yml` 中的 `exclude`、`plugins`、分页和 SEO 相关设置。
 - 不要提交本地缓存、依赖目录、构建产物、日志、环境变量文件或编辑器私有配置。
 
+## 博客文章生成约定
+
+- 新文章放在 `_posts/`，文件名格式为 `YYYY-MM-DD-slug.md`。
+- 必须使用 YAML front matter，至少包含 `layout: post`、`title`、`date`、`categories` 和 `tags`；只有文章经过实质更新时才添加 `updated: YYYY-MM-DD`。
+- `date` 必须早于当前实际构建时间，禁止写未来时间；不确定时使用当前时间向前取整或提前 5-10 分钟，避免 Jekyll 将文章当作未来文章跳过。
+- 文章标题放在 front matter 的 `title` 中；正文通常不要再重复一级标题，除非正文是在记录一份原始文档或完整规则文本。
+- front matter 后第一段会作为首页摘要来源，应能独立概括文章主题；摘要后用 `---` 分隔正文，这是当前仓库常见格式。
+- 中文文章保持 UTF-8 编码，正文标题从 `##` 开始组织层级。
+- `categories` 优先复用站内已有分类名，技术名词和产品名保持既有大小写，避免新增大小写变体；中文主题可使用中文分类。
+- `tags` 使用英文小写短标签，优先 4-6 个；避免同义重复，首页最多展示前 5 个标签。
+- 公开文章必须脱敏真实密钥、Token、订阅、控制接口地址、个人路径、真实节点名、机场信息和剩余流量等敏感信息，使用占位符或匿名代号。
+- 命令和配置代码块尽量标注语言，例如 `bash`、`zsh`、`powershell`、`yaml`；提示词、输出或纯文本内容使用 `text`。
+- 修改文章后优先运行 `./bin/test` 验证；若只做 metadata-only 且用户明确说不用构建，则不要擅自构建。
+- 本机验证建议使用 Homebrew Ruby 3.3 路径，并清理代理环境变量：
+
+```bash
+env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY -u http_proxy -u https_proxy -u all_proxy PATH=/usr/local/opt/ruby@3.3/bin:$PATH ./bin/test
+```
+
 ## 验证
 
 - 内容或样式改动：运行 `bundle exec jekyll build`。
