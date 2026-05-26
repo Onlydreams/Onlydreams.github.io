@@ -1,3 +1,3 @@
 # Onlydreams.github.io
 
-🌐 Blog: https://onlydreams.github.io
+🌐 Blog: https://www.dayjia.com

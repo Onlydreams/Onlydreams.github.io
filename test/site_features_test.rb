@@ -216,9 +216,10 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "https://giscus.app/client.js"
     assert_includes html, 'data-repo="Onlydreams/Onlydreams.github.io"'
     assert_includes html, 'data-category="Announcements"'
-    assert_includes html, 'data-theme-light="https://onlydreams.github.io/assets/giscus-theme.css"'
-    assert_includes html, 'data-theme-dark="https://onlydreams.github.io/assets/giscus-theme-dark.css"'
+    assert_includes html, 'data-theme-light="https://www.dayjia.com/assets/giscus-theme.css"'
+    assert_includes html, 'data-theme-dark="https://www.dayjia.com/assets/giscus-theme-dark.css"'
     assert_includes html, 'data-lang="zh-CN"'
+    refute_includes html, "https://onlydreams.github.io"
 
     script = File.read(File.join(ROOT, "assets/js/theme-toggle.js"))
     refute_includes script, "const GISCUS_LIGHT ="
@@ -281,17 +282,17 @@ class SiteFeaturesTest < Minitest::Test
       File.write(sitemap_path, <<~XML)
         <?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-          <url><loc>https://onlydreams.github.io/custom-post-path/</loc></url>
+          <url><loc>https://www.dayjia.com/custom-post-path/</loc></url>
           <url><loc>https://other.example.com/ignored/</loc></url>
         </urlset>
       XML
 
       indexnow = IndexNow.new(
-        "INDEXNOW_HOST" => "onlydreams.github.io",
+        "INDEXNOW_HOST" => "www.dayjia.com",
         "EXPECTED_SITEMAP_PATH" => sitemap_path
       )
 
-      assert_equal ["https://onlydreams.github.io/custom-post-path/"], indexnow.send(:expected_site_urls)
+      assert_equal ["https://www.dayjia.com/custom-post-path/"], indexnow.send(:expected_site_urls)
     end
   end
 
@@ -300,6 +301,11 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_includes workflow, "bundle exec jekyll build"
     assert_includes workflow, "EXPECTED_SITEMAP_PATH: _site/sitemap.xml"
+    assert_includes workflow, "INDEXNOW_HOST: www.dayjia.com"
+    assert_includes workflow, "KEY_URL: https://www.dayjia.com/34366ad016cd48238ee20158d2a43852.txt"
+    assert_includes workflow, "SITEMAP_URL: https://www.dayjia.com/sitemap.xml"
+    assert_includes workflow, "INDEXNOW_KEY_LOCATION: https://www.dayjia.com/34366ad016cd48238ee20158d2a43852.txt"
+    refute_includes workflow, "onlydreams.github.io"
   end
 
   def run_page_enhancements_dom_test(scenario)

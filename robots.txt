@@ -7,4 +7,4 @@ Allow: /
 User-agent: Googlebot
 Allow: /
 
-Sitemap: https://onlydreams.github.io/sitemap.xml
+Sitemap: https://www.dayjia.com/sitemap.xml
