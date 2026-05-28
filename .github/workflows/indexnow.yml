@@ -37,6 +37,8 @@ jobs:
         run: bundle exec jekyll build
 
       - name: Wait for sitemap deployment
+        id: wait_for_sitemap
+        continue-on-error: true
         env:
           EXPECTED_SITEMAP_PATH: _site/sitemap.xml
           INDEXNOW_HOST: www.dayjia.com
@@ -46,6 +48,7 @@ jobs:
         run: ruby .github/scripts/indexnow.rb wait
 
       - name: Submit sitemap URLs
+        if: steps.wait_for_sitemap.outcome == 'success'
         env:
           INDEXNOW_ENDPOINT: https://api.indexnow.org/indexnow
           INDEXNOW_HOST: www.dayjia.com

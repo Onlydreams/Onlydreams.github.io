@@ -320,6 +320,8 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes workflow, "KEY_URL: https://www.dayjia.com/34366ad016cd48238ee20158d2a43852.txt"
     assert_includes workflow, "SITEMAP_URL: https://www.dayjia.com/sitemap.xml"
     assert_includes workflow, "INDEXNOW_KEY_LOCATION: https://www.dayjia.com/34366ad016cd48238ee20158d2a43852.txt"
+    assert_includes workflow, "continue-on-error: true"
+    assert_includes workflow, "if: steps.wait_for_sitemap.outcome == 'success'"
     refute_includes workflow, "onlydreams.github.io"
   end
 
