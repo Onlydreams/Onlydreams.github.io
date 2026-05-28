@@ -296,6 +296,21 @@ class SiteFeaturesTest < Minitest::Test
     end
   end
 
+  def test_indexnow_wait_retries_ssl_certificate_errors
+    indexnow = IndexNow.new("INDEXNOW_HOST" => "www.dayjia.com")
+
+    def indexnow.fetch_body!(_uri)
+      raise OpenSSL::SSL::SSLError, "certificate verify failed (hostname mismatch)"
+    end
+
+    _, warning = capture_io do
+      assert_equal "", indexnow.send(:fetch_body, URI("https://www.dayjia.com/sitemap.xml"))
+    end
+
+    assert_includes warning, "OpenSSL::SSL::SSLError"
+    assert_includes warning, "certificate verify failed"
+  end
+
   def test_indexnow_workflow_builds_local_sitemap_before_waiting
     workflow = File.read(File.join(ROOT, ".github/workflows/indexnow.yml"))
 

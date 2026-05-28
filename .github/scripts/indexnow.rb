@@ -3,6 +3,7 @@
 
 require "json"
 require "net/http"
+require "openssl"
 require "rexml/document"
 require "timeout"
 require "uri"
@@ -93,7 +94,7 @@ class IndexNow
   rescue SocketError => e
     warn "Network name resolution failed for #{uri.host}: #{e.message}"
     ""
-  rescue SystemCallError, IOError, Timeout::Error, Net::HTTPError => e
+  rescue SystemCallError, IOError, Timeout::Error, Net::HTTPError, OpenSSL::SSL::SSLError => e
     warn "Could not fetch #{uri}: #{e.class}: #{e.message}"
     ""
   end
