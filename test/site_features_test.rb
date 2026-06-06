@@ -160,14 +160,25 @@ class SiteFeaturesTest < Minitest::Test
 
   def test_home_page_shows_excerpts_tags_and_updated_time
     html = read_site("index.html")
+    updated_html = read_site("page2/index.html")
     tags_html = read_site("tags/index.html")
 
     assert_includes html, 'class="post-card-excerpt"'
     assert_includes html, 'class="post-card-tags"'
     assert_includes html, "/tags/#tag-codex"
     assert_includes tags_html, 'id="tag-codex"'
-    assert_includes html, 'class="post-updated"'
-    assert_includes html, "<time datetime="
+    assert_includes updated_html, 'class="post-updated"'
+    assert_includes updated_html, "<time datetime="
+  end
+
+  def test_public_contact_uses_github_without_noreply_email
+    home_html = read_site("index.html")
+    about_html = read_site("about/index.html")
+
+    refute_includes home_html, "mailto:"
+    refute_includes home_html, "users.noreply.github.com"
+    assert_includes home_html, "https://github.com/Onlydreams"
+    assert_includes about_html, "技术交流可以通过文章评论或 GitHub 联系我。"
   end
 
   def test_post_pages_render_adjacent_post_navigation

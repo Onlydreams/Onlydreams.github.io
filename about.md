@@ -17,3 +17,4 @@ permalink: /about/
 ## 联系方式
 
 - GitHub: [Onlydreams](https://github.com/Onlydreams)
+- 技术交流可以通过文章评论或 GitHub 联系我。

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "GLOBAL AGENTS.md：个人全局上下文"
+title: "AGENTS.md 配置指南：统一 Codex、Claude 等 AI Agent 协作规则"
 date: 2026-05-12 10:00:00 +0800
 categories: [AI, Agent, 配置]
 tags: [agents, codex, claude, rules, workflow]
