@@ -171,6 +171,8 @@ worldcup-predictor/
     └── prediction-framework.md
 ```
 
+完整仓库可以看 [Onlydreams/worldcup-predictor](https://github.com/Onlydreams/worldcup-predictor)。
+
 `SKILL.md` 保持简洁，负责说明什么时候触发、核心流程和输出格式；更细的权重、市场读取规则、数据读取规则、信心标签和复盘模板放在 `references/prediction-framework.md`。
 
 这种拆法的好处是入口文件不会膨胀，Agent 需要详细规则时再读取引用文档。README 则只负责面向人解释安装、用途和边界，不和 Skill 逻辑重复太多。
