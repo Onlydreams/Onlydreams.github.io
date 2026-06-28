@@ -26,70 +26,35 @@ permalink: /series/
         </header>
 
         <ol class="series-post-list">
-          {%- for target_order in (1..20) -%}
+          {%- capture ordered_post_rows -%}
             {%- for post in site.posts -%}
               {%- if post.series contains series.key -%}
                 {%- assign post_order = post.series_order[series.key] -%}
-                {%- if post_order == target_order -%}
-                  <li class="series-post-item">
-                    <article>
-                      <div class="post-meta">
-                        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
-                        {%- if post.updated -%}
-                          <span class="post-updated">• 更新于 {{ post.updated | date: "%Y-%m-%d" }}</span>
-                        {%- endif -%}
-                      </div>
-                      <h3>
-                        <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-                      </h3>
-                      <p class="series-post-excerpt">
-                        {{ post.excerpt | strip_html | normalize_whitespace | truncate: 120 }}
-                      </p>
-                      {%- if post.tags.size > 0 -%}
-                        <ul class="series-post-tags" aria-label="文章标签">
-                          {%- for tag in post.tags limit: 5 -%}
-                            <li>
-                              <a href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify: 'raw' }}">{{ tag }}</a>
-                            </li>
-                          {%- endfor -%}
-                        </ul>
-                      {%- endif -%}
-                    </article>
-                  </li>
+                {%- if post_order -%}
+                  {%- assign padded_order = post_order | plus: 1000000 | prepend: "0000000000" | slice: -10, 10 -%}
+                  {{ padded_order }}|{{ post.url }};;
                 {%- endif -%}
               {%- endif -%}
             {%- endfor -%}
+          {%- endcapture -%}
+
+          {%- assign ordered_post_rows = ordered_post_rows | split: ";;" | sort -%}
+          {%- for ordered_post_row in ordered_post_rows -%}
+            {%- unless ordered_post_row == "" -%}
+              {%- assign ordered_post_url = ordered_post_row | split: "|" | last -%}
+              {%- for post in site.posts -%}
+                {%- if post.url == ordered_post_url -%}
+                  {%- include series-post-item.html post=post -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endunless -%}
           {%- endfor -%}
 
           {%- for post in site.posts -%}
             {%- if post.series contains series.key -%}
               {%- assign post_order = post.series_order[series.key] -%}
               {%- unless post_order -%}
-                <li class="series-post-item">
-                  <article>
-                    <div class="post-meta">
-                      <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
-                      {%- if post.updated -%}
-                        <span class="post-updated">• 更新于 {{ post.updated | date: "%Y-%m-%d" }}</span>
-                      {%- endif -%}
-                    </div>
-                    <h3>
-                      <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-                    </h3>
-                    <p class="series-post-excerpt">
-                      {{ post.excerpt | strip_html | normalize_whitespace | truncate: 120 }}
-                    </p>
-                    {%- if post.tags.size > 0 -%}
-                      <ul class="series-post-tags" aria-label="文章标签">
-                        {%- for tag in post.tags limit: 5 -%}
-                          <li>
-                            <a href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify: 'raw' }}">{{ tag }}</a>
-                          </li>
-                        {%- endfor -%}
-                      </ul>
-                    {%- endif -%}
-                  </article>
-                </li>
+                {%- include series-post-item.html post=post -%}
               {%- endunless -%}
             {%- endif -%}
           {%- endfor -%}

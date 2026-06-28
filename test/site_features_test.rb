@@ -53,10 +53,33 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "/posts/skillshare-guide/"
     assert_includes html, "/posts/auto-proxy-setup/"
     assert_includes html, "/posts/macos-claude-deepseek/"
+    assert_includes html, "/posts/worldcup-predictor-agent-skill/"
     assert_includes html, 'class="series-post-tags"'
     assert_includes styles, ".series-page"
     assert_includes styles, ".series-section"
     assert_includes styles, ".series-post-tags"
+
+    ai_agent_index = html.index("AI Agent 工作流")
+    network_proxy_index = html.index("网络与代理排障")
+    macos_tooling_index = html.index("macOS 开发工具链")
+    assert_operator ai_agent_index, :<, network_proxy_index
+    assert_operator network_proxy_index, :<, macos_tooling_index
+
+    skillshare_index = html.index("/posts/skillshare-guide/", ai_agent_index)
+    agents_index = html.index("/posts/global-agents-context/", ai_agent_index)
+    codex_index = html.index("/posts/codex-desktop-gpu-rendering-bug/", ai_agent_index)
+    worldcup_index = html.index("/posts/worldcup-predictor-agent-skill/", ai_agent_index)
+    assert_operator skillshare_index, :<, agents_index
+    assert_operator agents_index, :<, codex_index
+    assert_operator codex_index, :<, worldcup_index
+
+    homebrew_index = html.index("/posts/macos-homebrew-acceleration/", network_proxy_index)
+    git_proxy_index = html.index("/posts/auto-proxy-setup/", network_proxy_index)
+    clash_index = html.index("/posts/clash-verge-github-node-speed-test/", network_proxy_index)
+    diagnosis_index = html.index("/posts/ai-network-diagnosis-optimization-prompt/", network_proxy_index)
+    assert_operator homebrew_index, :<, git_proxy_index
+    assert_operator git_proxy_index, :<, clash_index
+    assert_operator clash_index, :<, diagnosis_index
   end
 
   def test_site_navigation_links_to_series_page

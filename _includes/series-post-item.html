@@ -1,0 +1,26 @@
+{%- assign post = include.post -%}
+<li class="series-post-item">
+  <article>
+    <div class="post-meta">
+      <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
+      {%- if post.updated -%}
+        <span class="post-updated">• 更新于 {{ post.updated | date: "%Y-%m-%d" }}</span>
+      {%- endif -%}
+    </div>
+    <h3>
+      <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+    </h3>
+    <p class="series-post-excerpt">
+      {{ post.excerpt | strip_html | normalize_whitespace | truncate: 120 }}
+    </p>
+    {%- if post.tags.size > 0 -%}
+      <ul class="series-post-tags" aria-label="文章标签">
+        {%- for tag in post.tags limit: 5 -%}
+          <li>
+            <a href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify: 'raw' }}">{{ tag }}</a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </article>
+</li>
