@@ -8,6 +8,11 @@ series: [ai-agent, macos-tooling]
 series_order:
   ai-agent: 3
   macos-tooling: 3
+status:
+  label: 待复核
+  verified: 待复核
+  environment: Codex Desktop / Intel Mac / Electron GPU
+  risk: 启动参数可能随客户端版本变化，仅适合作为同类渲染问题的排查参考。
 ---
 
 记录一次 Codex Desktop 插件搜索页面渲染错位的排查过程，以及在 Intel Mac 上通过强制高性能 GPU 启动规避问题的方法。

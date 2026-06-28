@@ -1,0 +1,35 @@
+{%- if page.status -%}
+  {%- assign status_label = page.status.label | default: "" | strip -%}
+  {%- assign status_verified = page.status.verified | default: "" | strip -%}
+  {%- assign status_environment = page.status.environment | default: "" | strip -%}
+  {%- assign status_risk = page.status.risk | default: "" | strip -%}
+  <section class="post-status" aria-labelledby="post-status-title">
+    <h2 id="post-status-title" class="post-status-title">文章状态</h2>
+    <dl class="post-status-list">
+      {%- if status_label != "" -%}
+        <div>
+          <dt>状态</dt>
+          <dd>{{ status_label | escape }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if status_verified != "" -%}
+        <div>
+          <dt>最后验证</dt>
+          <dd>{{ status_verified | escape }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if status_environment != "" -%}
+        <div>
+          <dt>适用环境</dt>
+          <dd>{{ status_environment | escape }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if status_risk != "" -%}
+        <div>
+          <dt>风险提示</dt>
+          <dd>{{ status_risk | escape }}</dd>
+        </div>
+      {%- endif -%}
+    </dl>
+  </section>
+{%- endif -%}

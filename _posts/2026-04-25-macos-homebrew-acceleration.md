@@ -8,6 +8,11 @@ series: [network-proxy, macos-tooling]
 series_order:
   network-proxy: 1
   macos-tooling: 1
+status:
+  label: 待复核
+  verified: 待复核
+  environment: macOS / Homebrew / pip / zsh
+  risk: 会修改包管理源、终端代理和 shell 配置，执行前建议备份原配置。
 ---
 
 记录本次为加速 MacOS 开发环境所做的全部配置，涵盖 Homebrew、pip 以及终端代理。

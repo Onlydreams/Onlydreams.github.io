@@ -7,6 +7,11 @@ tags: [github, clash-verge, mihomo, proxy, speed-test]
 series: [network-proxy]
 series_order:
   network-proxy: 3
+status:
+  label: 待复核
+  verified: 待复核
+  environment: Clash Verge / mihomo / GitHub 访问
+  risk: 节点质量和 GitHub 访问路径会变化，测速结果只代表执行时环境。
 ---
 
 很多人测试代理节点访问 GitHub 的速度时，只会测 `github.com`。这个方法不够准确。

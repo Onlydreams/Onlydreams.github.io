@@ -7,6 +7,11 @@ tags: [skillshare, skills, agent, cli, claude, codex]
 series: [ai-agent]
 series_order:
   ai-agent: 1
+status:
+  label: 待复核
+  verified: 待复核
+  environment: Skillshare CLI / Claude / Codex Skills
+  risk: 会影响本地 skills 目录和同步流程，执行前确认目标目录和备份策略。
 ---
 
 记录 [Skillshare](https://skillshare.runkids.cc/docs) 的安装、初始化、同步和跨设备使用方式，用一个源目录统一管理 AI CLI、编码助手和 Agent 的 skills。

@@ -7,6 +7,11 @@ tags: [worldcup, football, skills, agent, prompt, prediction]
 series: [ai-agent]
 series_order:
   ai-agent: 21
+status:
+  label: 当前可用
+  verified: 2026-06-28
+  environment: AI Agent / World Cup Predictor Skill
+  risk: 这是预测流程设计，不应当作确定性赛果或投注建议。
 ---
 
 World Cup Predictor 是一个面向 AI Agent 的足球比赛分析 Skill，目标不是让模型直接猜比分，而是把市场基线、比赛数据、球队新闻、打法匹配、小组动机和赛后复盘放进同一套可检查流程里。
