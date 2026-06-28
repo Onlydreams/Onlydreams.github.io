@@ -1,31 +1,31 @@
-# Series Page Design
+# 专题页设计
 
-## Goal
+## 目标
 
-Add a lightweight `/series/` page for grouping related posts into guided topic collections. The first version should help readers find connected articles without adding Jekyll plugins, runtime JavaScript, or a larger visual redesign.
+新增一个轻量的 `/series/` 页面，把相关博客文章组织成可顺序阅读的专题集合。第一版重点解决文章发现和阅读路径问题，不新增 Jekyll 插件、运行时 JavaScript，也不做大规模视觉改版。
 
-## Scope
+## 范围
 
-In scope:
+本次包含：
 
-- Add a `/series/` page that lists posts grouped by `series` front matter keys.
-- Add a `_data/series.yml` file for stable series titles, descriptions, and display order.
-- Add front matter metadata to existing posts that already belong to clear topic series.
-- Add navigation entry text for the new page.
-- Add focused styles that match the current taxonomy and post list design.
-- Add tests for generated page content and navigation.
+- 新增 `/series/` 页面，按文章 front matter 里的 `series` key 分组展示。
+- 新增 `_data/series.yml`，集中维护专题标题、说明和展示顺序。
+- 给现有文章补充明确的专题元数据。
+- 给站点导航新增“专题”入口。
+- 增加少量样式，保持和当前分类页、文章列表风格一致。
+- 补充生成结果和导航相关测试。
 
-Out of scope:
+本次不包含：
 
-- Article status blocks.
-- Search ranking or highlighting changes.
-- Per-post "other posts in this series" navigation.
-- Newsletter, Open Graph image generation, analytics, or visual redesign.
-- Any new Jekyll plugin or dependency.
+- 文章状态信息块。
+- 搜索排序或命中高亮。
+- 单篇文章页里的“本系列其他文章”导航。
+- Newsletter、Open Graph 图片生成、访问统计或视觉重设计。
+- 任何新的 Jekyll 插件或依赖。
 
-## Content Model
+## 内容模型
 
-Series metadata lives in `_data/series.yml`:
+专题元数据放在 `_data/series.yml`：
 
 ```yaml
 - key: ai-agent
@@ -33,7 +33,7 @@ Series metadata lives in `_data/series.yml`:
   description: Codex、Claude、Skills 与 Agent 协作规则相关笔记。
 ```
 
-Posts may define these optional front matter fields:
+文章可选增加这些 front matter 字段：
 
 ```yaml
 series: [ai-agent, macos-tooling]
@@ -42,18 +42,18 @@ series_order:
   macos-tooling: 3
 ```
 
-Field behavior:
+字段行为：
 
-- `series` is an array of stable machine keys used for grouping.
-- `_data/series.yml` provides the human-readable title and description shown on `/series/`.
-- `series_order` is an optional map that controls ordering inside each series. Lower numbers appear first.
-- Posts without `series` are ignored by the series page.
-- If a post references a key not present in `_data/series.yml`, it should not create a visible section in the first version.
-- If `series_order` is missing for a key, the post sorts after ordered posts by date.
+- `series` 是稳定的机器 key 数组，用于把文章归入一个或多个专题。
+- `_data/series.yml` 提供 `/series/` 页面展示用的专题标题和说明。
+- `series_order` 是可选映射，用于控制文章在各专题内的顺序；数字越小越靠前。
+- 没有 `series` 的文章不出现在专题页。
+- 如果文章引用了 `_data/series.yml` 中不存在的 key，第一版不为它生成可见专题区块。
+- 如果某个 key 缺少 `series_order`，对应文章排在有顺序的文章后面，再按发布时间排序。
 
-## Initial Series
+## 初始专题
 
-Add current posts to these first groups:
+先把现有文章归入这些专题：
 
 - `ai-agent` / `AI Agent 工作流`
   - Skillshare guide
@@ -70,47 +70,47 @@ Add current posts to these first groups:
   - Claude Desktop DeepSeek setup
   - Codex Desktop GPU rendering bug
 
-Posts may belong to more than one reader path when that improves discovery. Keep the number of series per post small and intentional.
+如果能明显改善发现路径，一篇文章可以属于多个专题。但每篇文章的专题数量应保持克制，避免归档变得松散。
 
-## Page Behavior
+## 页面行为
 
-The `/series/` page should:
+`/series/` 页面应满足：
 
-- Use the existing `page` layout.
-- Render one section per entry in `_data/series.yml` that has matching posts.
-- Show the series title, article count, and a short list of posts.
-- Show each post title, date, optional updated date, excerpt, and up to five tags.
-- Sort sections by the order in `_data/series.yml`.
-- Sort posts in a section by `series_order`, then by post date.
-- Avoid client-side rendering so the page works in generated static HTML.
+- 使用现有 `page` layout。
+- 对 `_data/series.yml` 中有匹配文章的每个专题渲染一个区块。
+- 每个专题展示标题、文章数量和文章列表。
+- 每篇文章展示标题、发布日期、可选更新日期、摘要和最多 5 个标签。
+- 专题区块顺序以 `_data/series.yml` 中的顺序为准。
+- 专题内文章先按 `series_order` 排序，再按发布时间排序。
+- 不依赖客户端渲染，生成后的静态 HTML 应可直接浏览。
 
-## Navigation
+## 导航
 
-Add "专题" to the visible site navigation alongside existing pages. The link target is `/series/`.
+在可见站点导航中新增“专题”，链接指向 `/series/`。
 
-## Styling
+## 样式
 
-Reuse the existing restrained site language:
+沿用当前站点克制的视觉语言：
 
-- Full-width page content with constrained inner width from the current layout.
-- Series sections should look closer to taxonomy sections than marketing cards.
-- Individual post entries may reuse post-card-like spacing, but avoid nested cards.
-- Mobile layout must keep titles, dates, tags, and excerpts from overlapping.
+- 页面宽度继续使用现有 layout 的内容约束。
+- 专题区块更接近当前 taxonomy 页面，而不是营销式卡片。
+- 单篇文章条目可以复用文章卡片的间距感，但避免卡片套卡片。
+- 移动端要保证标题、日期、标签和摘要不重叠。
 
-## Testing
+## 测试
 
-Extend `test/site_features_test.rb` to assert:
+扩展 `test/site_features_test.rb`，断言：
 
-- `_site/series/index.html` exists and contains "专题".
-- The page lists the initial series titles.
-- Representative posts appear under the expected series.
-- The site navigation contains a link to `/series/`.
-- Existing build and feature tests continue to pass with `.\bin\test.ps1`.
+- `_site/series/index.html` 存在并包含“专题”。
+- 页面列出初始专题标题。
+- 代表性文章出现在预期专题中。
+- 站点导航包含 `/series/` 链接。
+- 现有构建和功能测试继续通过 `.\bin\test.ps1`。
 
-## Acceptance Criteria
+## 验收标准
 
-- Running `.\bin\test.ps1` succeeds.
-- `/series/` renders in the built site without JavaScript.
-- At least the three initial series are visible.
-- Existing posts without `series` still build normally.
-- No generated `_site/`, cache, dependency, or environment files are committed.
+- `.\bin\test.ps1` 运行成功。
+- `/series/` 在构建产物中可直接渲染，不依赖 JavaScript。
+- 至少展示 3 个初始专题。
+- 没有 `series` 的现有文章仍能正常构建。
+- 不提交 `_site/`、缓存、依赖目录或环境文件。
