@@ -2,8 +2,10 @@
 
 require "minitest/autorun"
 require "json"
+require "liquid"
 require "open3"
 require "tmpdir"
+require "yaml"
 
 require_relative "../.github/scripts/indexnow"
 
@@ -87,6 +89,78 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_includes html, 'href="/series/"'
     assert_includes html, ">专题</a>"
+  end
+
+  def test_site_navigation_uses_explicit_page_allowlist
+    config = YAML.load_file(File.join(ROOT, "_config.yml"))
+
+    assert_equal(
+      ["about.md", "categories.md", "search.md", "series.md", "tags.md"],
+      config["header_pages"]
+    )
+  end
+
+  def test_internal_docs_are_not_published_or_listed_in_navigation
+    html = read_site("index.html")
+
+    refute_includes html, "文章状态信息块实现计划"
+    refute_includes html, "文章状态信息块设计"
+    refute_includes html, "专题页实现计划"
+    refute_includes html, "专题页设计"
+    refute_includes html, 'href="/docs/'
+    refute_path_exists File.join(SITE, "docs")
+  end
+
+  def test_post_pages_render_status_block_when_status_front_matter_exists
+    html = read_site("posts/global-agents-context/index.html")
+    styles = read_scss_sources
+
+    assert_includes html, 'class="post-status"'
+    assert_includes html, 'class="post-status-title"'
+    assert_includes html, "文章状态"
+    assert_includes html, "状态"
+    assert_includes html, "当前可用"
+    assert_includes html, "最后验证"
+    assert_includes html, "2026-06-28"
+    assert_includes html, "适用环境"
+    assert_includes html, "Codex / Claude / AGENTS.md"
+    assert_includes html, "风险提示"
+    assert_includes html, "这是个人协作规则模板"
+    assert_includes styles, ".post-status"
+    assert_includes styles, ".post-status-title"
+    assert_includes styles, ".post-status-list"
+  end
+
+  def test_status_block_does_not_render_on_regular_pages
+    html = read_site("about/index.html")
+
+    refute_includes html, 'class="post-status"'
+  end
+
+  def test_status_verified_does_not_create_date_modified
+    html = read_site("posts/global-agents-context/index.html")
+
+    assert_includes html, "2026-06-28"
+    refute_includes html, 'itemprop="dateModified"'
+    refute_includes html, '"dateModified":"2026-06-28'
+  end
+
+  def test_post_status_include_skips_blank_fields_and_escapes_values
+    html = render_post_status(
+      "label" => " <strong>当前可用</strong> ",
+      "verified" => "",
+      "environment" => "   ",
+      "risk" => "Risk <script>alert(1)</script>"
+    )
+
+    assert_includes html, "<dt>状态</dt>"
+    assert_includes html, "&lt;strong&gt;当前可用&lt;/strong&gt;"
+    assert_includes html, "<dt>风险提示</dt>"
+    assert_includes html, "Risk &lt;script&gt;alert(1)&lt;/script&gt;"
+    refute_includes html, "<dt>最后验证</dt>"
+    refute_includes html, "<dt>适用环境</dt>"
+    refute_includes html, "<strong>当前可用</strong>"
+    refute_includes html, "<script>"
   end
 
   def test_post_pages_render_toc
@@ -507,6 +581,12 @@ class SiteFeaturesTest < Minitest::Test
     assert status.success?, stderr
 
     stdout.strip
+  end
+
+  def render_post_status(status)
+    template = Liquid::Template.parse(File.read(File.join(ROOT, "_includes", "post-status.html")))
+
+    template.render!("page" => { "status" => status })
   end
 
   def run_code_copy_dom_test

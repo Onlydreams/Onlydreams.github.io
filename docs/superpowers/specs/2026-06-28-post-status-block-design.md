@@ -48,6 +48,22 @@ status:
 - 字段值全部按文本转义，不允许把 front matter 当 HTML 输出。
 - `updated` 和 `status.verified` 分工不同：`updated` 表示文章正文最后实质更新日期，`status.verified` 表示方案最后验证情况。
 
+## 维护规则
+
+`status.verified` 由文章维护者手动维护，不由构建脚本、发布时间或当前日期自动生成。
+
+只有实际复核过文章中的方案、命令、配置或流程后，才能把 `status.verified` 写成 `YYYY-MM-DD`。如果只是修改标题、SEO、分类、标签、样式、排版或站点模板，不得更新该字段。
+
+如果正文方案发生实质更新，并且更新时同步复核了方案，通常同时更新：
+
+```yaml
+updated: YYYY-MM-DD
+status:
+  verified: YYYY-MM-DD
+```
+
+如果只更新正文说明但没有重新验证方案，更新 `updated`，但 `status.verified` 仍保持原日期或 `待复核`。
+
 ## 页面位置
 
 状态信息块放在文章页标题日期区域之后、正文之前：

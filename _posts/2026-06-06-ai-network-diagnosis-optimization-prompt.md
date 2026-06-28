@@ -8,6 +8,11 @@ tags: [prompt, network, proxy, dns, wifi, tun]
 series: [network-proxy]
 series_order:
   network-proxy: 4
+status:
+  label: 当前可用
+  verified: 2026-06-28
+  environment: AI Agent / Windows、macOS 网络排障
+  risk: 只允许执行安全、可逆的诊断和优化；涉及系统网络配置时要先保留 before/after。
 ---
 
 这是一份面向 AI Agent 的网络诊断与优化提示词模板，重点不是让 Agent 直接“修网络”，而是要求它先区分真实公网链路、系统代理链路、TUN/VPN 链路，再只执行安全、可逆、低风险的优化。

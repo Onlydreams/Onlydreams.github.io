@@ -7,6 +7,11 @@ tags: [agents, codex, claude, rules, workflow]
 series: [ai-agent]
 series_order:
   ai-agent: 2
+status:
+  label: 当前可用
+  verified: 2026-06-28
+  environment: Codex / Claude / AGENTS.md
+  risk: 这是个人协作规则模板，复用前应按自己的项目和工具链删改。
 ---
 
 记录个人全局 `AGENTS.md` 的上下文、协作偏好、编码约定和行为优先级，用于统一不同 Agent 与开发工具的工作方式。

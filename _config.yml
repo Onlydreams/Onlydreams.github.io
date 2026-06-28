@@ -22,6 +22,13 @@ paginate: 5
 paginate_path: "/page:num/"
 permalink: /posts/:slug/
 
+header_pages:
+  - about.md
+  - categories.md
+  - search.md
+  - series.md
+  - tags.md
+
 author: Onlydreams
 
 giscus:
@@ -50,6 +57,7 @@ exclude:
   - AGENTS.md
   - README.md
   - CLAUDE.md
+  - docs/
   - Gemfile
   - Gemfile.lock
   - test/

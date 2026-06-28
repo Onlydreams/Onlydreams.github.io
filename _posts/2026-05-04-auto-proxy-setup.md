@@ -8,6 +8,11 @@ tags: [git, proxy, ssh, zsh, github, http-proxy]
 series: [network-proxy]
 series_order:
   network-proxy: 2
+status:
+  label: 待复核
+  verified: 待复核
+  environment: Git HTTP/SSH / zsh / 本地代理
+  risk: 会修改 Git、SSH 或 shell 代理配置，执行前建议记录当前配置。
 ---
 
 记录 Git HTTP/HTTPS 与 SSH 自动走本地代理的配置方法，覆盖命令行、安装脚本和常见远程仓库访问场景。

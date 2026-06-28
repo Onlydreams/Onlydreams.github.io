@@ -8,6 +8,11 @@ tags: [claude, deepseek, api, third-party-inference, upstreamkit, cc-switch]
 series: [macos-tooling]
 series_order:
   macos-tooling: 2
+status:
+  label: 待复核
+  verified: 待复核
+  environment: macOS / Claude Desktop / UpstreamKit / cc-switch
+  risk: 第三方模型接口和客户端行为可能变化，涉及 API 配置时不要写入真实密钥。
 ---
 
 记录 MacOS 下将 Claude 桌面客户端接入 DeepSeek 作为第三方模型的步骤。
