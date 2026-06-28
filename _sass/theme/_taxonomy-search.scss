@@ -32,6 +32,100 @@ html body .taxonomy-post-list time {
   font-size: 0.85rem;
 }
 
+/* ---- Series Page ---- */
+html body .series-page {
+  margin-top: 1.5rem;
+}
+
+html body .series-intro {
+  margin-bottom: 2rem;
+}
+
+html body .series-section {
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .series-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+html body .series-section-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+html body .series-section-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+html body .series-count {
+  flex-shrink: 0;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+html body .series-post-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+html body .series-post-item {
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .series-post-item h3 {
+  margin-top: 0.35rem;
+  margin-bottom: 0.45rem;
+  font-size: 1.1rem;
+}
+
+html body .series-post-item h3 a {
+  color: var(--text-primary);
+}
+
+html body .series-post-excerpt {
+  margin: 0.45rem 0 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+html body .series-post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+html body .series-post-tags a {
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+html body .series-post-tags a:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  text-decoration: none;
+}
+
 /* ---- Search Page ---- */
 html body .search-page {
   margin-top: 1.5rem;

@@ -4,6 +4,9 @@ title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skill
 date: 2026-05-04 19:00:00 +0800
 categories: [AI, 效率, 工具]
 tags: [skillshare, skills, agent, cli, claude, codex]
+series: [ai-agent]
+series_order:
+  ai-agent: 1
 ---
 
 记录 [Skillshare](https://skillshare.runkids.cc/docs) 的安装、初始化、同步和跨设备使用方式，用一个源目录统一管理 AI CLI、编码助手和 Agent 的 skills。

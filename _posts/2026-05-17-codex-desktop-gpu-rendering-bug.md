@@ -4,6 +4,10 @@ title: "Codex Desktop 插件页错位/渲染异常：Intel Mac GPU 启动参数�
 date: 2026-05-17 00:00:00 +0800
 categories: [AI, 工具, macOS]
 tags: [codex, electron, gpu, macos, intel, plugin]
+series: [ai-agent, macos-tooling]
+series_order:
+  ai-agent: 3
+  macos-tooling: 3
 ---
 
 记录一次 Codex Desktop 插件搜索页面渲染错位的排查过程，以及在 Intel Mac 上通过强制高性能 GPU 启动规避问题的方法。

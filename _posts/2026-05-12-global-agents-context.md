@@ -4,6 +4,9 @@ title: "AGENTS.md 配置指南：统一 Codex、Claude 等 AI Agent 协作规则
 date: 2026-05-12 10:00:00 +0800
 categories: [AI, Agent, 配置]
 tags: [agents, codex, claude, rules, workflow]
+series: [ai-agent]
+series_order:
+  ai-agent: 2
 ---
 
 记录个人全局 `AGENTS.md` 的上下文、协作偏好、编码约定和行为优先级，用于统一不同 Agent 与开发工具的工作方式。

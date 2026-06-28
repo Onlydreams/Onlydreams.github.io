@@ -4,6 +4,9 @@ title: "World Cup Predictor：给 AI Agent 的世界杯足球预测 Skill 设计
 date: 2026-06-21 00:00:00 +0800
 categories: [Agent, Sports]
 tags: [worldcup, football, skills, agent, prompt, prediction]
+series: [ai-agent]
+series_order:
+  ai-agent: 4
 ---
 
 World Cup Predictor 是一个面向 AI Agent 的足球比赛分析 Skill，目标不是让模型直接猜比分，而是把市场基线、比赛数据、球队新闻、打法匹配、小组动机和赛后复盘放进同一套可检查流程里。

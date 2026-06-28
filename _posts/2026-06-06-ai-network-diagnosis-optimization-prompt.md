@@ -5,6 +5,9 @@ date: 2026-06-06 17:50:00 +0800
 updated: 2026-06-07
 categories: [AI, 代理, 效率]
 tags: [prompt, network, proxy, dns, wifi, tun]
+series: [network-proxy]
+series_order:
+  network-proxy: 4
 ---
 
 这是一份面向 AI Agent 的网络诊断与优化提示词模板，重点不是让 Agent 直接“修网络”，而是要求它先区分真实公网链路、系统代理链路、TUN/VPN 链路，再只执行安全、可逆、低风险的优化。

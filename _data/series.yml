@@ -1,0 +1,9 @@
+- key: ai-agent
+  title: AI Agent 工作流
+  description: Codex、Claude、Skills 与 Agent 协作规则相关笔记。
+- key: network-proxy
+  title: 网络与代理排障
+  description: 代理、DNS、GitHub 访问和网络诊断相关经验。
+- key: macos-tooling
+  title: macOS 开发工具链
+  description: macOS 开发环境、AI 工具和桌面端问题处理记录。

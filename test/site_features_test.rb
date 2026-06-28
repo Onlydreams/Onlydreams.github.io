@@ -42,6 +42,30 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "/posts/auto-proxy-setup/"
   end
 
+  def test_series_page_lists_configured_series_and_posts
+    html = read_site("series/index.html")
+    styles = read_scss_sources
+
+    assert_includes html, "专题"
+    assert_includes html, "AI Agent 工作流"
+    assert_includes html, "网络与代理排障"
+    assert_includes html, "macOS 开发工具链"
+    assert_includes html, "/posts/skillshare-guide/"
+    assert_includes html, "/posts/auto-proxy-setup/"
+    assert_includes html, "/posts/macos-claude-deepseek/"
+    assert_includes html, 'class="series-post-tags"'
+    assert_includes styles, ".series-page"
+    assert_includes styles, ".series-section"
+    assert_includes styles, ".series-post-tags"
+  end
+
+  def test_site_navigation_links_to_series_page
+    html = read_site("index.html")
+
+    assert_includes html, 'href="/series/"'
+    assert_includes html, ">专题</a>"
+  end
+
   def test_post_pages_render_toc
     html = read_site("posts/auto-proxy-setup/index.html")
 

@@ -5,6 +5,9 @@ date: 2026-04-30 17:00:00 +0800
 updated: 2026-05-09
 categories: [MacOS, AI, 效率]
 tags: [claude, deepseek, api, third-party-inference, upstreamkit, cc-switch]
+series: [macos-tooling]
+series_order:
+  macos-tooling: 2
 ---
 
 记录 MacOS 下将 Claude 桌面客户端接入 DeepSeek 作为第三方模型的步骤。
