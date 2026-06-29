@@ -61,6 +61,7 @@ exclude:
   - docs/
   - Gemfile
   - Gemfile.lock
+  - bin/
   - test/
   - vendor/
   - .bundle/

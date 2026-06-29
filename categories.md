@@ -12,7 +12,7 @@ permalink: /categories/
     {%- assign category_name = category[0] -%}
     {%- assign posts = category[1] -%}
     <section class="taxonomy-section" id="category-{{ category_name | slugify: 'raw' }}">
-      <h2>{{ category_name }}</h2>
+      <h2>{{ category_name | escape }}</h2>
       <ul class="taxonomy-post-list">
         {%- for post in posts -%}
           <li>

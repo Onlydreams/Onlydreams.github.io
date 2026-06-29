@@ -153,6 +153,12 @@ class SiteFeaturesTest < Minitest::Test
     refute_path_exists File.join(SITE, "docs")
   end
 
+  def test_internal_maintenance_scripts_are_not_published
+    refute_path_exists File.join(SITE, "bin")
+    refute_path_exists File.join(SITE, "bin", "test")
+    refute_path_exists File.join(SITE, "bin", "test.ps1")
+  end
+
   def test_post_pages_render_status_block_when_status_front_matter_exists
     html = read_site("posts/global-agents-context/index.html")
     styles = read_scss_sources
@@ -321,6 +327,15 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, 'itemprop="dateModified"'
   end
 
+  def test_markdown_images_render_with_lazy_loading_hints
+    html = read_site("posts/macos-claude-deepseek/index.html")
+
+    assert_includes html, 'src="/assets/images/2026-04-30-macos-claude-deepseek/config.jpg"'
+    assert_includes html, 'alt="Claude 配置"'
+    assert_includes html, 'loading="lazy"'
+    assert_includes html, 'decoding="async"'
+  end
+
   def test_home_page_shows_excerpts_tags_and_updated_time
     html = read_site("index.html")
     updated_html = read_site("page2/index.html")
@@ -414,6 +429,37 @@ class SiteFeaturesTest < Minitest::Test
     refute_includes html, "static.cloudflareinsights.com/beacon.min.js"
   end
 
+  def test_google_fonts_are_loaded_from_head_without_css_import
+    head = File.read(File.join(ROOT, "_includes/head.html"))
+    main_scss = File.read(File.join(ROOT, "assets/main.scss"))
+
+    assert_includes head, 'rel="preconnect" href="https://fonts.googleapis.com"'
+    assert_includes head, 'rel="preconnect" href="https://fonts.gstatic.com" crossorigin'
+    assert_includes head, "fonts.googleapis.com/css2?family=Poppins"
+    assert_includes head, "&amp;family=Lora"
+    assert_includes head, "&amp;display=swap"
+    refute_includes main_scss, "@import url(\"https://fonts.googleapis.com"
+  end
+
+  def test_dynamic_taxonomy_labels_are_escaped_in_templates
+    categories_page = File.read(File.join(ROOT, "categories.md"))
+    tags_page = File.read(File.join(ROOT, "tags.md"))
+    index_page = File.read(File.join(ROOT, "index.html"))
+    related_posts = File.read(File.join(ROOT, "_includes", "related-posts.html"))
+    series_post_item = File.read(File.join(ROOT, "_includes", "series-post-item.html"))
+
+    assert_includes categories_page, "{{ category_name | escape }}"
+    assert_includes tags_page, "{{ tag_name | escape }}"
+    assert_includes index_page, "{{ tag | escape }}"
+    assert_includes related_posts, '{{ post.tags | slice: 0, 3 | join: " / " | escape }}'
+    assert_includes series_post_item, "{{ tag | escape }}"
+
+    categories_html = read_site("categories/index.html")
+    tags_html = read_site("tags/index.html")
+    assert_includes categories_html, "<h2>AI</h2>"
+    assert_includes tags_html, "<h2>codex</h2>"
+  end
+
   def test_default_layout_loads_split_javascript_modules
     html = read_site("posts/auto-proxy-setup/index.html")
     expected_scripts = [
@@ -439,6 +485,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes bash_script, "bundle exec ruby test/site_features_test.rb"
     assert_includes powershell_script, "bundle exec jekyll build"
     assert_includes powershell_script, "bundle exec ruby test/site_features_test.rb"
+    assert_includes powershell_script, "$LASTEXITCODE"
   end
 
   def test_indexnow_wait_checks_expected_site_urls
@@ -497,6 +544,30 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes workflow, "continue-on-error: true"
     assert_includes workflow, "if: steps.wait_for_sitemap.outcome == 'success'"
     refute_includes workflow, "onlydreams.github.io"
+  end
+
+  def test_indexnow_workflow_triggers_for_public_surface_changes
+    workflow = File.read(File.join(ROOT, ".github/workflows/indexnow.yml"))
+
+    [
+      "_data/**",
+      "series.md",
+      "status.md",
+      "bin/**",
+      "test/**"
+    ].each do |path|
+      assert_includes workflow, %("#{path}")
+    end
+  end
+
+  def test_ci_workflow_runs_full_site_tests
+    workflow_path = File.join(ROOT, ".github/workflows/ci.yml")
+
+    assert_path_exists workflow_path
+    workflow = File.read(workflow_path)
+    assert_includes workflow, "bundle exec jekyll build"
+    assert_includes workflow, "bundle exec ruby test/site_features_test.rb"
+    assert_includes workflow, "bundle exec ruby test/content_health_test.rb"
   end
 
   def run_page_enhancements_dom_test(scenario)

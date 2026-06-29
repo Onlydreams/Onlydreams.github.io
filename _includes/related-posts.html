@@ -23,7 +23,7 @@
             <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
             {%- if post.tags.size > 0 -%}
               <span class="related-post-tags">
-                {{ post.tags | slice: 0, 3 | join: " / " }}
+                {{ post.tags | slice: 0, 3 | join: " / " | escape }}
               </span>
             {%- endif -%}
           </li>

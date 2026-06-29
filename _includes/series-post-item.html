@@ -17,7 +17,7 @@
       <ul class="series-post-tags" aria-label="文章标签">
         {%- for tag in post.tags limit: 5 -%}
           <li>
-            <a href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify: 'raw' }}">{{ tag }}</a>
+            <a href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify: 'raw' }}">{{ tag | escape }}</a>
           </li>
         {%- endfor -%}
       </ul>

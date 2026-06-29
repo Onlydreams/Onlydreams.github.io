@@ -52,8 +52,8 @@ status:
 
 3. 继续往下拉，在 `Model list` 中点击 `Add`，`Model ID` 输入 `deepseek-v4-pro`，并开启 `Offer 1M-context variant` 选项。
 
-   ![Claude 配置](/assets/images/2026-04-30-macos-claude-deepseek/config.jpg)
+   ![Claude 配置](/assets/images/2026-04-30-macos-claude-deepseek/config.jpg){: loading="lazy" decoding="async" }
 
 4. 配置完成后，点击 `Apply locally`，再点击 `Relaunch Now` 等待应用重启完成，即可使用 DeepSeek V4 作为第三方模型进行对话。
 
-   ![Claude 页面](/assets/images/2026-04-30-macos-claude-deepseek/result.jpg)
+   ![Claude 页面](/assets/images/2026-04-30-macos-claude-deepseek/result.jpg){: loading="lazy" decoding="async" }
