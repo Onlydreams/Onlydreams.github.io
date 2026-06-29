@@ -2,7 +2,7 @@
 layout: post
 title: "Codex Desktop 插件页错位/渲染异常：Intel Mac GPU 启动参数修复"
 date: 2026-05-17 00:00:00 +0800
-categories: [AI, 工具, macOS]
+categories: [AI, 工具, MacOS]
 tags: [codex, electron, gpu, macos, intel, plugin]
 series: [ai-agent, macos-tooling]
 series_order:

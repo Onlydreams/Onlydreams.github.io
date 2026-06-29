@@ -126,6 +126,102 @@ html body .series-post-tags a:hover {
   text-decoration: none;
 }
 
+/* ---- Status Page ---- */
+html body .status-page {
+  margin-top: 1.5rem;
+}
+
+html body .status-intro {
+  margin-bottom: 2rem;
+}
+
+html body .status-section {
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .status-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+html body .status-section-header h2 {
+  margin: 0;
+}
+
+html body .status-count {
+  flex-shrink: 0;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+html body .status-post-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+html body .status-post-list li {
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+html body .status-post-list h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1.08rem;
+}
+
+html body .status-post-list h3 a {
+  color: var(--text-primary);
+}
+
+html body .status-post-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+}
+
+html body .status-post-meta div {
+  min-width: 0;
+}
+
+html body .status-post-meta dt {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+html body .status-post-meta dd {
+  margin-left: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+html body .status-post-risk {
+  margin: 0.7rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media screen and (max-width: 600px) {
+  html body .status-section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html body .status-post-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Search Page ---- */
 html body .search-page {
   margin-top: 1.5rem;

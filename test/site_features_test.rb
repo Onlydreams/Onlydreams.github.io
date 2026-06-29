@@ -84,6 +84,41 @@ class SiteFeaturesTest < Minitest::Test
     assert_operator clash_index, :<, diagnosis_index
   end
 
+  def test_status_page_groups_posts_by_status
+    html = read_site("status/index.html")
+    styles = read_scss_sources
+
+    assert_includes html, "文章状态"
+    assert_includes html, "当前可用"
+    assert_includes html, "待复核"
+    assert_includes html, "/posts/global-agents-context/"
+    assert_includes html, "/posts/worldcup-predictor-agent-skill/"
+    assert_includes html, "/posts/macos-homebrew-acceleration/"
+    assert_includes html, "Codex / Claude / AGENTS.md"
+    assert_includes html, "会修改包管理源、终端代理和 shell 配置"
+    assert_includes html, 'class="status-post-list"'
+    assert_includes html, 'class="status-post-risk"'
+    assert_includes styles, ".status-page"
+    assert_includes styles, ".status-section"
+    assert_includes styles, ".status-post-risk"
+
+    current_status_index = html.index("<h2>当前可用</h2>")
+    needs_review_index = html.index("<h2>待复核</h2>")
+    global_agents_index = html.index("/posts/global-agents-context/", current_status_index)
+    worldcup_index = html.index("/posts/worldcup-predictor-agent-skill/", current_status_index)
+    homebrew_index = html.index("/posts/macos-homebrew-acceleration/", needs_review_index)
+    refute_nil current_status_index
+    refute_nil needs_review_index
+    refute_nil global_agents_index
+    refute_nil worldcup_index
+    refute_nil homebrew_index
+    assert_operator current_status_index, :<, global_agents_index
+    assert_operator global_agents_index, :<, needs_review_index
+    assert_operator current_status_index, :<, worldcup_index
+    assert_operator worldcup_index, :<, needs_review_index
+    assert_operator needs_review_index, :<, homebrew_index
+  end
+
   def test_site_navigation_links_to_series_page
     html = read_site("index.html")
 
@@ -91,11 +126,18 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, ">专题</a>"
   end
 
+  def test_site_navigation_links_to_status_page
+    html = read_site("index.html")
+
+    assert_includes html, 'href="/status/"'
+    assert_includes html, ">文章状态</a>"
+  end
+
   def test_site_navigation_uses_explicit_page_allowlist
     config = YAML.load_file(File.join(ROOT, "_config.yml"))
 
     assert_equal(
-      ["about.md", "categories.md", "search.md", "series.md", "tags.md"],
+      ["about.md", "categories.md", "search.md", "series.md", "status.md", "tags.md"],
       config["header_pages"]
     )
   end
