@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require "date"
 require "json"
 require "liquid"
 require "open3"
@@ -169,7 +170,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "状态"
     assert_includes html, "当前可用"
     assert_includes html, "最后验证"
-    assert_includes html, "2026-06-28"
+    assert_includes html, "2026-06-29"
     assert_includes html, "适用环境"
     assert_includes html, "Codex / Claude / AGENTS.md"
     assert_includes html, "风险提示"
@@ -186,11 +187,26 @@ class SiteFeaturesTest < Minitest::Test
   end
 
   def test_status_verified_does_not_create_date_modified
-    html = read_site("posts/global-agents-context/index.html")
+    post_path = Dir[File.join(ROOT, "_posts/*.md")].find do |path|
+      front_matter = post_front_matter(path)
 
-    assert_includes html, "2026-06-28"
+      front_matter["status"] && !front_matter.key?("updated")
+    end
+
+    refute_nil post_path, "expected at least one post with status metadata and no updated field"
+
+    slug = File.basename(post_path, ".md").sub(/\A\d{4}-\d{2}-\d{2}-/, "")
+    html = read_site("posts/#{slug}/index.html")
+
     refute_includes html, 'itemprop="dateModified"'
-    refute_includes html, '"dateModified":"2026-06-28'
+  end
+
+  def post_front_matter(path)
+    match = File.read(path).match(/\A---\s*\n(.*?)\n---\s*\n/m)
+
+    refute_nil match, "#{path} must start with YAML front matter"
+
+    YAML.safe_load(match[1], permitted_classes: [Date, Time], aliases: true)
   end
 
   def test_post_status_include_skips_blank_fields_and_escapes_values
