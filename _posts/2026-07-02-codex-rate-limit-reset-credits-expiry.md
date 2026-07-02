@@ -4,6 +4,9 @@ title: "Codex App 重置次数过期时间查询：查看 rate-limit reset credi
 date: 2026-07-02 00:00:00 +0800
 categories: [AI, 工具, 配置]
 tags: [codex, chatgpt, rate-limit, credits, usage]
+series: [ai-agent]
+series_order:
+  ai-agent: 4
 status:
   label: 当前可用
   verified: 2026-07-02
