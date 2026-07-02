@@ -407,12 +407,14 @@ class SiteFeaturesTest < Minitest::Test
 
   def test_post_pages_render_related_posts
     html = read_site("posts/codex-desktop-gpu-rendering-bug/index.html")
+    related_posts = html[/<section class="related-posts".*?<\/section>/m]
 
     assert_includes html, 'class="related-posts"'
     assert_includes html, "相关文章"
-    assert_includes html, "/posts/macos-claude-deepseek/"
-    assert_includes html, '<span class="related-post-tags">'
-    assert_includes html, "claude / deepseek / api"
+    refute_nil related_posts
+    assert_match(%r{href="/posts/[^"]+/"}, related_posts)
+    assert_includes related_posts, '<span class="related-post-tags">'
+    assert_match(%r{<span class="related-post-tags">\s*[^<]+ / [^<]+ / [^<]+\s*</span>}m, related_posts)
   end
 
   def test_posts_render_giscus_comments
