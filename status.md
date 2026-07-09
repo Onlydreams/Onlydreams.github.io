@@ -1,6 +1,7 @@
 ---
 layout: page
 title: 文章状态
+description: 查看 Onlydreams 技术文章的当前可用性、最后验证时间和适用环境。
 permalink: /status/
 ---
 

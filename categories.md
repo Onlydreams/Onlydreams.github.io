@@ -1,6 +1,7 @@
 ---
 layout: page
 title: 分类
+description: 按主题浏览 Onlydreams 的 macOS、AI、网络和开发工具技术笔记。
 permalink: /categories/
 ---
 

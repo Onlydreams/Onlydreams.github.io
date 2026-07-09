@@ -1,6 +1,7 @@
 ---
 layout: page
 title: 关于
+description: 关于 Onlydreams，以及这个聚焦开发环境、工具链和技术排障的个人博客。
 permalink: /about/
 ---
 

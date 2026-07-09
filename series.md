@@ -1,6 +1,7 @@
 ---
 layout: page
 title: 专题
+description: 沿着专题阅读 Onlydreams 的配置、排障和 AI Agent 工作流技术笔记。
 permalink: /series/
 ---
 

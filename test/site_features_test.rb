@@ -478,22 +478,43 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes tags_html, "<h2>codex</h2>"
   end
 
-  def test_default_layout_loads_split_javascript_modules
-    html = read_site("posts/auto-proxy-setup/index.html")
-    expected_scripts = [
-      "/assets/js/theme-toggle.js",
-      "/assets/js/page-enhancements.js",
-      "/assets/js/code-copy.js",
-      "/assets/js/search.js"
-    ]
+  def test_default_layout_loads_javascript_by_page_capability
+    post_html = read_site("posts/auto-proxy-setup/index.html")
+    search_html = read_site("search/index.html")
+    category_html = read_site("categories/index.html")
 
-    script_positions = expected_scripts.map do |script_path|
-      assert_includes html, %("#{script_path}" defer)
-      html.index(script_path)
+    [post_html, search_html, category_html].each do |html|
+      assert_includes html, %("/assets/js/theme-toggle.js" defer)
+      assert_includes html, %("/assets/js/page-enhancements.js" defer)
+      refute_includes html, "/assets/js/theme.js"
     end
 
-    assert_equal script_positions.sort, script_positions
-    refute_includes html, "/assets/js/theme.js"
+    assert_includes post_html, %("/assets/js/code-copy.js" defer)
+    refute_includes post_html, "/assets/js/search.js"
+    assert_includes search_html, %("/assets/js/search.js" defer)
+    refute_includes search_html, "/assets/js/code-copy.js"
+    refute_includes category_html, "/assets/js/code-copy.js"
+    refute_includes category_html, "/assets/js/search.js"
+  end
+
+  def test_navigation_pages_have_specific_descriptions_and_search_is_not_indexed
+    expected_descriptions = {
+      "about/index.html" => "关于 Onlydreams，以及这个聚焦开发环境、工具链和技术排障的个人博客。",
+      "categories/index.html" => "按主题浏览 Onlydreams 的 macOS、AI、网络和开发工具技术笔记。",
+      "series/index.html" => "沿着专题阅读 Onlydreams 的配置、排障和 AI Agent 工作流技术笔记。",
+      "status/index.html" => "查看 Onlydreams 技术文章的当前可用性、最后验证时间和适用环境。",
+      "tags/index.html" => "按关键词浏览 Onlydreams 的开发工具、网络、AI Agent 和效率优化文章。"
+    }
+
+    expected_descriptions.each do |path, description|
+      assert_includes read_site(path), %(name="description" content="#{description}")
+    end
+
+    search_html = read_site("search/index.html")
+    sitemap = read_site("sitemap.xml")
+    assert_includes search_html, 'name="description" content="在 Onlydreams 技术博客中按工具、命令和主题查找文章。"'
+    assert_includes search_html, 'name="robots" content="noindex, follow"'
+    refute_includes sitemap, "https://www.dayjia.com/search/"
   end
 
   def test_cross_platform_test_entrypoints_are_available

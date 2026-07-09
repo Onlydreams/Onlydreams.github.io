@@ -1,7 +1,11 @@
 ---
 layout: page
 title: 搜索
+description: 在 Onlydreams 技术博客中按工具、命令和主题查找文章。
 permalink: /search/
+robots: noindex, follow
+search: true
+sitemap: false
 ---
 
 <div class="search-page">
