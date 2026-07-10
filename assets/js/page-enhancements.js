@@ -68,48 +68,51 @@
   }
 
   function initPostToc() {
-    const toc = document.querySelector(".post-toc[data-toc-source]");
-    if (!toc) return;
+    const desktopToc = document.querySelector(".post-toc[data-toc-source]");
+    const mobileToc = document.querySelector(".post-toc-mobile[data-toc-source]");
+    const tocs = [desktopToc, mobileToc].filter(Boolean);
+    if (!tocs.length) return;
 
-    const source = document.querySelector(toc.dataset.tocSource);
-    const list = toc.querySelector("#markdown-toc");
-    if (!source || !list) {
-      toc.hidden = true;
+    const source = document.querySelector(tocs[0].dataset.tocSource);
+    const headings = source && source.querySelectorAll("h2[id], h3[id]");
+    if (!headings || !headings.length) {
+      tocs.forEach(function (toc) {
+        toc.hidden = true;
+      });
       return;
     }
 
-    const headings = source.querySelectorAll("h2[id], h3[id]");
-    if (!headings.length) {
-      toc.hidden = true;
-      return;
-    }
-
-    let currentSection = null;
-
-    headings.forEach(function (heading) {
-      const link = document.createElement("a");
-      link.href = "#" + heading.id;
-      link.textContent = heading.textContent.trim();
-
-      const item = document.createElement("li");
-      item.appendChild(link);
-
-      if (heading.tagName === "H2") {
-        list.appendChild(item);
-        currentSection = item;
-      } else if (currentSection) {
-        let childList = currentSection.querySelector("ul");
-        if (!childList) {
-          childList = document.createElement("ul");
-          currentSection.appendChild(childList);
-        }
-        childList.appendChild(item);
+    tocs.forEach(function (toc) {
+      const list = toc.querySelector("ul");
+      if (!list) {
+        toc.hidden = true;
+        return;
       }
-    });
 
-    if (list.children.length) {
-      toc.hidden = false;
-    }
+      let currentSection = null;
+      headings.forEach(function (heading) {
+        const link = document.createElement("a");
+        link.href = "#" + heading.id;
+        link.textContent = heading.textContent.trim();
+
+        const item = document.createElement("li");
+        item.appendChild(link);
+
+        if (heading.tagName === "H2") {
+          list.appendChild(item);
+          currentSection = item;
+        } else if (currentSection) {
+          let childList = currentSection.querySelector("ul");
+          if (!childList) {
+            childList = document.createElement("ul");
+            currentSection.appendChild(childList);
+          }
+          childList.appendChild(item);
+        }
+      });
+
+      toc.hidden = !list.children.length;
+    });
   }
 
   window.SiteEnhancements = window.SiteEnhancements || {};

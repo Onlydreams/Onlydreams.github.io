@@ -93,13 +93,18 @@ html body .theme-toggle:active {
 
   html body .theme-toggle {
     bottom: 1rem;
+    bottom: unquote("max(1rem, env(safe-area-inset-bottom))");
     right: 1rem;
     font-size: 0.8rem;
   }
 
   html body .back-to-top {
-    bottom: 4rem;
+    bottom: calc(4rem + env(safe-area-inset-bottom));
     right: 1rem;
+  }
+
+  html body .page-content {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
 }
 

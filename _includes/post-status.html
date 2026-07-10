@@ -4,14 +4,21 @@
   {%- assign status_environment = page.status.environment | default: "" | strip -%}
   {%- assign status_risk = page.status.risk | default: "" | strip -%}
   <section class="post-status" aria-labelledby="post-status-title">
-    <h2 id="post-status-title" class="post-status-title">文章状态</h2>
-    <dl class="post-status-list">
+    <div class="post-status-heading">
+      <h2 id="post-status-title" class="post-status-title">文章状态</h2>
       {%- if status_label != "" -%}
-        <div>
-          <dt>状态</dt>
-          <dd>{{ status_label | escape }}</dd>
-        </div>
+        {%- assign status_badge_class = "post-status-badge--default" -%}
+        {%- if status_label == "当前可用" -%}
+          {%- assign status_badge_class = "post-status-badge--current" -%}
+        {%- elsif status_label == "待复核" -%}
+          {%- assign status_badge_class = "post-status-badge--review" -%}
+        {%- elsif status_label == "已失效" -%}
+          {%- assign status_badge_class = "post-status-badge--expired" -%}
+        {%- endif -%}
+        <span class="post-status-badge {{ status_badge_class }}">{{ status_label | escape }}</span>
       {%- endif -%}
+    </div>
+    <dl class="post-status-list">
       {%- if status_verified != "" -%}
         <div>
           <dt>最后验证</dt>

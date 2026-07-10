@@ -126,10 +126,47 @@ html body .post-status {
   background: var(--bg-card);
 }
 
+html body .post-status-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
 html body .post-status-title {
-  margin: 0 0 0.8rem;
+  margin: 0;
   color: var(--text-primary);
   font-size: 0.95rem;
+}
+
+html body .post-status-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: "Poppins", "Noto Sans SC", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+html body .post-status-badge--current {
+  color: var(--accent-green);
+  background: rgba(111, 139, 87, 0.1);
+}
+
+html body .post-status-badge--review {
+  color: var(--accent-orange);
+  background: var(--accent-orange-light);
+}
+
+html body .post-status-badge--expired {
+  color: #b85c5c;
+  background: rgba(184, 92, 92, 0.1);
 }
 
 html body .post-status-list {
@@ -171,6 +208,10 @@ html body .post-content h3 {
   html body .post-status {
     margin-top: -0.75rem;
     padding: 0.9rem 1rem;
+  }
+
+  html body .post-status-heading {
+    align-items: flex-start;
   }
 
   html body .post-status-list div {

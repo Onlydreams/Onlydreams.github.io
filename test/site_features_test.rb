@@ -127,20 +127,44 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, ">专题</a>"
   end
 
-  def test_site_navigation_links_to_status_page
+  def test_site_navigation_links_to_archive_page
     html = read_site("index.html")
 
-    assert_includes html, 'href="/status/"'
-    assert_includes html, ">文章状态</a>"
+    assert_includes html, 'href="/archive/"'
+    assert_includes html, ">索引</a>"
   end
 
   def test_site_navigation_uses_explicit_page_allowlist
     config = YAML.load_file(File.join(ROOT, "_config.yml"))
 
     assert_equal(
-      ["about.md", "categories.md", "search.md", "series.md", "status.md", "tags.md"],
+      ["about.md", "search.md", "series.md", "archive.md"],
       config["header_pages"]
     )
+  end
+
+  def test_mobile_navigation_keeps_its_control_keyboard_reachable
+    header = File.read(File.join(ROOT, "_includes", "header.html"))
+    styles = read_scss_sources
+
+    assert_includes header, 'class="nav-trigger"'
+    assert_includes header, 'for="nav-trigger"'
+    assert_includes header, 'class="screen-reader-text"'
+    assert_includes styles, ".screen-reader-text"
+    assert_includes styles, ".nav-trigger:focus-visible + label"
+  end
+
+  def test_archive_page_groups_secondary_browsing_entries
+    html = read_site("archive/index.html")
+    styles = read_scss_sources
+
+    assert_includes html, "从不同维度定位需要的技术笔记"
+    assert_includes html, 'href="/categories/"'
+    assert_includes html, 'href="/tags/"'
+    assert_includes html, 'href="/status/"'
+    assert_includes html, 'class="archive-grid"'
+    assert_includes styles, ".archive-grid"
+    assert_includes styles, ".archive-card"
   end
 
   def test_internal_docs_are_not_published_or_listed_in_navigation
@@ -165,6 +189,8 @@ class SiteFeaturesTest < Minitest::Test
     styles = read_scss_sources
 
     assert_includes html, 'class="post-status"'
+    assert_includes html, 'class="post-status-heading"'
+    assert_includes html, 'class="post-status-badge post-status-badge--current"'
     assert_includes html, 'class="post-status-title"'
     assert_includes html, "文章状态"
     assert_includes html, "状态"
@@ -217,7 +243,7 @@ class SiteFeaturesTest < Minitest::Test
       "risk" => "Risk <script>alert(1)</script>"
     )
 
-    assert_includes html, "<dt>状态</dt>"
+    assert_includes html, 'class="post-status-badge post-status-badge--default"'
     assert_includes html, "&lt;strong&gt;当前可用&lt;/strong&gt;"
     assert_includes html, "<dt>风险提示</dt>"
     assert_includes html, "Risk &lt;script&gt;alert(1)&lt;/script&gt;"
@@ -231,7 +257,9 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("posts/auto-proxy-setup/index.html")
 
     assert_includes html, 'class="post-toc"'
+    assert_includes html, 'class="post-toc-mobile"'
     assert_includes html, 'data-toc-source=".post-content"'
+    assert_includes html, 'id="markdown-toc-mobile"'
     assert_includes html, "目录需要启用 JavaScript 后显示。"
     refute_includes html, "toc_from_html"
   end
@@ -242,6 +270,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "initPostToc"
     assert_includes script, "querySelectorAll(\"h2[id], h3[id]\")"
     assert_includes script, "data-toc-source"
+    assert_includes script, "post-toc-mobile"
     assert_includes script, "window.SiteEnhancements.initPostToc"
     refute_path_exists File.join(ROOT, "_plugins", "toc_filter.rb")
     refute_path_exists File.join(ROOT, ".github", "workflows", "pages.yml")
@@ -261,6 +290,10 @@ class SiteFeaturesTest < Minitest::Test
       assert(toc.list.children[0].children[0].textContent === "Intro <safe>", "link text should use textContent");
       assert(toc.list.children[0].children[1].children[0].children[0].href === "#details", "h3 should nest below previous h2");
       assert(toc.list.children[1].children[0].href === "#next", "second h2 should be top-level");
+      assert(toc.mobileToc.hidden === false, "mobile toc should be visible");
+      assert(toc.mobileToc.list.children.length === 2, "mobile toc should contain two top-level items");
+      assert(toc.mobileToc.list.children[0].children[0].href === "#intro", "mobile toc should target first h2");
+      assert(toc.mobileToc.list.children[0].children[1].children[0].children[0].href === "#details", "mobile h3 should nest below previous h2");
     JS
 
     assert_equal "", result
@@ -271,6 +304,8 @@ class SiteFeaturesTest < Minitest::Test
       const toc = buildToc([]);
       assert(toc.hidden === true, "toc should stay hidden without headings");
       assert(toc.list.children.length === 0, "empty toc should not create items");
+      assert(toc.mobileToc.hidden === true, "mobile toc should stay hidden without headings");
+      assert(toc.mobileToc.list.children.length === 0, "empty mobile toc should not create items");
     JS
 
     assert_equal "", result
@@ -365,6 +400,18 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes updated_html, "<time datetime="
   end
 
+  def test_home_page_exposes_existing_series_as_topic_cards
+    html = read_site("index.html")
+    styles = read_scss_sources
+
+    assert_includes html, "按主题探索"
+    assert_includes html, 'class="home-topic-grid"'
+    assert_includes html, 'href="/series/#series-ai-agent"'
+    assert_includes html, 'href="/series/#series-network-proxy"'
+    assert_includes styles, ".home-topic-grid"
+    assert_includes styles, ".home-topic-card"
+  end
+
   def test_public_contact_uses_github_without_noreply_email
     home_html = read_site("index.html")
     about_html = read_site("about/index.html")
@@ -373,6 +420,19 @@ class SiteFeaturesTest < Minitest::Test
     refute_includes home_html, "users.noreply.github.com"
     assert_includes home_html, "https://github.com/Onlydreams"
     assert_includes about_html, "技术交流可以通过文章评论或 GitHub 联系我。"
+  end
+
+  def test_site_declares_a_theme_matched_favicon_and_manifest
+    html = read_site("index.html")
+    favicon = File.read(File.join(ROOT, "assets", "favicon.svg"))
+    manifest = JSON.parse(File.read(File.join(ROOT, "site.webmanifest")))
+
+    assert_includes html, 'rel="icon" href="/assets/favicon.svg" type="image/svg+xml"'
+    assert_includes html, 'rel="manifest" href="/site.webmanifest"'
+    assert_includes favicon, 'fill="#1e1d1a"'
+    assert_includes favicon, 'stroke="#e88c6a"'
+    assert_equal "/assets/favicon.svg", manifest.fetch("icons").first.fetch("src")
+    assert_equal "#1e1d1a", manifest.fetch("theme_color")
   end
 
   def test_post_pages_render_adjacent_post_navigation
@@ -678,6 +738,7 @@ class SiteFeaturesTest < Minitest::Test
         },
         querySelector(selector) {
           if (selector === ".post-toc[data-toc-source]") return this.nodes.toc || null;
+          if (selector === ".post-toc-mobile[data-toc-source]") return this.nodes.mobileToc || null;
           if (selector === ".post-content") return this.nodes.source || null;
           return null;
         },
@@ -704,12 +765,20 @@ class SiteFeaturesTest < Minitest::Test
           hidden: true
         });
         const list = new Element("ul", { id: "markdown-toc" });
+        const mobileToc = new Element("details", {
+          dataset: { tocSource: ".post-content" },
+          hidden: true
+        });
+        const mobileList = new Element("ul", { id: "markdown-toc-mobile" });
         const source = new Element("div");
 
         headings.forEach((heading) => source.appendChild(heading));
         toc.appendChild(list);
+        mobileToc.appendChild(mobileList);
         toc.list = list;
-        document.nodes = { toc, source };
+        toc.mobileToc = mobileToc;
+        mobileToc.list = mobileList;
+        document.nodes = { toc, mobileToc, source };
 
         window.SiteEnhancements.initPostToc();
         return toc;

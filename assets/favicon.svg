@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Onlydreams</title>
+  <rect width="64" height="64" rx="16" fill="#1e1d1a"/>
+  <circle cx="30" cy="34" r="14" fill="none" stroke="#e88c6a" stroke-width="5"/>
+  <path d="M43.5 14.5v7m-3.5-3.5h7" stroke="#faf9f5" stroke-linecap="round" stroke-width="3"/>
+</svg>

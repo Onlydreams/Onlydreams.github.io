@@ -6,6 +6,30 @@ layout: default
   <h1 class="page-heading">欢迎来到 Onlydreams 的技术博客</h1>
   <p>这里记录开发工具配置、效率提升技巧以及日常踩坑总结。</p>
 
+  <section class="home-topics" aria-labelledby="home-topics-title">
+    <div class="home-section-heading">
+      <h2 id="home-topics-title">按主题探索</h2>
+      <a href="{{ '/series/' | relative_url }}">查看全部专题</a>
+    </div>
+    <div class="home-topic-grid">
+      {%- for series in site.data.series -%}
+        {%- assign series_post_count = 0 -%}
+        {%- for post in site.posts -%}
+          {%- if post.series contains series.key -%}
+            {%- assign series_post_count = series_post_count | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if series_post_count > 0 -%}
+          <a class="home-topic-card" href="{{ '/series/' | append: '#series-' | append: series.key | relative_url }}">
+            <span class="home-topic-count">{{ series_post_count }} 篇</span>
+            <strong>{{ series.title | escape }}</strong>
+            <span>{{ series.description | escape }}</span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </section>
+
   {%- if paginator.posts.size > 0 -%}
     <h2 class="post-list-heading">{{ page.list_title | default: "最新文章" }}</h2>
     <ul class="post-list">

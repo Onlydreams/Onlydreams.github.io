@@ -24,11 +24,9 @@ permalink: /posts/:slug/
 
 header_pages:
   - about.md
-  - categories.md
   - search.md
   - series.md
-  - status.md
-  - tags.md
+  - archive.md
 
 author: Onlydreams
 
