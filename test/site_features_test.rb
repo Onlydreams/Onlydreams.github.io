@@ -167,6 +167,22 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes styles, ".archive-card"
   end
 
+  def test_not_found_page_offers_static_recovery_paths
+    html = read_site("404.html")
+    styles = read_scss_sources
+
+    assert_includes html, "页面未找到"
+    assert_includes html, "404"
+    assert_includes html, 'name="robots" content="noindex, follow"'
+    assert_includes html, 'href="/"'
+    assert_includes html, 'href="/search/"'
+    assert_includes html, 'href="/series/"'
+    assert_includes html, 'href="/archive/"'
+    assert_includes styles, ".not-found-page"
+    assert_includes styles, ".not-found-actions"
+    assert_includes styles, ".not-found-action"
+  end
+
   def test_internal_docs_are_not_published_or_listed_in_navigation
     html = read_site("index.html")
 
@@ -588,9 +604,12 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes powershell_script, 'preflight.ps1")'
     assert_includes powershell_script, "Invoke-ProjectBundle exec jekyll build"
     assert_includes powershell_script, "Invoke-ProjectBundle exec ruby test/site_features_test.rb"
-    assert_includes bash_preflight, "unset BUNDLE_PATH BUNDLE_GEMFILE"
+    assert_includes bash_preflight, "unset BUNDLE_PATH BUNDLE_GEMFILE BUNDLE_BIN_PATH GEM_HOME GEM_PATH RUBYOPT"
     assert_includes bash_preflight, "REQUIRED_RUBY"
     assert_includes powershell_preflight, "Remove-Item Env:BUNDLE_PATH"
+    assert_includes powershell_preflight, "Remove-Item Env:GEM_HOME"
+    assert_includes bash_preflight, '"_${ONLYDREAMS_BUNDLER_VERSION}_" --version'
+    assert_includes powershell_preflight, '("_{0}_" -f $bundlerVersion) --version'
     assert_includes powershell_preflight, "ONLYDREAMS_RUBY"
     assert_includes powershell_preflight, '("_{0}_" -f $env:ONLYDREAMS_BUNDLER_VERSION)'
     assert_includes powershell_preflight, "$LASTEXITCODE"

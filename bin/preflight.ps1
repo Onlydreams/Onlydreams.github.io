@@ -72,18 +72,22 @@ if (-not $bundleExecutable -or -not $gemExecutable) {
 }
 
 # Keep this scoped to the invoking PowerShell process. The repository-local
-# .bundle/config must win over a machine-wide BUNDLE_PATH from another Ruby.
+# .bundle/config and selected Ruby must win over machine-wide gem paths.
 Remove-Item Env:BUNDLE_PATH -ErrorAction SilentlyContinue
 Remove-Item Env:BUNDLE_GEMFILE -ErrorAction SilentlyContinue
+Remove-Item Env:BUNDLE_BIN_PATH -ErrorAction SilentlyContinue
+Remove-Item Env:GEM_HOME -ErrorAction SilentlyContinue
+Remove-Item Env:GEM_PATH -ErrorAction SilentlyContinue
+Remove-Item Env:RUBYOPT -ErrorAction SilentlyContinue
 $env:PATH = "$rubyDirectory;$env:PATH"
 $env:ONLYDREAMS_RUBY = $rubyExecutable
 $env:ONLYDREAMS_BUNDLE = $bundleExecutable
 $env:ONLYDREAMS_GEM = $gemExecutable
 $env:ONLYDREAMS_BUNDLER_VERSION = $bundlerVersion
 
-$bundlerInstalled = & $gemExecutable list bundler -i -v $bundlerVersion
-if ($LASTEXITCODE -ne 0 -and -not $AllowMissingBundler) {
-  throw "Onlydreams toolchain error: Bundler $bundlerVersion is missing for Ruby $requiredRuby. Run .\bin\setup.ps1 first."
+& $bundleExecutable ("_{0}_" -f $bundlerVersion) --version | Out-Null
+if ($LASTEXITCODE -ne 0) {
+  throw "Onlydreams toolchain error: Bundler $bundlerVersion is unavailable for Ruby $requiredRuby. Reinstall the exact Ruby version from .ruby-version."
 }
 
 function Invoke-ProjectBundle {

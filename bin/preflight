@@ -29,9 +29,6 @@ find_ruby() {
 }
 
 main() {
-  local allow_missing_bundler=false
-  [[ "${1:-}" == "--allow-missing-bundler" ]] && allow_missing_bundler=true
-
   local ruby_executable
   ruby_executable="$(find_ruby)"
   [[ -n "$ruby_executable" ]] || fail "Ruby ${REQUIRED_RUBY} is not installed. Install the version in .ruby-version, then retry."
@@ -41,9 +38,9 @@ main() {
   ruby_dir="$(cd "$(dirname "$ruby_executable")" && pwd)"
   export PATH="$ruby_dir:$PATH"
 
-  # A global BUNDLE_PATH wins over .bundle/config and makes a different Ruby's
-  # gem directory leak into this repository. Keep the cleanup process-local.
-  unset BUNDLE_PATH BUNDLE_GEMFILE
+  # Global Bundler/RubyGems paths can make a different Ruby's gem directory
+  # leak into this repository. Keep the cleanup process-local.
+  unset BUNDLE_PATH BUNDLE_GEMFILE BUNDLE_BIN_PATH GEM_HOME GEM_PATH RUBYOPT
 
   export ONLYDREAMS_RUBY="$ruby_executable"
   export ONLYDREAMS_GEM="$ruby_dir/gem"
@@ -53,9 +50,8 @@ main() {
   [[ -x "$ONLYDREAMS_GEM" ]] || fail "gem executable was not found next to $ruby_executable."
   [[ -x "$ONLYDREAMS_BUNDLE" ]] || fail "bundle executable was not found next to $ruby_executable."
 
-  if ! "$ONLYDREAMS_GEM" list bundler -i -v "$ONLYDREAMS_BUNDLER_VERSION" >/dev/null; then
-    "$allow_missing_bundler" && return 0
-    fail "Bundler ${ONLYDREAMS_BUNDLER_VERSION} is missing for Ruby ${REQUIRED_RUBY}. Run bash bin/setup first."
+  if ! "$ONLYDREAMS_BUNDLE" "_${ONLYDREAMS_BUNDLER_VERSION}_" --version >/dev/null; then
+    fail "Bundler ${ONLYDREAMS_BUNDLER_VERSION} is unavailable for Ruby ${REQUIRED_RUBY}. Reinstall the exact Ruby version from .ruby-version."
   fi
 }
 

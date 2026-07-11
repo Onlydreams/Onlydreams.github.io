@@ -9,9 +9,9 @@ Onlydreams 的 Jekyll 技术博客。
 这个仓库固定使用 [`.ruby-version`](.ruby-version) 指定的 Ruby 版本，以及 `Gemfile.lock` 指定的 Bundler 和 gems。不要在仓库内直接运行裸 `bundle`；统一使用 `bin/setup`、`bin/test` 入口。它们会：
 
 - 只选择匹配 `.ruby-version` 的 Ruby；
-- 在当前进程清除外部 `BUNDLE_PATH` / `BUNDLE_GEMFILE`，让仓库的 `.bundle/config` 生效；
+- 在当前进程清除外部 `BUNDLE_*`、`GEM_HOME`、`GEM_PATH` 和 `RUBYOPT`，让仓库的 `.bundle/config` 与选中的 Ruby 生效；
 - 使用 lockfile 指定的 Bundler 版本；
-- 把站点依赖安装到忽略的 `vendor/bundle`；Bundler 本身只安装到匹配的 Ruby 版本一次。
+- 把站点依赖安装到忽略的 `vendor/bundle`；Bundler 使用该 Ruby 自带且与 lockfile 一致的版本。
 
 ### 每台机器一次性准备
 
@@ -72,5 +72,5 @@ bash bin/serve
 ### 排错
 
 - `expected Ruby ...`：当前 Ruby 不匹配；先安装并选择 `.ruby-version` 指定版本，不要用 Ruby 4.x 代替。
-- `Bundler ... is missing`：运行对应平台的 `bin/setup`，它会安装 lockfile 指定的 Bundler。
-- 不要把 `BUNDLE_PATH` 写进系统环境变量、PowerShell profile 或 shell rc；仓库依赖由 `.bundle/config` 的 `vendor/bundle` 管理。
+- `Bundler ... is unavailable`：Ruby 安装不完整或版本不对；重装 `.ruby-version` 指定的准确 Ruby，不要用其他 Ruby 的全局 gems 补齐。
+- 不要把 `BUNDLE_PATH`、`GEM_HOME` 或 `GEM_PATH` 写进系统环境变量、PowerShell profile 或 shell rc；仓库依赖由 `.bundle/config` 的 `vendor/bundle` 管理。

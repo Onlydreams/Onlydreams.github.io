@@ -32,6 +32,81 @@ html body .taxonomy-post-list time {
   font-size: 0.85rem;
 }
 
+/* ---- Not Found ---- */
+html body .not-found-page {
+  max-width: 640px;
+  margin: 2.5rem auto;
+}
+
+html body .not-found-code {
+  margin-bottom: 0.7rem;
+  color: var(--accent-orange);
+  font-family: "Poppins", "Noto Sans SC", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+}
+
+html body .not-found-page h1 {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  line-height: 1.12;
+}
+
+html body .not-found-intro {
+  max-width: 35rem;
+  margin: 1rem 0 2rem;
+  font-size: 1.02rem;
+}
+
+html body .not-found-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+html body .not-found-action {
+  display: flex;
+  min-height: 8.25rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-primary) !important;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+html body .not-found-action:hover {
+  border-color: var(--accent-orange);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+html body .not-found-action--primary {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange-light);
+}
+
+html body .not-found-action-label {
+  color: var(--text-primary);
+  font-family: "Poppins", "Noto Sans SC", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+html body .not-found-action-detail {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
 /* ---- Archive ---- */
 html body .archive-page {
   margin-top: 1.5rem;
@@ -308,6 +383,15 @@ html body .status-post-risk {
   html body .archive-card,
   html body .home-topic-card {
     min-height: 0;
+  }
+
+  html body .not-found-actions {
+    grid-template-columns: 1fr;
+  }
+
+  html body .not-found-action {
+    min-height: 0;
+    gap: 1.3rem;
   }
 
   html body .status-section-header {

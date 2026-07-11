@@ -7,16 +7,30 @@
 - Ruby 版本以 `.ruby-version` 为准。
 - 使用 Bundler 管理依赖。
 - 项目依赖默认安装到本地目录，避免污染全局 Ruby 环境。
+- 日常操作必须使用仓库的 toolchain 入口；不要直接运行裸 `bundle`，除非正在针对 Bundler 本身排障。
+- 不要持久设置 `BUNDLE_PATH`、`GEM_HOME`、`GEM_PATH` 或 `RUBYOPT`；入口脚本会在当前进程隔离这些变量，避免不同 Ruby 版本互相污染。
 
 ## 常用命令
 
-在仓库根目录执行：
+在仓库根目录执行一次初始化：
 
 ```powershell
-bundle install
-bundle exec jekyll build
-bundle exec jekyll serve
+.\bin\setup.ps1
+```
+
+在 Windows PowerShell 日常执行：
+
+```powershell
 .\bin\test.ps1
+.\bin\serve.ps1
+```
+
+在 macOS / Linux 日常执行：
+
+```bash
+bash bin/setup
+bash bin/test
+bash bin/serve
 ```
 
 ## 目录结构
@@ -90,12 +104,9 @@ bundle exec ruby test/site_features_test.rb
 bundle exec ruby test/content_health_test.rb
 ```
 
-- 不假设 Windows 环境可用 `bash`；如果 `bash bin/test` 不可用，使用 `.\bin\test.ps1` 或拆开执行上面的 `bundle exec` 命令。
+- 不假设 Windows 环境可用 `bash`；在 Windows 一律使用 `.\bin\test.ps1`，不要拆开运行裸 `bundle exec` 命令绕过 toolchain 入口。
 
-### macOS / Homebrew Ruby 验证
+### macOS / Linux 验证
 
-- 在 macOS 且使用 Homebrew Ruby 3.3 时，可清理代理环境变量后运行完整测试：
-
-```bash
-env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY -u http_proxy -u https_proxy -u all_proxy PATH=/usr/local/opt/ruby@3.3/bin:$PATH ./bin/test
-```
+- 先确保 `.ruby-version` 指定的 Ruby 已由版本管理器或包管理器选中，再运行 `bash bin/test`。
+- 非标准 Ruby 路径只在当前 shell 设置 `ONLYDREAMS_RUBY`；不要把项目 Ruby 路径写入全局 shell 配置。

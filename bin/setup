@@ -3,11 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=bin/preflight
-source "$ROOT_DIR/bin/preflight" --allow-missing-bundler
-
-if ! "$ONLYDREAMS_GEM" list bundler -i -v "$ONLYDREAMS_BUNDLER_VERSION" >/dev/null; then
-  "$ONLYDREAMS_GEM" install bundler --no-document --version "$ONLYDREAMS_BUNDLER_VERSION"
-fi
+source "$ROOT_DIR/bin/preflight"
 
 run_project_bundle config set --local path vendor/bundle
 run_project_bundle install
