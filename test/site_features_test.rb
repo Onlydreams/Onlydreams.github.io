@@ -673,9 +673,14 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_path_exists workflow_path
     workflow = File.read(workflow_path)
+    assert_includes workflow, "macos-latest"
+    assert_includes workflow, "windows-latest"
     assert_includes workflow, "ruby-version: .ruby-version"
-    assert_includes workflow, "bash -n bin/preflight bin/setup bin/test bin/serve"
+    %w[bin/preflight bin/setup bin/test bin/serve].each do |script|
+      assert_includes workflow, "bash -n #{script}"
+    end
     assert_includes workflow, "run: bash bin/test"
+    assert_includes workflow, "run: .\\bin\\test.ps1"
   end
 
   def run_page_enhancements_dom_test(scenario)

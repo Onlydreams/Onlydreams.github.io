@@ -8,7 +8,14 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -18,7 +25,18 @@ jobs:
           bundler-cache: true
 
       - name: Check portable shell syntax
-        run: bash -n bin/preflight bin/setup bin/test bin/serve
+        if: runner.os != 'Windows'
+        run: |
+          bash -n bin/preflight
+          bash -n bin/setup
+          bash -n bin/test
+          bash -n bin/serve
 
-      - name: Run full site tests
+      - name: Run full site tests on Unix
+        if: runner.os != 'Windows'
         run: bash bin/test
+
+      - name: Run full site tests on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\bin\test.ps1
