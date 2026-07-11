@@ -1,5 +1,6 @@
 /* ---- Post Layout: article + TOC sidebar ---- */
-html body[data-page="post"] .wrapper {
+/* Keep the wider reading layout out of the shared site header. */
+html body[data-page="post"] .page-content > .wrapper {
   max-width: 1240px;
 }
 
@@ -70,7 +71,7 @@ html body .post-toc-mobile {
 
 /* Hide TOC before it can squeeze the centered reading column */
 @media screen and (max-width: 1100px) {
-  html body[data-page="post"] .wrapper {
+  html body[data-page="post"] .page-content > .wrapper {
     max-width: 720px;
   }
 
