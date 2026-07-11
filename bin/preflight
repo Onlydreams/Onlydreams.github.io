@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This file is intentionally sourceable so bin/setup and bin/test share the
+# exact same Ruby and Bundler environment.
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REQUIRED_RUBY="$(tr -d '[:space:]' < "$ROOT_DIR/.ruby-version")"
+BUNDLER_VERSION="$(awk '/^BUNDLED WITH$/{getline; gsub(/^[[:space:]]+|[[:space:]]+$/, ""); print; exit}' "$ROOT_DIR/Gemfile.lock")"
+
+fail() {
+  echo "Onlydreams toolchain error: $*" >&2
+  return 1
+}
+
+version_matches() {
+  "$1" --version 2>/dev/null | grep -Eq "^ruby ${REQUIRED_RUBY}([p[:space:]]|$)"
+}
+
+find_ruby() {
+  if [[ -n "${ONLYDREAMS_RUBY:-}" ]]; then
+    printf '%s\n' "$ONLYDREAMS_RUBY"
+    return
+  fi
+
+  if command -v ruby >/dev/null 2>&1; then
+    command -v ruby
+  fi
+}
+
+main() {
+  local allow_missing_bundler=false
+  [[ "${1:-}" == "--allow-missing-bundler" ]] && allow_missing_bundler=true
+
+  local ruby_executable
+  ruby_executable="$(find_ruby)"
+  [[ -n "$ruby_executable" ]] || fail "Ruby ${REQUIRED_RUBY} is not installed. Install the version in .ruby-version, then retry."
+  version_matches "$ruby_executable" || fail "expected Ruby ${REQUIRED_RUBY}, got $($ruby_executable --version). Set ONLYDREAMS_RUBY to the matching executable or activate your version manager."
+
+  local ruby_dir
+  ruby_dir="$(cd "$(dirname "$ruby_executable")" && pwd)"
+  export PATH="$ruby_dir:$PATH"
+
+  # A global BUNDLE_PATH wins over .bundle/config and makes a different Ruby's
+  # gem directory leak into this repository. Keep the cleanup process-local.
+  unset BUNDLE_PATH BUNDLE_GEMFILE
+
+  export ONLYDREAMS_RUBY="$ruby_executable"
+  export ONLYDREAMS_GEM="$ruby_dir/gem"
+  export ONLYDREAMS_BUNDLE="$ruby_dir/bundle"
+  export ONLYDREAMS_BUNDLER_VERSION="$BUNDLER_VERSION"
+
+  [[ -x "$ONLYDREAMS_GEM" ]] || fail "gem executable was not found next to $ruby_executable."
+  [[ -x "$ONLYDREAMS_BUNDLE" ]] || fail "bundle executable was not found next to $ruby_executable."
+
+  if ! "$ONLYDREAMS_GEM" list bundler -i -v "$ONLYDREAMS_BUNDLER_VERSION" >/dev/null; then
+    "$allow_missing_bundler" && return 0
+    fail "Bundler ${ONLYDREAMS_BUNDLER_VERSION} is missing for Ruby ${REQUIRED_RUBY}. Run bash bin/setup first."
+  fi
+}
+
+run_project_bundle() {
+  "$ONLYDREAMS_BUNDLE" "_${ONLYDREAMS_BUNDLER_VERSION}_" "$@"
+}
+
+main "$@"

@@ -14,13 +14,11 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Build site
-        run: bundle exec jekyll build
+      - name: Check portable shell syntax
+        run: bash -n bin/preflight bin/setup bin/test bin/serve
 
-      - name: Run site feature tests
-        run: bundle exec ruby test/site_features_test.rb
-
-      - name: Run content health tests
-        run: bundle exec ruby test/content_health_test.rb
+      - name: Run full site tests
+        run: bash bin/test

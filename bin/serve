@@ -5,6 +5,4 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=bin/preflight
 source "$ROOT_DIR/bin/preflight"
 
-run_project_bundle exec jekyll build
-run_project_bundle exec ruby test/site_features_test.rb
-run_project_bundle exec ruby test/content_health_test.rb
+run_project_bundle exec jekyll serve "$@"

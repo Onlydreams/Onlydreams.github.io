@@ -580,11 +580,20 @@ class SiteFeaturesTest < Minitest::Test
   def test_cross_platform_test_entrypoints_are_available
     bash_script = File.read(File.join(ROOT, "bin/test"))
     powershell_script = File.read(File.join(ROOT, "bin/test.ps1"))
+    bash_preflight = File.read(File.join(ROOT, "bin/preflight"))
+    powershell_preflight = File.read(File.join(ROOT, "bin/preflight.ps1"))
 
-    assert_includes bash_script, "bundle exec ruby test/site_features_test.rb"
-    assert_includes powershell_script, "bundle exec jekyll build"
-    assert_includes powershell_script, "bundle exec ruby test/site_features_test.rb"
-    assert_includes powershell_script, "$LASTEXITCODE"
+    assert_includes bash_script, 'source "$ROOT_DIR/bin/preflight"'
+    assert_includes bash_script, "run_project_bundle exec ruby test/site_features_test.rb"
+    assert_includes powershell_script, 'preflight.ps1")'
+    assert_includes powershell_script, "Invoke-ProjectBundle exec jekyll build"
+    assert_includes powershell_script, "Invoke-ProjectBundle exec ruby test/site_features_test.rb"
+    assert_includes bash_preflight, "unset BUNDLE_PATH BUNDLE_GEMFILE"
+    assert_includes bash_preflight, "REQUIRED_RUBY"
+    assert_includes powershell_preflight, "Remove-Item Env:BUNDLE_PATH"
+    assert_includes powershell_preflight, "ONLYDREAMS_RUBY"
+    assert_includes powershell_preflight, '("_{0}_" -f $env:ONLYDREAMS_BUNDLER_VERSION)'
+    assert_includes powershell_preflight, "$LASTEXITCODE"
   end
 
   def test_indexnow_wait_checks_expected_site_urls
@@ -664,9 +673,9 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_path_exists workflow_path
     workflow = File.read(workflow_path)
-    assert_includes workflow, "bundle exec jekyll build"
-    assert_includes workflow, "bundle exec ruby test/site_features_test.rb"
-    assert_includes workflow, "bundle exec ruby test/content_health_test.rb"
+    assert_includes workflow, "ruby-version: .ruby-version"
+    assert_includes workflow, "bash -n bin/preflight bin/setup bin/test bin/serve"
+    assert_includes workflow, "run: bash bin/test"
   end
 
   def run_page_enhancements_dom_test(scenario)
