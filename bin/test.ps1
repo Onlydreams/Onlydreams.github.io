@@ -2,6 +2,15 @@ $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "preflight.ps1")
 
-Invoke-ProjectBundle exec jekyll build
-Invoke-ProjectBundle exec ruby test/site_features_test.rb
-Invoke-ProjectBundle exec ruby test/content_health_test.rb
+function Invoke-Checked {
+  param([scriptblock]$Command)
+
+  & $Command
+  if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+  }
+}
+
+Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "-S" "jekyll" "build" }
+Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/site_features_test.rb" }
+Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/content_health_test.rb" }

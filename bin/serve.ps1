@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "preflight.ps1")
-Invoke-ProjectBundle exec jekyll serve @args
+& $env:ONLYDREAMS_RUBY "-rbundler/setup" "-S" "jekyll" "serve" @args
+exit $LASTEXITCODE

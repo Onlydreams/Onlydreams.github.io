@@ -9,24 +9,14 @@ sitemap: false
 <section class="not-found-page" aria-labelledby="not-found-title">
   <p class="not-found-code" aria-hidden="true">404 · PATH LOST</p>
   <h1 id="not-found-title">页面未找到</h1>
-  <p class="not-found-intro">这条路径可能已变更、被移除，或只是少了一个字符。你可以从下面任一入口继续浏览。</p>
+  <p class="not-found-intro">这条路径可能已变更、被移除，或只是少了一个字符。先回到首页，再从需要的入口继续。</p>
 
-  <nav class="not-found-actions" aria-label="继续浏览">
-    <a class="not-found-action not-found-action--primary" href="{{ '/' | relative_url }}">
-      <span class="not-found-action-label">返回首页</span>
-      <span class="not-found-action-detail">从最新文章重新开始</span>
-    </a>
-    <a class="not-found-action" href="{{ '/search/' | relative_url }}">
-      <span class="not-found-action-label">搜索文章</span>
-      <span class="not-found-action-detail">按工具、命令或关键词查找</span>
-    </a>
-    <a class="not-found-action" href="{{ '/series/' | relative_url }}">
-      <span class="not-found-action-label">浏览专题</span>
-      <span class="not-found-action-detail">沿着配置和排障路径阅读</span>
-    </a>
-    <a class="not-found-action" href="{{ '/archive/' | relative_url }}">
-      <span class="not-found-action-label">查看索引</span>
-      <span class="not-found-action-detail">按分类、标签或状态继续定位</span>
-    </a>
+  <a class="not-found-primary-action" href="{{ '/' | relative_url }}">返回首页 <span aria-hidden="true">→</span></a>
+
+  <nav class="not-found-links" aria-label="其他浏览入口">
+    <span class="not-found-links-label">继续浏览：</span>
+    <a class="not-found-link" href="{{ '/search/' | relative_url }}">搜索文章</a>
+    <a class="not-found-link" href="{{ '/series/' | relative_url }}">浏览专题</a>
+    <a class="not-found-link" href="{{ '/archive/' | relative_url }}">查看索引</a>
   </nav>
 </section>

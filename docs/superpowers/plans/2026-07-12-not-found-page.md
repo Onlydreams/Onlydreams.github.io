@@ -34,3 +34,9 @@
 
 - [x] 运行 `git diff --check`，确认没有 whitespace error。
 - [x] 更新本计划的 checkbox，记录实际测试结果：`46 runs, 588 assertions` 与 `6 runs, 308 assertions`，均为 0 failures。
+
+### Task 4: 收敛恢复操作层级
+
+- [x] 将四张等权恢复卡片改为一个首页主操作和一组轻量辅助链接。
+- [x] 更新规格、测试和 SCSS 选择器，避免辅助入口与主操作争夺视觉权重。
+- [x] 运行 `./bin/test.ps1` 与 `git diff --check`，确认修订通过：`46 runs, 596 assertions` 与 `6 runs, 308 assertions`，均为 0 failures。

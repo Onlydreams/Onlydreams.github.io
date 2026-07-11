@@ -179,8 +179,12 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, 'href="/series/"'
     assert_includes html, 'href="/archive/"'
     assert_includes styles, ".not-found-page"
-    assert_includes styles, ".not-found-actions"
-    assert_includes styles, ".not-found-action"
+    assert_includes html, 'class="not-found-primary-action"'
+    assert_includes html, 'class="not-found-links"'
+    assert_includes html, 'class="not-found-link"'
+    assert_includes styles, ".not-found-primary-action"
+    assert_includes styles, ".not-found-links"
+    assert_includes styles, ".not-found-link"
   end
 
   def test_internal_docs_are_not_published_or_listed_in_navigation
@@ -602,8 +606,8 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes bash_script, 'source "$ROOT_DIR/bin/preflight"'
     assert_includes bash_script, "run_project_bundle exec ruby test/site_features_test.rb"
     assert_includes powershell_script, 'preflight.ps1")'
-    assert_includes powershell_script, "Invoke-ProjectBundle exec jekyll build"
-    assert_includes powershell_script, "Invoke-ProjectBundle exec ruby test/site_features_test.rb"
+    assert_includes powershell_script, '"-rbundler/setup" "-S" "jekyll" "build"'
+    assert_includes powershell_script, '"-rbundler/setup" "test/site_features_test.rb"'
     assert_includes bash_preflight, "unset BUNDLE_PATH BUNDLE_GEMFILE BUNDLE_BIN_PATH GEM_HOME GEM_PATH RUBYOPT"
     assert_includes bash_preflight, "REQUIRED_RUBY"
     assert_includes powershell_preflight, "Remove-Item Env:BUNDLE_PATH"

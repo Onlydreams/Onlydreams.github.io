@@ -43,9 +43,9 @@ sitemap: false
 
 ## 视觉方向
 
-采用“迷路但可恢复”的编辑式留白：小型橙色坐标标签、克制的大标题、细边框导航块。它复用站点已有的 Lora/Poppins、暖橙强调色、暖灰背景和圆角边框；不引入插画、渐变或额外资源。
+采用“迷路但可恢复”的编辑式留白：小型橙色坐标标签、克制的大标题，以及一个明确的首页主操作。搜索、专题和索引作为主操作下方的轻量文本链接，不再使用四张等权卡片。它复用站点已有的 Lora/Poppins、暖橙强调色、暖灰背景和圆角边框；不引入插画、渐变或额外资源。
 
-移动端将四个恢复入口纵向排列，键盘 focus 继续使用站点现有可见焦点样式。
+辅助链接在桌面端横向排列、窄屏时自然换行；键盘 focus 继续使用站点现有可见焦点样式。
 
 ## 测试与验收
 
@@ -54,7 +54,7 @@ sitemap: false
 - `_site/404.html` 存在，包含 `页面未找到` 和 `404`。
 - 页面输出 `noindex, follow` robots 元数据。
 - 页面包含首页、搜索、专题和索引链接。
-- SCSS 包含 `.not-found-page`、`.not-found-actions` 和 `.not-found-action`。
+- SCSS 包含 `.not-found-page`、`.not-found-primary-action`、`.not-found-links` 和 `.not-found-link`。
 
 验收命令：
 
