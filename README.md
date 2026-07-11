@@ -28,12 +28,3 @@ Windows PowerShell 使用：
 ```
 
 完整测试会构建站点，并运行站点功能与文章内容健康检查。
-
-## 内容维护
-
-- 新文章放在 `_posts/`，文件名为 `YYYY-MM-DD-slug.md`。
-- 每篇文章必须包含 `layout`、`title`、`date`、`categories`、`tags` 和 `status` front matter。
-- 不提交 `_site/`、`vendor/`、本地缓存或环境文件。
-- 发布前运行 `./bin/test`；公共文章不得包含密钥、Token、个人路径或真实代理节点信息。
-
-更完整的站点协作规范见 [AGENTS.md](AGENTS.md)。
