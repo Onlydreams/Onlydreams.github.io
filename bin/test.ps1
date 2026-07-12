@@ -11,6 +11,6 @@ function Invoke-Checked {
   }
 }
 
-Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "-S" "jekyll" "build" }
-Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/site_features_test.rb" }
-Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/content_health_test.rb" }
+Invoke-Checked { Invoke-ProjectBundle exec jekyll build }
+Invoke-Checked { Invoke-ProjectBundle exec ruby test/site_features_test.rb }
+Invoke-Checked { Invoke-ProjectBundle exec ruby test/content_health_test.rb }
