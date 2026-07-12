@@ -436,6 +436,42 @@ html body .search-input:focus-visible {
   outline-offset: 2px;
 }
 
+html body .search-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+html body .search-filter {
+  min-width: 0;
+}
+
+html body .search-filter label {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: var(--text-muted);
+  font-family: "Poppins", "Noto Sans SC", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+html body .search-filter select {
+  width: 100%;
+  min-height: 36px;
+  padding: 0.3rem 1.8rem 0.3rem 0.55rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.86rem;
+}
+
 html body .search-status {
   margin: 0.8rem 0 1.2rem;
   color: var(--text-muted);
@@ -468,15 +504,35 @@ html body .search-result > a {
 }
 
 html body .search-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.75rem;
   margin-top: 0.25rem;
   color: var(--text-muted);
   font-size: 0.82rem;
+}
+
+html body .search-result-meta-group {
+  white-space: nowrap;
 }
 
 html body .search-result-excerpt {
   margin: 0.45rem 0 0;
   color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+html body .search-highlight {
+  padding: 0 0.12em;
+  border-radius: 2px;
+  background: var(--accent-orange-light);
+  color: inherit;
+}
+
+@media screen and (max-width: 600px) {
+  html body .search-filters {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---- Related Posts ---- */

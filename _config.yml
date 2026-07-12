@@ -30,6 +30,16 @@ header_pages:
 
 author: Onlydreams
 
+defaults:
+  - scope:
+      type: posts
+    values:
+      image:
+        path: /assets/images/onlydreams-og-card.png
+        width: 1200
+        height: 630
+        alt: Onlydreams 技术笔记
+
 giscus:
   repo: Onlydreams/Onlydreams.github.io
   repo_id: R_kgDOSMNeyw

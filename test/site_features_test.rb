@@ -376,18 +376,67 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("search/index.html")
     index = JSON.parse(read_site("search.json"))
     script = File.read(File.join(ROOT, "assets/js/search.js"))
+    styles = read_scss_sources
 
     assert_includes html, 'id="search-input"'
+    assert_includes html, 'id="search-category"'
+    assert_includes html, 'id="search-tag"'
+    assert_includes html, 'id="search-status-filter"'
     assert_includes html, 'id="search-results"'
     assert_includes html, "/search.json"
     assert index.any? { |item| item["title"].include?("Claude") && item["url"] == "/posts/macos-claude-deepseek/" }
-    assert index.all? { |item| item["content"].length <= 320 }
+    assert index.all? { |item| item["content"].length <= 800 }
+    assert index.all? { |item| item["status"].is_a?(String) }
     assert_includes script, "initSiteSearch"
     assert_includes script, "renderSearchResults"
     assert_includes script, "加载搜索索引"
+    assert_includes script, "URLSearchParams"
+    assert_includes script, "history.replaceState"
+    assert_includes script, "createHighlightedText"
     assert_includes script, "compositionstart"
     assert_includes script, "compositionend"
     assert_includes script, "if (composing) return"
+    assert_includes styles, ".search-filters"
+    assert_includes styles, ".search-highlight"
+  end
+
+  def test_search_supports_deep_links_filters_and_safe_highlighting
+    result = run_search_dom_test
+
+    assert_equal "codex", result.fetch("initial_query")
+    assert_equal "AI", result.fetch("initial_category")
+    assert_equal "当前可用", result.fetch("initial_status")
+    assert_equal 1, result.fetch("initial_result_count")
+    assert_equal 1, result.fetch("initial_highlight_count")
+    assert_equal 0, result.fetch("initial_image_element_count")
+    assert_equal 0, result.fetch("filtered_result_count")
+    assert_includes result.fetch("synced_url"), "q=codex"
+    assert_includes result.fetch("synced_url"), "category=AI"
+    assert_includes result.fetch("synced_url"), "tag=proxy"
+    assert_includes result.fetch("synced_url"), "status=%E5%BD%93%E5%89%8D%E5%8F%AF%E7%94%A8"
+  end
+
+  def test_posts_use_default_open_graph_share_card
+    html = read_site("posts/global-agents-context/index.html")
+    config = YAML.load_file(File.join(ROOT, "_config.yml"))
+    share_card = File.join(ROOT, "assets", "images", "onlydreams-og-card.png")
+
+    post_defaults = config.fetch("defaults").find do |entry|
+      entry.dig("scope", "type") == "posts"
+    end
+
+    refute_nil post_defaults
+    assert_equal "/assets/images/onlydreams-og-card.png", post_defaults.dig("values", "image", "path")
+    assert_equal 1200, post_defaults.dig("values", "image", "width")
+    assert_equal 630, post_defaults.dig("values", "image", "height")
+    assert_equal "Onlydreams 技术笔记", post_defaults.dig("values", "image", "alt")
+    assert_path_exists share_card
+    assert_equal [1200, 630], File.binread(share_card, 24).byteslice(16, 8).unpack("N2")
+    assert_includes html, 'property="og:image" content="https://www.dayjia.com/assets/images/onlydreams-og-card.png"'
+    assert_includes html, 'property="twitter:image" content="https://www.dayjia.com/assets/images/onlydreams-og-card.png"'
+    assert_includes html, 'property="og:image:width" content="1200"'
+    assert_includes html, 'property="og:image:height" content="630"'
+    assert_includes html, 'property="og:image:alt" content="Onlydreams 技术笔记"'
   end
 
   def test_posts_render_updated_time_when_present
@@ -839,6 +888,190 @@ class SiteFeaturesTest < Minitest::Test
     assert status.success?, stderr
 
     stdout.strip
+  end
+
+  def run_search_dom_test
+    search_script = File.read(File.join(ROOT, "assets/js/search.js"))
+    runner = <<~JS
+      const vm = require("node:vm");
+
+      class Element {
+        constructor(tagName, options = {}) {
+          this.tagName = tagName.toUpperCase();
+          this.id = options.id || "";
+          this.className = options.className || "";
+          this.attributes = options.attributes || {};
+          this.children = [];
+          this.listeners = {};
+          this.value = options.value || "";
+          this._textContent = options.textContent || "";
+        }
+
+        get textContent() {
+          if (this.children.length === 0) return this._textContent;
+          return this.children.map((child) => child.textContent).join("");
+        }
+
+        set textContent(value) {
+          this._textContent = String(value);
+          this.children = [];
+        }
+
+        set innerHTML(value) {
+          this._textContent = String(value);
+          this.children = [];
+        }
+
+        appendChild(child) {
+          child.parentElement = this;
+          this.children.push(child);
+          return child;
+        }
+
+        addEventListener(name, callback) {
+          this.listeners[name] = callback;
+        }
+
+        trigger(name) {
+          this.listeners[name]();
+        }
+
+        getAttribute(name) {
+          return this.attributes[name] || null;
+        }
+      }
+
+      function findByTag(node, tagName) {
+        const matches = [];
+
+        function visit(current) {
+          if (current.tagName === tagName) matches.push(current);
+          (current.children || []).forEach(visit);
+        }
+
+        visit(node);
+        return matches;
+      }
+
+      function assert(condition, message) {
+        if (!condition) throw new Error(message);
+      }
+
+      const input = new Element("input", {
+        id: "search-input",
+        attributes: { "data-search-index": "/search.json" }
+      });
+      const category = new Element("select", { id: "search-category" });
+      const tag = new Element("select", { id: "search-tag" });
+      const status = new Element("select", { id: "search-status-filter" });
+      const results = new Element("ol", { id: "search-results" });
+      const searchStatus = new Element("p", { id: "search-status" });
+      const nodes = {
+        "search-input": input,
+        "search-category": category,
+        "search-tag": tag,
+        "search-status-filter": status,
+        "search-results": results,
+        "search-status": searchStatus
+      };
+      const index = [
+        {
+          title: "<img src=x> Codex guide",
+          url: "/posts/codex-guide/",
+          date: "2026-07-05",
+          categories: ["AI"],
+          tags: ["codex"],
+          status: "当前可用",
+          content: "Codex 的安全搜索与配置说明。"
+        },
+        {
+          title: "网络代理笔记",
+          url: "/posts/proxy/",
+          date: "2026-07-04",
+          categories: ["工具"],
+          tags: ["proxy"],
+          status: "待复核",
+          content: "网络代理的排障路径。"
+        }
+      ];
+
+      const document = {
+        readyState: "complete",
+        addEventListener() {},
+        createElement(tagName) {
+          return new Element(tagName);
+        },
+        createTextNode(text) {
+          return { tagName: "#TEXT", textContent: String(text), children: [] };
+        },
+        getElementById(id) {
+          return nodes[id] || null;
+        }
+      };
+      const window = {
+        document,
+        location: {
+          pathname: "/search/",
+          search: "?q=codex&category=AI&status=%E5%BD%93%E5%89%8D%E5%8F%AF%E7%94%A8",
+          hash: ""
+        },
+        history: {
+          replaceState(_state, _title, url) {
+            window.lastUrl = url;
+          }
+        }
+      };
+      const sandbox = {
+        URLSearchParams,
+        console,
+        document,
+        fetch() {
+          return Promise.resolve({
+            ok: true,
+            json() {
+              return Promise.resolve(index);
+            }
+          });
+        },
+        window
+      };
+
+      async function run() {
+        vm.runInNewContext(#{JSON.generate(search_script)}, sandbox);
+        for (let step = 0; step < 4; step += 1) await Promise.resolve();
+
+        const initialResultCount = results.children.length;
+        assert(initialResultCount === 1, "deep link should render one result");
+        const firstLink = results.children[0].children[0];
+        const initialHighlightCount = findByTag(firstLink, "MARK").length;
+        const initialImageElementCount = findByTag(firstLink, "IMG").length;
+
+        tag.value = "proxy";
+        tag.trigger("change");
+
+        console.log(JSON.stringify({
+          initial_query: input.value,
+          initial_category: category.value,
+          initial_status: status.value,
+          initial_result_count: initialResultCount,
+          initial_highlight_count: initialHighlightCount,
+          initial_image_element_count: initialImageElementCount,
+          filtered_result_count: results.children.length,
+          synced_url: window.lastUrl
+        }));
+      }
+
+      run().catch((error) => {
+        console.error(error.stack || error.message);
+        process.exitCode = 1;
+      });
+    JS
+
+    stdout, stderr, process_status = Open3.capture3("node", "-", stdin_data: runner)
+
+    assert process_status.success?, stderr
+
+    JSON.parse(stdout)
   end
 
   def render_post_status(status)

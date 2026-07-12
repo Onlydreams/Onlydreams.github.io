@@ -10,7 +10,8 @@ layout: null
       "updated": {{ post.updated | date: "%Y-%m-%d" | jsonify }},
       "categories": {{ post.categories | jsonify }},
       "tags": {{ post.tags | jsonify }},
-      "content": {{ post.content | strip_html | normalize_whitespace | truncate: 300, "" | jsonify }}
+      "status": {{ post.status.label | default: "" | jsonify }},
+      "content": {{ post.content | strip_html | normalize_whitespace | truncate: 800, "" | jsonify }}
     }{%- unless forloop.last -%},{%- endunless -%}
   {%- endfor -%}
 ]
