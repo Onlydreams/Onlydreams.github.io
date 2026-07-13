@@ -2,14 +2,15 @@
 layout: post
 title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skills"
 date: 2026-05-04 19:00:00 +0800
+updated: 2026-07-13
 categories: [AI, 开发工具]
 tags: [skillshare, skills, agent, cli, claude, codex]
 series: [ai-agent]
 series_order:
   ai-agent: 1
 status:
-  label: 待复核
-  verified: 待复核
+  label: 当前可用
+  verified: 2026-07-13
   environment: Skillshare CLI / Claude / Codex Skills
   risk: 会影响本地 skills 目录和同步流程，执行前确认目标目录和备份策略。
 ---
@@ -41,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh 
 也可以通过 Homebrew 安装：
 
 ```bash
-brew install runkids/tap/skillshare
+brew install skillshare
 ```
 
 ### Windows PowerShell
@@ -55,6 +56,8 @@ irm https://raw.githubusercontent.com/runkids/skillshare/main/install.ps1 | iex
 ```bash
 skillshare upgrade
 ```
+
+本文核验时，官方 Releases 页面列出的最新版本是 v0.20.21，本机用于命令复核的是 v0.19.23。快速迭代期间参数可能变化，遇到差异时应以当前安装版本的 `skillshare <command> --help` 为准。
 
 ## 初始化
 
@@ -79,13 +82,15 @@ skillshare target list
 
 ## 添加 Skill
 
-### 收集已有 Skill
+### 可选：迁移已有 Skill
 
-如果本机的 Claude Code、OpenClaw、Codex 或其他 Agent 工具里已经有 skills，可以先统一收集到 Skillshare 源目录：
+源目录应当是长期维护的 source of truth。只有首次迁移、并且确认目标目录中的内容确实需要纳入源目录时，才从 Claude、Codex 或其他目标端收集。先预览，不要直接覆盖：
 
 ```bash
-skillshare collect --all
+skillshare collect --all --dry-run
 ```
+
+确认预览范围后，再去掉 `--dry-run`。不要把工具自带的默认 skills、缓存内容或与自己源仓库无关的 target-local skills 回灌到源目录。
 
 ### 从 GitHub 安装
 
@@ -220,5 +225,6 @@ skillshare sync
 - 多机使用时，围绕 `skillshare push` 和 `skillshare pull` 建立习惯。
 - 安装第三方 skills 前，先运行 `skillshare audit`。
 - 修改 target 同步模式后，再执行一次 `skillshare sync`。
+- `collect` 是迁移工具，不是日常双向同步流程；日常方向应保持源目录到目标端。
 
 官方文档：[https://skillshare.runkids.cc/docs](https://skillshare.runkids.cc/docs)

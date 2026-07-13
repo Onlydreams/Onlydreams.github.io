@@ -2,14 +2,15 @@
 layout: post
 title: "Codex App 升级后 Superpowers 插件失效：技能消失的排查与临时修复"
 date: 2026-07-12 15:50:00 +0800
+updated: 2026-07-13
 categories: [AI, 开发工具]
 tags: [codex, superpowers, plugin, skills, troubleshooting]
 series: [ai-agent]
 series_order:
   ai-agent: 22
 status:
-  label: 待复核
-  verified: 2026-07-12
+  label: 当前可用
+  verified: 2026-07-13
   environment: Windows Codex Desktop / Superpowers curated plugin / 本地会话技能列表
   risk: 官方 issue 尚未关闭；手动重装仅是临时恢复方式，后续 App 更新可能再次触发。
 ---
@@ -24,7 +25,7 @@ status:
 
 重新从插件入口安装后，技能重新出现在新会话中。这说明重装可以恢复使用，但不能证明根因已经修复。
 
-公开的 [openai/codex#31365](https://github.com/openai/codex/issues/31365) 记录了相同方向的问题：App 升级后，Superpowers 缓存文件仍保留，但已安装/已启用状态没有被正确恢复。该 issue 在 2026-07-12 仍是 open，带有 `app`、`bug`、`config` 和 `skills` 标签。
+公开的 [openai/codex#31365](https://github.com/openai/codex/issues/31365) 记录了相同方向的问题：App 升级后，Superpowers 缓存文件仍保留，但已安装/已启用状态没有被正确恢复。该 issue 在 2026-07-13 仍是 open，带有 `app`、`bug`、`config` 和 `skills` 标签。
 
 ## 这个问题是怎样被发现的
 

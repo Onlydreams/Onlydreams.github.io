@@ -465,7 +465,7 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("posts/macos-claude-deepseek/index.html")
 
     assert_includes html, "更新于"
-    assert_includes html, "2026-05-09"
+    assert_includes html, "2026-07-13"
     assert_includes html, 'itemprop="dateModified"'
   end
 
@@ -473,7 +473,7 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("posts/macos-claude-deepseek/index.html")
 
     assert_includes html, 'src="/assets/images/2026-04-30-macos-claude-deepseek/config.jpg"'
-    assert_includes html, 'alt="Claude 配置"'
+    assert_includes html, 'alt="Claude 旧版第三方推理配置界面"'
     assert_includes html, 'loading="lazy"'
     assert_includes html, 'decoding="async"'
   end

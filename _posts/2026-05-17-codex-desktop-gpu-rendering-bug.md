@@ -2,6 +2,7 @@
 layout: post
 title: "Codex Desktop 插件页错位/渲染异常：Intel Mac GPU 启动参数修复"
 date: 2026-05-17 00:00:00 +0800
+updated: 2026-07-13
 categories: [AI, 开发工具]
 tags: [codex, electron, gpu, macos, intel, plugin]
 series: [ai-agent, macos-tooling]
@@ -10,12 +11,12 @@ series_order:
   macos-tooling: 3
 status:
   label: 待复核
-  verified: 待复核
+  verified: 2026-07-13
   environment: Codex Desktop / Intel Mac / Electron GPU
   risk: 启动参数可能随客户端版本变化，仅适合作为同类渲染问题的排查参考。
 ---
 
-记录一次 Codex Desktop 插件搜索页面渲染错位的排查过程，以及在 Intel Mac 上通过强制高性能 GPU 启动规避问题的方法。
+记录一次 Codex Desktop 插件搜索页面渲染错位的排查过程，以及当时在 Intel Mac 上通过强制高性能 GPU 启动规避问题的方法。相关公开 issue 截至 2026-07-13 仍未关闭，但本文没有在当前版本和同类 Intel Mac 上重新复现，因此继续标记为“待复核”。
 
 ---
 
@@ -78,17 +79,17 @@ rm -rf "$HOME/Library/Application Support/Codex/Cache" \
 
 ## 最终修复
 
-解决方案来自 [openai/codex#18774](https://github.com/openai/codex/issues/18774)。
+[openai/codex#18774](https://github.com/openai/codex/issues/18774) 记录了 Intel Mac 上侧边栏、Plugins 页面和命令浮层发生裁切或错位的同类症状。该 issue 截至 2026-07-13 仍为 open，可用于跟踪官方处理状态；issue 正文并没有把下面的启动参数列为官方修复。
 
-在 Intel Mac 上，通过启动参数强制 Codex 使用高性能 GPU：
+在本文当时的 Intel Mac 环境中，通过启动参数强制 Codex 使用高性能 GPU 后恢复正常：
 
 ```zsh
 open -na "/Applications/Codex.app" --args --force_high_performance_gpu
 ```
 
-执行后，插件搜索页面恢复正常。
+执行后，插件搜索页面在当时版本恢复正常。这是特定环境的历史实测 workaround，不是官方承诺，也不能证明所有 Intel Mac 或当前 Codex App 都应使用它。
 
-这个结果说明：插件页渲染异常与默认 GPU 选择路径有关。`--force_high_performance_gpu` 避开了默认 Electron / Chromium GPU compositing 路径中的问题。
+这个前后对比说明启动参数与现象相关，但不足以确认根因。更谨慎的判断是：`--force_high_performance_gpu` 改变了 Electron / Chromium 的 GPU 选择或合成路径，并在当时环境中绕开了问题。
 
 ## 从 Dock 启动
 
@@ -125,4 +126,8 @@ do shell script "open -na /Applications/Codex.app --args --force_high_performanc
 open -na "/Applications/Codex.app" --args --force_high_performance_gpu
 ```
 
-如果后续 Codex 官方修复了该问题，可以再回到默认启动方式。
+如果默认启动已经正常，应优先使用原始 Codex 图标，不要继续保留额外参数。只有能稳定复现同类错位、且默认的缩放/重启排查无效时，再临时比较该参数前后的差异。
+
+## 参考
+
+- [openai/codex#18774：macOS Intel UI 渲染异常](https://github.com/openai/codex/issues/18774)
