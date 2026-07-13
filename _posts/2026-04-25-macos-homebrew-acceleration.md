@@ -2,6 +2,7 @@
 layout: post
 title: "macOS 开发环境加速：Homebrew 镜像、pip 源与终端代理配置"
 date: 2026-04-25 17:00:00 +0800
+updated: 2026-07-13
 categories: [开发工具, 网络与代理]
 tags: [homebrew, pip, proxy, mirror, zsh]
 series: [network-proxy, macos-tooling]
@@ -9,13 +10,13 @@ series_order:
   network-proxy: 1
   macos-tooling: 1
 status:
-  label: 待复核
-  verified: 待复核
+  label: 当前可用
+  verified: 2026-07-13
   environment: macOS / Homebrew / pip / zsh
   risk: 会修改包管理源、终端代理和 shell 配置，执行前建议备份原配置。
 ---
 
-记录本次为加速 MacOS 开发环境所做的全部配置，涵盖 Homebrew、pip 以及终端代理。
+记录本次为加速 macOS 开发环境所做的配置，涵盖 Homebrew、pip 以及终端代理。镜像可用性和速度会随网络变化，本文把 Homebrew 当前支持的配置方式与 2026-04-25 的历史测速样本分开说明。
 
 ---
 
@@ -44,15 +45,15 @@ export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 export HOMEBREW_API_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles/api
 ```
 
-#### Brew 自身仓库（腾讯源）
+#### Brew 自身仓库
 
-Homebrew 核心代码仓库改用腾讯云镜像：
+Homebrew 当前提供 `HOMEBREW_BREW_GIT_REMOTE` 环境变量指定自身仓库镜像。继续使用中科大镜像时，可在 `~/.zshrc` 中添加：
 
 ```bash
-git -C "$(brew --repo)" remote set-url origin https://mirrors.cloud.tencent.com/homebrew/brew.git
+export HOMEBREW_BREW_GIT_REMOTE=https://mirrors.ustc.edu.cn/brew.git
 ```
 
-选择原因：实测腾讯源 `git ls-remote` 仅需 **0.37 秒**，而清华源需要 **28.87 秒**。
+这种方式比直接修改 `brew --repo` 的 Git remote 更符合 Homebrew 当前提供的配置接口，也便于临时撤销。要恢复官方仓库，删除该环境变量后重新打开终端即可。
 
 ### 3. 关闭自动更新
 
@@ -62,7 +63,13 @@ git -C "$(brew --repo)" remote set-url origin https://mirrors.cloud.tencent.com/
 export HOMEBREW_NO_AUTO_UPDATE=1
 ```
 
-原因：`brew update` 即使在国内镜像下，由于 Homebrew 自身 git 仓库体积大，`git fetch` 仍然很慢。关闭后，`brew install` 不再自动触发更新。
+关闭后，`brew install` 等命令不再自动刷新公式和 cask 元数据，但也会延迟功能与安全更新。更保守的做法是保留自动更新，或使用 `HOMEBREW_AUTO_UPDATE_SECS` 延长检查间隔：
+
+```bash
+export HOMEBREW_AUTO_UPDATE_SECS=86400
+```
+
+如果选择完全关闭，仍应定期手动运行 `brew update`。
 
 ---
 
@@ -124,14 +131,15 @@ proxy status # 查看当前状态
 
 ```bash
 pip3 config set global.index-url "https://mirrors.aliyun.com/pypi/simple/"
-pip3 config set global.trusted-host "mirrors.aliyun.com"
 ```
 
-配置文件位置：`~/.config/pip/pip.conf`
+镜像使用有效 HTTPS 证书时不需要设置 `trusted-host`。配置文件的实际位置会受操作系统、用户级/全局级和虚拟环境影响，可用 `pip3 config debug` 查看当前生效文件，不要只依赖固定路径。
 
 ---
 
-## 四、镜像源速度实测
+## 四、2026-04-25 的镜像速度样本
+
+以下结果只代表当时机器和网络环境，用于说明“应在自己的真实链路上比较”，不构成 2026-07-13 的镜像排名。
 
 ### Homebrew 仓库镜像对比
 
@@ -155,7 +163,15 @@ pip3 config set global.trusted-host "mirrors.aliyun.com"
 
 ## 五、当前环境信息
 
-- **系统**：MacOS (Intel)
+- **系统**：macOS（Intel）
 - **Shell**：zsh
-- **Homebrew**：较新版本
+- **Homebrew**：以运行时稳定版本为准
 - **代理工具**：本地代理客户端（规则模式）
+
+## 参考
+
+- [Homebrew 环境变量说明](https://docs.brew.sh/Manpage)
+- [Homebrew 自动更新说明](https://docs.brew.sh/FAQ)
+- [中科大 Homebrew Bottles 镜像帮助](https://mirrors.ustc.edu.cn/help/homebrew-bottles.html)
+- [中科大 brew.git 镜像帮助](https://mirrors.ustc.edu.cn/help/brew.git.html)
+- [pip 配置命令](https://pip.pypa.io/en/stable/cli/pip_config/)

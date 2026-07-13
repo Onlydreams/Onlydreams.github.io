@@ -2,15 +2,15 @@
 layout: post
 title: "Git HTTP/SSH 自动代理配置：让 clone、fetch、push 走本地代理"
 date: 2026-05-04 13:00:00 +0800
-updated: 2026-05-09
+updated: 2026-07-13
 categories: [网络与代理, 开发工具]
 tags: [git, proxy, ssh, zsh, github, http-proxy]
 series: [network-proxy]
 series_order:
   network-proxy: 2
 status:
-  label: 待复核
-  verified: 待复核
+  label: 当前可用
+  verified: 2026-07-13
   environment: Git HTTP/SSH / zsh / 本地代理
   risk: 会修改 Git、SSH 或 shell 代理配置，执行前建议记录当前配置。
 ---
@@ -37,9 +37,9 @@ SOCKS5 代理：socks5://127.0.0.1:<SOCKS_PORT>
 
 请将 `<HTTP_PORT>` 和 `<SOCKS_PORT>` 替换为本机代理客户端实际监听的端口。
 
-## Shell 环境变量
+## 可选：让所有 zsh 子进程继承代理
 
-将代理环境变量写入 `~/.zshenv`，让非交互 zsh、安装脚本和命令行子进程也能继承代理配置。
+只有在确实需要非交互 zsh、安装脚本和所有命令行子进程默认继承代理时，才把代理环境变量写入 `~/.zshenv`。这会扩大影响范围；日常使用更推荐下一节的按需开关和 Git 自身配置。
 
 ```zsh
 # 全局代理环境变量，供非交互 zsh 和安装脚本使用
@@ -52,7 +52,7 @@ export https_proxy="$HTTPS_PROXY"
 export all_proxy="$ALL_PROXY"
 ```
 
-如果只把代理写在 `~/.zshrc`，通常只能覆盖交互式终端。`~/.zshenv` 更适合放置需要被非交互命令继承的环境变量。
+如果只把代理写在 `~/.zshrc`，通常只能覆盖交互式终端。不要同时在多个 shell 文件里重复维护同一组代理值。
 
 ## 交互式终端自动启用
 
@@ -78,8 +78,8 @@ proxy() {
     off)
       unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
       unset http_proxy https_proxy all_proxy
-      git config --global --unset http.proxy
-      git config --global --unset https.proxy
+      git config --global --unset-all http.proxy 2>/dev/null || true
+      git config --global --unset-all https.proxy 2>/dev/null || true
       echo "Proxy OFF"
       ;;
     status|*)
@@ -114,8 +114,8 @@ git config --global --get https.proxy
 取消配置：
 
 ```bash
-git config --global --unset http.proxy
-git config --global --unset https.proxy
+git config --global --unset-all http.proxy 2>/dev/null || true
+git config --global --unset-all https.proxy 2>/dev/null || true
 ```
 
 ## Git SSH 代理
@@ -177,3 +177,8 @@ env | grep -i '_proxy'
 - `https://` Git 操作依赖 Git 的 `http.proxy`、`https.proxy` 或 shell 代理环境变量。
 - `git@...` SSH 操作依赖 `~/.ssh/config` 中的 `ProxyCommand`。
 - 文档中的仓库名、用户名、本地路径和代理端口均已脱敏。
+
+## 参考
+
+- [Git `http.proxy` 配置说明](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy)
+- [Git SSH 传输说明](https://git-scm.com/docs/git#Documentation/git.txt-codeGITSSHCOMMANDcode)

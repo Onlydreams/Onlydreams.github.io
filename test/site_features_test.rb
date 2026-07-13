@@ -107,17 +107,20 @@ class SiteFeaturesTest < Minitest::Test
     needs_review_index = html.index("<h2>待复核</h2>")
     global_agents_index = html.index("/posts/global-agents-context/", current_status_index)
     worldcup_index = html.index("/posts/worldcup-predictor-agent-skill/", current_status_index)
-    homebrew_index = html.index("/posts/macos-homebrew-acceleration/", needs_review_index)
+    homebrew_index = html.index("/posts/macos-homebrew-acceleration/", current_status_index)
+    claude_deepseek_index = html.index("/posts/macos-claude-deepseek/", needs_review_index)
     refute_nil current_status_index
     refute_nil needs_review_index
     refute_nil global_agents_index
     refute_nil worldcup_index
     refute_nil homebrew_index
+    refute_nil claude_deepseek_index
     assert_operator current_status_index, :<, global_agents_index
     assert_operator global_agents_index, :<, needs_review_index
     assert_operator current_status_index, :<, worldcup_index
     assert_operator worldcup_index, :<, needs_review_index
-    assert_operator needs_review_index, :<, homebrew_index
+    assert_operator homebrew_index, :<, needs_review_index
+    assert_operator needs_review_index, :<, claude_deepseek_index
   end
 
   def test_site_navigation_links_to_series_page
