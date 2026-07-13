@@ -127,6 +127,25 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, ">专题</a>"
   end
 
+  def test_homepage_explains_the_blog_focus_and_starting_points
+    html = read_site("index.html")
+
+    assert_includes html, "AI Agent 工具链、开发环境与网络排障"
+    assert_includes html, "从这里开始"
+    assert_includes html, 'href="/series/#series-ai-agent"'
+    assert_includes html, 'href="/series/#series-network-proxy"'
+    assert_includes html, 'href="/status/"'
+  end
+
+  def test_about_page_explains_editorial_principles_and_site_identity
+    html = read_site("about/index.html")
+
+    %w[关注方向 写作原则 当前可用 待复核 已失效 Onlydreams dayjia.com].each do |text|
+      assert_includes html, text
+    end
+    assert_includes html, 'href="/status/"'
+  end
+
   def test_site_navigation_links_to_archive_page
     html = read_site("index.html")
 

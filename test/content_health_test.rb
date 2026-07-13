@@ -11,9 +11,8 @@ class ContentHealthTest < Minitest::Test
   REQUIRED_FRONT_MATTER_KEYS = %w[layout title date categories tags status].freeze
   REQUIRED_STATUS_KEYS = %w[label verified environment risk].freeze
   ALLOWED_STATUS_LABELS = ["当前可用", "待复核", "已失效"].freeze
-  CANONICAL_CATEGORY_NAMES = {
-    "macos" => "MacOS"
-  }.freeze
+  ALLOWED_CATEGORIES = ["AI", "开发工具", "网络与代理", "浏览器", "体育技术"].freeze
+  FORBIDDEN_TAG_ALIASES = { "agents" => "agent" }.freeze
   SENSITIVE_PATTERNS = {
     "GitHub noreply email" => /users\.noreply\.github\.com/i,
     "OpenAI-style API key" => /\bsk-[A-Za-z0-9_-]{20,}\b/,
@@ -85,13 +84,21 @@ class ContentHealthTest < Minitest::Test
     end
   end
 
-  def test_category_casing_uses_existing_canonical_names
+  def test_categories_use_the_stable_taxonomy
     posts.each do |post|
-      Array(post[:front_matter]["categories"]).each do |category|
-        canonical = CANONICAL_CATEGORY_NAMES[category.to_s.downcase]
-        next unless canonical
+      categories = Array(post[:front_matter]["categories"])
 
-        assert_equal canonical, category, "#{post[:relative_path]} should use category #{canonical.inspect} instead of #{category.inspect}"
+      assert_includes 1..2, categories.size, "#{post[:relative_path]} must use one or two categories"
+      categories.each do |category|
+        assert_includes ALLOWED_CATEGORIES, category, "#{post[:relative_path]} has unsupported category #{category.inspect}"
+      end
+    end
+  end
+
+  def test_tags_do_not_use_known_aliases
+    posts.each do |post|
+      Array(post[:front_matter]["tags"]).each do |tag|
+        refute FORBIDDEN_TAG_ALIASES.key?(tag), "#{post[:relative_path]} should use tag #{FORBIDDEN_TAG_ALIASES[tag].inspect} instead of #{tag.inspect}"
       end
     end
   end
