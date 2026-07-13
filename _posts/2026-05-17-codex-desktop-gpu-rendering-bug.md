@@ -118,7 +118,7 @@ do shell script "open -na /Applications/Codex.app --args --force_high_performanc
 
 ## 结论
 
-这不是插件搜索接口问题，也不是本地缓存问题，而是 Codex Desktop 在特定 macOS Intel / GPU 路径上的前端渲染 bug。
+当时记录中，插件列表请求正常返回，清理常见缓存也未改变现象；启动参数曾绕过问题，但实际根因仍未确认。
 
 临时规避方式是：
 

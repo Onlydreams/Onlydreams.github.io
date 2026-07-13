@@ -103,24 +103,18 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes styles, ".status-section"
     assert_includes styles, ".status-post-risk"
 
-    current_status_index = html.index("<h2>当前可用</h2>")
-    needs_review_index = html.index("<h2>待复核</h2>")
-    global_agents_index = html.index("/posts/global-agents-context/", current_status_index)
-    worldcup_index = html.index("/posts/worldcup-predictor-agent-skill/", current_status_index)
-    homebrew_index = html.index("/posts/macos-homebrew-acceleration/", current_status_index)
-    claude_deepseek_index = html.index("/posts/macos-claude-deepseek/", needs_review_index)
-    refute_nil current_status_index
-    refute_nil needs_review_index
-    refute_nil global_agents_index
-    refute_nil worldcup_index
-    refute_nil homebrew_index
-    refute_nil claude_deepseek_index
-    assert_operator current_status_index, :<, global_agents_index
-    assert_operator global_agents_index, :<, needs_review_index
-    assert_operator current_status_index, :<, worldcup_index
-    assert_operator worldcup_index, :<, needs_review_index
-    assert_operator homebrew_index, :<, needs_review_index
-    assert_operator needs_review_index, :<, claude_deepseek_index
+    current_status_section = html[/<section class="status-section" id="status-当前可用">.*?<\/section>/m]
+    needs_review_section = html[/<section class="status-section" id="status-待复核">.*?<\/section>/m]
+    refute_nil current_status_section
+    refute_nil needs_review_section
+    assert_includes current_status_section, "/posts/global-agents-context/"
+    assert_includes current_status_section, "/posts/worldcup-predictor-agent-skill/"
+    assert_includes current_status_section, "/posts/macos-homebrew-acceleration/"
+    refute_includes current_status_section, "/posts/macos-claude-deepseek/"
+    assert_includes needs_review_section, "/posts/macos-claude-deepseek/"
+    assert_includes needs_review_section, "/posts/codex-desktop-gpu-rendering-bug/"
+    refute_includes needs_review_section, "/posts/global-agents-context/"
+    assert_operator html.index('id="status-当前可用"'), :<, html.index('id="status-待复核"')
   end
 
   def test_site_navigation_links_to_series_page
@@ -132,12 +126,14 @@ class SiteFeaturesTest < Minitest::Test
 
   def test_homepage_explains_the_blog_focus_and_starting_points
     html = read_site("index.html")
+    start_section = html[/<section class="home-start".*?<\/section>/m]
 
     assert_includes html, "AI Agent 工具链、开发环境与网络排障"
-    assert_includes html, "从这里开始"
-    assert_includes html, 'href="/series/#series-ai-agent"'
-    assert_includes html, 'href="/series/#series-network-proxy"'
-    assert_includes html, 'href="/status/"'
+    refute_nil start_section
+    assert_includes start_section, "从这里开始"
+    assert_includes start_section, 'href="/series/#series-ai-agent"'
+    assert_includes start_section, 'href="/series/#series-network-proxy"'
+    assert_includes start_section, 'href="/status/"'
   end
 
   def test_about_page_explains_editorial_principles_and_site_identity
@@ -545,6 +541,13 @@ class SiteFeaturesTest < Minitest::Test
     refute_nil adjacent_index
     refute_nil comments_index
     assert_operator adjacent_index, :<, comments_index
+  end
+
+  def test_gpu_workaround_article_keeps_root_cause_unconfirmed
+    html = read_site("posts/codex-desktop-gpu-rendering-bug/index.html")
+
+    assert_includes html, "实际根因仍未确认"
+    refute_includes html, "而是 Codex Desktop 在特定 macOS Intel / GPU 路径上的前端渲染 bug"
   end
 
   def test_single_adjacent_post_navigation_uses_directional_half_width_on_desktop

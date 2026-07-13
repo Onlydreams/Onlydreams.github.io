@@ -66,9 +66,7 @@ class ContentHealthTest < Minitest::Test
       assert_empty missing_keys, "#{post[:relative_path]} missing status keys: #{missing_keys.join(", ")}"
       assert_includes ALLOWED_STATUS_LABELS, status["label"], "#{post[:relative_path]} has unsupported status label #{status["label"].inspect}"
 
-      if status["label"] == "当前可用"
-        assert_match(/\A\d{4}-\d{2}-\d{2}\z/, status["verified"].to_s, "#{post[:relative_path]} current posts must use ISO verified date")
-      end
+      assert_match(/\A\d{4}-\d{2}-\d{2}\z/, status["verified"].to_s, "#{post[:relative_path]} must use an ISO verified date")
     end
   end
 
