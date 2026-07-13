@@ -3,7 +3,7 @@ layout: post
 title: "Git HTTP/SSH 自动代理配置：让 clone、fetch、push 走本地代理"
 date: 2026-05-04 13:00:00 +0800
 updated: 2026-05-09
-categories: [Git, 代理, 效率]
+categories: [网络与代理, 开发工具]
 tags: [git, proxy, ssh, zsh, github, http-proxy]
 series: [network-proxy]
 series_order:

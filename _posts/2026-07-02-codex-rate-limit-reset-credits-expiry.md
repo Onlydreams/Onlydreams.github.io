@@ -2,7 +2,7 @@
 layout: post
 title: "Codex App 重置次数过期时间查询：查看 rate-limit reset credits"
 date: 2026-07-02 00:00:00 +0800
-categories: [AI, 工具, 配置]
+categories: [AI, 开发工具]
 tags: [codex, chatgpt, rate-limit, credits, usage]
 series: [ai-agent]
 series_order:

@@ -3,7 +3,7 @@ layout: post
 title: "知乎美化/知乎增强本地 Fix：修正赞同操作栏展开与浮动错位"
 date: 2026-07-05 11:35:00 +0800
 updated: 2026-07-05
-categories: [工具, 浏览器, 配置]
+categories: [浏览器]
 tags: [zhihu, tampermonkey, userscript, css, fix]
 status:
   label: 当前可用

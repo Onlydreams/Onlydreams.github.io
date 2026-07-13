@@ -2,7 +2,7 @@
 layout: post
 title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skills"
 date: 2026-05-04 19:00:00 +0800
-categories: [AI, 效率, 工具]
+categories: [AI, 开发工具]
 tags: [skillshare, skills, agent, cli, claude, codex]
 series: [ai-agent]
 series_order:

@@ -29,8 +29,8 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("categories/index.html")
 
     assert_includes html, "分类"
-    assert_includes html, "MacOS"
-    assert_includes html, "Git"
+    assert_includes html, "开发工具"
+    assert_includes html, "网络与代理"
     assert_includes html, "/posts/macos-claude-deepseek/"
     assert_includes html, "/posts/auto-proxy-setup/"
   end

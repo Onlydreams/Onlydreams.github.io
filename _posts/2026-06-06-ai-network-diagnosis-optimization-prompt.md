@@ -3,7 +3,7 @@ layout: post
 title: "网络诊断与优化 AI Prompt：区分 Wi-Fi、DNS、代理和 TUN 问题"
 date: 2026-06-06 17:50:00 +0800
 updated: 2026-06-07
-categories: [AI, 代理, 效率]
+categories: [AI, 网络与代理]
 tags: [prompt, network, proxy, dns, wifi, tun]
 series: [network-proxy]
 series_order:

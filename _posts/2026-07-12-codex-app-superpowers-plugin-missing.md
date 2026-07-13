@@ -2,7 +2,7 @@
 layout: post
 title: "Codex App 升级后 Superpowers 插件失效：技能消失的排查与临时修复"
 date: 2026-07-12 15:50:00 +0800
-categories: [AI, 工具, 配置]
+categories: [AI, 开发工具]
 tags: [codex, superpowers, plugin, skills, troubleshooting]
 series: [ai-agent]
 series_order:

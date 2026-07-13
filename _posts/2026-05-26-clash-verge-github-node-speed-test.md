@@ -2,7 +2,7 @@
 layout: post
 title: "不只测 github.com：如何为 Clash Verge 选择真正适合 GitHub 的节点"
 date: 2026-05-26 17:00:00 +0800
-categories: [GitHub, 代理, 效率]
+categories: [网络与代理]
 tags: [github, clash-verge, mihomo, proxy, speed-test]
 series: [network-proxy]
 series_order:

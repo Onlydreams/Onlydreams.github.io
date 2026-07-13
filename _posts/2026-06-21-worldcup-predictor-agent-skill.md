@@ -3,7 +3,7 @@ layout: post
 title: "World Cup Predictor：给 AI Agent 的世界杯足球预测 Skill 设计"
 date: 2026-06-21 00:00:00 +0800
 updated: 2026-07-11
-categories: [Agent, Sports]
+categories: [AI, 体育技术]
 tags: [worldcup, football, skills, agent, prompt, prediction]
 series: [ai-agent]
 series_order:

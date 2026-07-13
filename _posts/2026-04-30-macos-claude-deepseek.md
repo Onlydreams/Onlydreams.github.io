@@ -3,7 +3,7 @@ layout: post
 title: "Claude Desktop 接入 DeepSeek：第三方模型失效后的 UpstreamKit 与 cc-switch 方案"
 date: 2026-04-30 17:00:00 +0800
 updated: 2026-05-09
-categories: [MacOS, AI, 效率]
+categories: [AI, 开发工具]
 tags: [claude, deepseek, api, third-party-inference, upstreamkit, cc-switch]
 series: [macos-tooling]
 series_order:
