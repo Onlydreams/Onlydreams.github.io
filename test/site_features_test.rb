@@ -513,12 +513,47 @@ class SiteFeaturesTest < Minitest::Test
     html = read_site("index.html")
     favicon = File.read(File.join(ROOT, "assets", "favicon.svg"))
     manifest = JSON.parse(File.read(File.join(ROOT, "site.webmanifest")))
+    legacy_favicon = File.join(ROOT, "favicon.ico")
 
     assert_includes html, 'rel="icon" href="/assets/favicon.svg" type="image/svg+xml"'
+    assert_includes html, 'rel="alternate icon" href="/favicon.ico" type="image/x-icon"'
     assert_includes html, 'rel="manifest" href="/site.webmanifest"'
     assert_includes favicon, 'fill="#1e1d1a"'
     assert_includes favicon, 'stroke="#e88c6a"'
     assert_equal "/assets/favicon.svg", manifest.fetch("icons").first.fetch("src")
+    legacy_icon = manifest.fetch("icons").find { |icon| icon.fetch("src") == "/favicon.ico" }
+    refute_nil legacy_icon
+    assert_equal "image/x-icon", legacy_icon.fetch("type")
+    assert_equal "16x16 32x32 48x48 64x64", legacy_icon.fetch("sizes")
+    assert File.file?(legacy_favicon), "expected a root favicon.ico fallback"
+
+    favicon_data = File.binread(legacy_favicon)
+    assert_operator favicon_data.bytesize, :>=, 6
+    reserved, image_type, image_count = favicon_data.unpack("v3")
+    assert_equal [0, 1, 4], [reserved, image_type, image_count]
+
+    directory_size = 6 + (image_count * 16)
+    assert_operator favicon_data.bytesize, :>=, directory_size
+    image_entries = image_count.times.map do |index|
+      entry = favicon_data.byteslice(6 + (index * 16), 16)
+      width, height, _color_count, _entry_reserved, _planes, _bit_count, byte_length, byte_offset =
+        entry.unpack("C4v2V2")
+
+      {
+        width: width.zero? ? 256 : width,
+        height: height.zero? ? 256 : height,
+        byte_length: byte_length,
+        byte_offset: byte_offset
+      }
+    end
+
+    assert_equal [[16, 16], [32, 32], [48, 48], [64, 64]],
+                 image_entries.map { |entry| [entry.fetch(:width), entry.fetch(:height)] }
+    image_entries.each do |entry|
+      assert_operator entry.fetch(:byte_length), :>, 0
+      assert_operator entry.fetch(:byte_offset), :>=, directory_size
+      assert_operator entry.fetch(:byte_offset) + entry.fetch(:byte_length), :<=, favicon_data.bytesize
+    end
     assert_equal "#1e1d1a", manifest.fetch("theme_color")
   end
 
@@ -588,16 +623,14 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "getGiscusThemeUrl"
   end
 
-  def test_cloudflare_web_analytics_is_configurable_and_production_only
+  def test_cloudflare_web_analytics_is_managed_at_the_edge_only
     html = read_site("index.html")
     config = File.read(File.join(ROOT, "_config.yml"))
     custom_head = File.read(File.join(ROOT, "_includes/custom-head.html"))
 
-    assert_includes config, "cloudflare_web_analytics:"
-    assert_match(/token: "[a-f0-9]{32}"/, config)
-    assert_includes custom_head, "static.cloudflareinsights.com/beacon.min.js"
-    assert_includes custom_head, 'data-cf-beacon'
-    assert_includes custom_head, 'jekyll.environment == "production"'
+    refute_includes config, "cloudflare_web_analytics:"
+    refute_includes custom_head, "static.cloudflareinsights.com/beacon.min.js"
+    refute_includes custom_head, "data-cf-beacon"
     refute_includes html, "static.cloudflareinsights.com/beacon.min.js"
   end
 

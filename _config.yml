@@ -55,9 +55,6 @@ giscus:
   lang: zh-CN
 
 google_analytics: "" # 如需追踪访问，可填入 GA ID
-analytics:
-  cloudflare_web_analytics:
-    token: "eb00662ba93a45cfae06c9e1b014844e" # Cloudflare Web Analytics Site Token
 google_site_verification: "B-hXn9Cx-yQQaaAPbNdy8e3dOZikOumMq6wwktxotgU"
 bing_site_verification: "" # Bing Webmaster Tools 验证码
 baidu_site_verification: "" # 百度站长平台验证码
