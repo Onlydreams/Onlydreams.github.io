@@ -96,7 +96,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "/posts/worldcup-predictor-agent-skill/"
     assert_includes html, "/posts/macos-homebrew-acceleration/"
     assert_includes html, "Codex / Claude / AGENTS.md"
-    assert_includes html, "会修改包管理源、终端代理和 shell 配置"
+    assert_includes html, "USTC 镜像的连通性、Git 协议和远端提交已核验，但尚未重新完成一次 brew update"
     assert_includes html, 'class="status-post-list"'
     assert_includes html, 'class="status-post-risk"'
     assert_includes styles, ".status-page"
@@ -109,10 +109,11 @@ class SiteFeaturesTest < Minitest::Test
     refute_nil needs_review_section
     assert_includes current_status_section, "/posts/global-agents-context/"
     assert_includes current_status_section, "/posts/worldcup-predictor-agent-skill/"
-    assert_includes current_status_section, "/posts/macos-homebrew-acceleration/"
+    refute_includes current_status_section, "/posts/macos-homebrew-acceleration/"
     refute_includes current_status_section, "/posts/macos-claude-deepseek/"
     assert_includes needs_review_section, "/posts/macos-claude-deepseek/"
     assert_includes needs_review_section, "/posts/codex-desktop-gpu-rendering-bug/"
+    assert_includes needs_review_section, "/posts/macos-homebrew-acceleration/"
     refute_includes needs_review_section, "/posts/global-agents-context/"
     assert_operator html.index('id="status-当前可用"'), :<, html.index('id="status-待复核"')
   end
