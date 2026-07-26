@@ -6,10 +6,10 @@ updated: 2026-07-26
 categories: [浏览器]
 tags: [zhihu, tampermonkey, userscript, css, fix]
 status:
-  label: 待复核
+  label: 当前可用
   verified: 2026-07-26
-  environment: Windows / Node.js 源码回归 / Chrome 页面 DOM 实测 / Tampermonkey + Chrome、Edge 待覆盖 v0.8.3 后复测
-  risk: v0.8.3 已通过 6 项源码回归，想法操作栏和搜索页“收起”按钮的旧版错位也已在浏览器中量化；但新版尚未在 Tampermonkey 覆盖后完成 Chrome、Edge 最终视觉复测，知乎 DOM 或依赖脚本更新后仍可能需要调整。
+  environment: Windows / Tampermonkey / Chrome / 知乎美化 1.5.23 / 知乎增强 2.3.30 / 本地 Fix 0.8.3
+  risk: v0.8.3 已通过 6 项源码回归、当前 Chrome 页面视觉复测和用户手动复测；仍依赖知乎 DOM 结构及上游脚本的样式策略，后续改版时可能需要重新调整。
 ---
 
 这是一个配合“知乎美化”和“知乎增强”使用的本地 fix 脚本，用来修正知乎推荐流、内容列表、个人主页想法和搜索结果页里“赞同 / 评论 / 分享”操作栏的宽度与位置错位。当前维护版为 `0.8.3`，源码和测试放在 [Onlydreams/zhihu-action-width-fix](https://github.com/Onlydreams/zhihu-action-width-fix)。
@@ -25,8 +25,6 @@ status:
 “知乎增强”更偏功能增强：补充内容屏蔽、关键词过滤、快捷收起、问题作者与时间显示等页面行为。本文更新时对照的 GitHub 源码版本为 `2.3.30`。
 
 这两个脚本本身都有用，但叠加之后会一起影响知乎卡片结构和操作栏样式。本文这个脚本只处理叠加后的本地 UI 偏差，不承担内容过滤、推荐屏蔽或页面功能增强。
-
-同一轮排查还确认了另一个边界：问题页不显示提问者头像或问题时间，属于“知乎增强”仍使用已失效 `.Question-main` 选择器后导致初始化中断，与本项目的操作栏布局不是同一类修复。相关诊断已补充到 [XIU2/UserScript#610](https://github.com/XIU2/UserScript/issues/610#issuecomment-5082912922)，因此没有把它塞进这个本地 fix。
 
 ## 问题现象
 
@@ -304,7 +302,7 @@ node --test --test-isolation=none .\test\userscript-source.test.js
 - 使用“知乎美化”`1.5.23` 或更高版本，从推荐页通过顶部搜索框首次进入搜索页，确认上游无需刷新即可隐藏右栏并扩展主栏；
 - 调整浏览器窗口宽度后重新对齐。
 
-2026-07-26 的验证范围是：`node --check` 通过，源码回归 `6/6` 通过；Chrome 中已量化旧版想法按钮向右偏移 `20px`，并确认搜索展开态的 `960px` 内层操作行会把“收起”按钮挤出约 `52px`。当前还没有把 v0.8.3 覆盖进 Tampermonkey 后，在 Chrome、Edge 各跑一次完整视觉矩阵，因此文章状态标记为“待复核”，不把源码测试写成端到端验证。
+2026-07-26 的验证范围是：`node --check` 通过，源码回归 `6/6` 通过；当前安装了 v0.8.3 的 Chrome 中，推荐流折叠态和展开态操作栏均与 `1000px` 卡片左右边界一致，首次通过顶部搜索框进入搜索页后主栏扩展为 `1000px`、右栏隐藏，搜索结果展开后的 fixed 操作栏宽度为 `960px`，“收起”按钮完整位于卡片右边界内。个人主页想法操作栏另由用户手动复测通过。
 
 ## 注意事项
 
