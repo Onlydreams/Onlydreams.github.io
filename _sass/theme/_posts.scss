@@ -85,7 +85,8 @@ html body .post-card-tags {
   list-style: none;
 }
 
-html body .post-card-tags a {
+html body .post-card-tags a,
+html body .post-card-tags > li > span {
   display: inline-block;
   padding: 0.16rem 0.5rem;
   border: 1px solid var(--border-color);
@@ -115,6 +116,20 @@ html body .post-header {
 html body .post-title {
   font-size: 2rem;
   margin-bottom: 0.5rem;
+}
+
+html body .translation-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  margin: -1.4rem auto 2rem;
+  color: var(--text-muted);
+  font-family: "Poppins", "Noto Sans SC", sans-serif;
+  font-size: 0.85rem;
+}
+
+html body .translation-switcher span {
+  font-weight: 600;
 }
 
 html body .post-status {

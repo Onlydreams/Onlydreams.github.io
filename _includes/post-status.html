@@ -3,9 +3,19 @@
   {%- assign status_verified = page.status.verified | default: "" | strip -%}
   {%- assign status_environment = page.status.environment | default: "" | strip -%}
   {%- assign status_risk = page.status.risk | default: "" | strip -%}
+  {%- assign status_label_text = status_label -%}
+  {%- if page.lang == "en" -%}
+    {%- if status_label == "当前可用" -%}
+      {%- assign status_label_text = "Current" -%}
+    {%- elsif status_label == "待复核" -%}
+      {%- assign status_label_text = "Needs review" -%}
+    {%- elsif status_label == "已失效" -%}
+      {%- assign status_label_text = "Deprecated" -%}
+    {%- endif -%}
+  {%- endif -%}
   <section class="post-status" aria-labelledby="post-status-title">
     <div class="post-status-heading">
-      <h2 id="post-status-title" class="post-status-title">文章状态</h2>
+      <h2 id="post-status-title" class="post-status-title">{% if page.lang == "en" %}Article status{% else %}文章状态{% endif %}</h2>
       {%- if status_label != "" -%}
         {%- assign status_badge_class = "post-status-badge--default" -%}
         {%- if status_label == "当前可用" -%}
@@ -15,25 +25,25 @@
         {%- elsif status_label == "已失效" -%}
           {%- assign status_badge_class = "post-status-badge--expired" -%}
         {%- endif -%}
-        <span class="post-status-badge {{ status_badge_class }}">{{ status_label | escape }}</span>
+        <span class="post-status-badge {{ status_badge_class }}">{{ status_label_text | escape }}</span>
       {%- endif -%}
     </div>
     <dl class="post-status-list">
       {%- if status_verified != "" -%}
         <div>
-          <dt>最后验证</dt>
+          <dt>{% if page.lang == "en" %}Verified{% else %}最后验证{% endif %}</dt>
           <dd>{{ status_verified | escape }}</dd>
         </div>
       {%- endif -%}
       {%- if status_environment != "" -%}
         <div>
-          <dt>适用环境</dt>
+          <dt>{% if page.lang == "en" %}Environment{% else %}适用环境{% endif %}</dt>
           <dd>{{ status_environment | escape }}</dd>
         </div>
       {%- endif -%}
       {%- if status_risk != "" -%}
         <div>
-          <dt>风险提示</dt>
+          <dt>{% if page.lang == "en" %}Caveat{% else %}风险提示{% endif %}</dt>
           <dd>{{ status_risk | escape }}</dd>
         </div>
       {%- endif -%}

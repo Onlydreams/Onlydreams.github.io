@@ -123,6 +123,88 @@ class SiteFeaturesTest < Minitest::Test
 
     assert_includes html, 'href="/series/"'
     assert_includes html, ">专题</a>"
+    assert_includes html, 'href="/en/"'
+    assert_includes html, ">English Articles</a>"
+  end
+
+  def test_english_landing_lists_only_selected_english_articles
+    html = read_site("en/index.html")
+
+    assert_includes html, '<html lang="en">'
+    assert_includes html, "Selected English editions of original Chinese articles"
+    assert_includes html, "Latest English articles"
+    assert_equal 4, html.scan(%r{href="/en/posts/[^"]+/"}).size
+
+    [
+      "/en/posts/skillshare-guide/",
+      "/en/posts/global-agents-context/",
+      "/en/posts/agent-skills-after-model-upgrade/",
+      "/en/posts/worldcup-predictor-skill-development-retrospective/"
+    ].each do |url|
+      assert_includes html, %(href="#{url}")
+    end
+
+    assert_includes html, "Skip to main content"
+    assert_includes html, 'aria-label="Main navigation"'
+    assert_includes html, 'href="/" lang="zh-CN">中文</a>'
+    assert_includes html, "Technical notes on developer tooling, AI agents"
+    refute_includes html, "技术笔记与个人博客，记录开发工具配置、效率提升技巧"
+    refute_includes html, "按主题探索"
+  end
+
+  def test_translated_articles_render_language_links_and_localized_chrome
+    chinese_html = read_site("posts/agent-skills-after-model-upgrade/index.html")
+    english_html = read_site("en/posts/agent-skills-after-model-upgrade/index.html")
+    english_url = "https://www.dayjia.com/en/posts/agent-skills-after-model-upgrade/"
+    chinese_url = "https://www.dayjia.com/posts/agent-skills-after-model-upgrade/"
+
+    assert_includes chinese_html, %(hreflang="en" href="#{english_url}")
+    assert_includes chinese_html, 'href="/en/posts/agent-skills-after-model-upgrade/" lang="en">Read in English</a>'
+
+    assert_includes english_html, '<html lang="en">'
+    assert_includes english_html, %(rel="canonical" href="#{english_url}")
+    assert_includes english_html, %(hreflang="zh-CN" href="#{chinese_url}")
+    assert_includes english_html, %(hreflang="en" href="#{english_url}")
+    assert_includes english_html, %(hreflang="x-default" href="#{chinese_url}")
+    assert_includes english_html, 'href="/posts/agent-skills-after-model-upgrade/" lang="zh-CN">阅读中文版</a>'
+    assert_includes english_html, "Article status"
+    assert_includes english_html, ">Current</span>"
+    assert_includes english_html, ">Verified</dt>"
+    assert_includes english_html, "Related articles"
+    assert_includes english_html, "Contents"
+    assert_includes english_html, "Back to English articles"
+    assert_includes english_html, 'data-lang="en"'
+    refute_includes english_html, ">文章状态<"
+    refute_includes english_html, "返回文章列表"
+  end
+
+  def test_english_articles_are_in_sitemap_but_not_chinese_content_indexes
+    sitemap = read_site("sitemap.xml")
+    english_articles = [
+      ["Skillshare Guide: Manage AI Agent Skills Across Claude, Codex, and Other Tools", "/en/posts/skillshare-guide/"],
+      ["AGENTS.md Guide: A Practical Global Configuration for Codex and Other Coding Agents", "/en/posts/global-agents-context/"],
+      ["How to Use Agent Skills After a Model Upgrade: Replace Generic Process with Specialized Constraints", "/en/posts/agent-skills-after-model-upgrade/"],
+      ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"]
+    ]
+    chinese_surfaces = {
+      "homepage" => read_site("index.html"),
+      "categories" => read_site("categories/index.html"),
+      "tags" => read_site("tags/index.html"),
+      "series" => read_site("series/index.html"),
+      "status" => read_site("status/index.html"),
+      "archive" => read_site("archive/index.html"),
+      "search index" => read_site("search.json"),
+      "RSS feed" => read_site("feed.xml")
+    }
+
+    english_articles.each do |title, path|
+      assert_includes sitemap, "https://www.dayjia.com#{path}"
+
+      chinese_surfaces.each do |surface_name, content|
+        refute_includes content, title, "#{title.inspect} leaked into the Chinese #{surface_name}"
+        refute_includes content, path, "#{path.inspect} leaked into the Chinese #{surface_name}"
+      end
+    end
   end
 
   def test_homepage_explains_the_blog_focus_and_starting_points
@@ -157,7 +239,7 @@ class SiteFeaturesTest < Minitest::Test
     config = YAML.load_file(File.join(ROOT, "_config.yml"))
 
     assert_equal(
-      ["about.md", "search.md", "series.md", "archive.md"],
+      ["about.md", "search.md", "series.md", "archive.md", "en/index.md"],
       config["header_pages"]
     )
   end

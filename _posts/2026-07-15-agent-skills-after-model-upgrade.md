@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: agent-skills-after-model-upgrade
 title: "模型能力升级后，Agent Skills 该怎么用：从通用流程转向专用约束"
 date: 2026-07-15 02:50:00 +0800
 categories: [AI, 开发工具]

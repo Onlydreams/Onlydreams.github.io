@@ -8,10 +8,13 @@ require "yaml"
 class ContentHealthTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
   POST_PATHS = Dir[File.join(ROOT, "_posts/*.md")].sort.freeze
+  ENGLISH_POST_PATHS = Dir[File.join(ROOT, "_english_posts/*.md")].sort.freeze
   REQUIRED_FRONT_MATTER_KEYS = %w[layout title date categories tags status].freeze
+  REQUIRED_ENGLISH_FRONT_MATTER_KEYS = (REQUIRED_FRONT_MATTER_KEYS + %w[lang translation_key]).freeze
   REQUIRED_STATUS_KEYS = %w[label verified environment risk].freeze
   ALLOWED_STATUS_LABELS = ["当前可用", "待复核", "已失效"].freeze
   ALLOWED_CATEGORIES = ["AI", "开发工具", "网络与代理", "浏览器", "体育技术"].freeze
+  ALLOWED_ENGLISH_CATEGORIES = ["AI", "Developer Tools", "Sports Technology"].freeze
   FORBIDDEN_TAG_ALIASES = { "agents" => "agent" }.freeze
   SENSITIVE_PATTERNS = {
     "GitHub noreply email" => /users\.noreply\.github\.com/i,
@@ -22,7 +25,15 @@ class ContentHealthTest < Minitest::Test
   }.freeze
 
   def posts
-    POST_PATHS.map do |path|
+    load_articles(POST_PATHS)
+  end
+
+  def english_posts
+    load_articles(ENGLISH_POST_PATHS)
+  end
+
+  def load_articles(paths)
+    paths.map do |path|
       front_matter, body = split_front_matter(path)
       {
         path: path,
@@ -30,6 +41,57 @@ class ContentHealthTest < Minitest::Test
         front_matter: front_matter,
         body: body
       }
+    end
+  end
+
+  def test_selected_english_posts_have_complete_front_matter
+    assert_equal 4, english_posts.size
+
+    english_posts.each do |post|
+      missing_keys = REQUIRED_ENGLISH_FRONT_MATTER_KEYS.reject do |key|
+        value = post[:front_matter][key]
+        value.respond_to?(:empty?) ? !value.empty? : !value.nil?
+      end
+
+      assert_empty missing_keys, "#{post[:relative_path]} missing front matter keys: #{missing_keys.join(", ")}"
+      assert_equal "post", post[:front_matter]["layout"]
+      assert_equal "en", post[:front_matter]["lang"]
+      assert_operator coerce_time(post[:front_matter]["date"]), :<=, Time.now
+
+      categories = Array(post[:front_matter]["categories"])
+      assert_includes 1..2, categories.size
+      categories.each do |category|
+        assert_includes ALLOWED_ENGLISH_CATEGORIES, category
+      end
+
+      status = post[:front_matter]["status"] || {}
+      REQUIRED_STATUS_KEYS.each do |key|
+        refute_empty status[key].to_s.strip, "#{post[:relative_path]} missing status.#{key}"
+      end
+      assert_includes ALLOWED_STATUS_LABELS, status["label"]
+      assert_match(/\A\d{4}-\d{2}-\d{2}\z/, status["verified"].to_s)
+    end
+  end
+
+  def test_selected_translations_have_unique_one_to_one_keys
+    english_by_key = english_posts.to_h { |post| [post[:front_matter]["translation_key"], post] }
+    chinese_translations = posts.select { |post| post[:front_matter]["translation_key"] }
+    chinese_by_key = chinese_translations.to_h { |post| [post[:front_matter]["translation_key"], post] }
+    translation_map = YAML.load_file(File.join(ROOT, "_data", "translations.yml"))
+
+    assert_equal english_posts.size, english_by_key.size
+    assert_equal chinese_translations.size, chinese_by_key.size
+    assert_equal english_by_key.keys.sort, chinese_by_key.keys.sort
+    assert_equal english_by_key.keys.sort, (translation_map.keys - ["home"]).sort
+
+    chinese_translations.each do |post|
+      key = post[:front_matter]["translation_key"]
+      chinese_slug = File.basename(post[:path], ".md").sub(/\A\d{4}-\d{2}-\d{2}-/, "")
+      english_slug = File.basename(english_by_key.fetch(key)[:path], ".md")
+
+      assert_equal "zh-CN", post[:front_matter]["lang"], "#{post[:relative_path]} must declare lang: zh-CN"
+      assert_equal "/posts/#{chinese_slug}/", translation_map.dig(key, "zh")
+      assert_equal "/en/posts/#{english_slug}/", translation_map.dig(key, "en")
     end
   end
 
@@ -102,7 +164,7 @@ class ContentHealthTest < Minitest::Test
   end
 
   def test_public_posts_do_not_contain_common_secret_patterns
-    posts.each do |post|
+    (posts + english_posts).each do |post|
       text = [post[:front_matter].to_s, post[:body]].join("\n")
 
       SENSITIVE_PATTERNS.each do |name, pattern|

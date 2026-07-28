@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: worldcup-predictor-skill-development-retrospective
 title: "从猜比分到可校准流程：World Cup Predictor Skill 的一个月开发复盘"
 date: 2026-07-22 16:00:00 +0800
 categories: [AI, 体育技术]

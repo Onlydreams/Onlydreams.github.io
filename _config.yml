@@ -18,6 +18,11 @@ plugins:
   - jekyll-seo-tag
   - jekyll-paginate
 
+collections:
+  english_posts:
+    output: true
+    permalink: /en/posts/:name/
+
 paginate: 5
 paginate_path: "/page:num/"
 permalink: /posts/:slug/
@@ -27,6 +32,7 @@ header_pages:
   - search.md
   - series.md
   - archive.md
+  - en/index.md
 
 author: Onlydreams
 
@@ -39,6 +45,16 @@ defaults:
         width: 1200
         height: 630
         alt: Onlydreams 技术笔记
+  - scope:
+      type: english_posts
+    values:
+      layout: post
+      lang: en
+      image:
+        path: /assets/images/onlydreams-og-card.png
+        width: 1200
+        height: 630
+        alt: Onlydreams technical notes
 
 giscus:
   repo: Onlydreams/Onlydreams.github.io

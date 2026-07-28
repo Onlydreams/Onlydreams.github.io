@@ -57,7 +57,8 @@ bash bin/serve
 
 ## 文章与元数据规范
 
-- 新文章放在 `_posts/`，文件名格式为 `YYYY-MM-DD-slug.md`。
+- 原创中文文章放在 `_posts/`，文件名格式为 `YYYY-MM-DD-slug.md`。
+- 精选英文译文放在 `_english_posts/`，通过 `translation_key` 与中文原文一一关联，并由 collection 输出到 `/en/posts/`；英文译文不得进入中文首页分页、分类、标签、专题、状态、归档、搜索索引或 RSS。
 - 必须使用 YAML front matter，至少包含 `layout: post`、`title`、`date`、`categories`、`tags` 和 `status`；只有正文经过实质更新时才添加 `updated: YYYY-MM-DD`。
 - `date` 必须早于实际构建时间；不确定时使用当前时间向前取整或提前 5-10 分钟，避免被 Jekyll 当作未来文章跳过。
 - 标题只放在 front matter 的 `title` 中；正文通常不重复一级标题，正文标题从 `##` 开始。

@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: skillshare-guide
 title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skills"
 date: 2026-05-04 19:00:00 +0800
 updated: 2026-07-13

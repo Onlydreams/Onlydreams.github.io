@@ -7,17 +7,17 @@
   aria-labelledby="post-toc-title"
   data-toc-source=".post-content"
 >
-  <h2 id="post-toc-title" class="toc-title">目录</h2>
+  <h2 id="post-toc-title" class="toc-title">{% if page.lang == "en" %}Contents{% else %}目录{% endif %}</h2>
   <ul id="markdown-toc"></ul>
   <noscript>
-    <p class="toc-fallback">目录需要启用 JavaScript 后显示。</p>
+    <p class="toc-fallback">{% if page.lang == "en" %}Enable JavaScript to display the table of contents.{% else %}目录需要启用 JavaScript 后显示。{% endif %}</p>
   </noscript>
 </aside>
 
 <details class="post-toc-mobile" data-toc-source=".post-content">
-  <summary>目录</summary>
+  <summary>{% if page.lang == "en" %}Contents{% else %}目录{% endif %}</summary>
   <ul id="markdown-toc-mobile"></ul>
   <noscript>
-    <p class="toc-fallback">目录需要启用 JavaScript 后显示。</p>
+    <p class="toc-fallback">{% if page.lang == "en" %}Enable JavaScript to display the table of contents.{% else %}目录需要启用 JavaScript 后显示。{% endif %}</p>
   </noscript>
 </details>

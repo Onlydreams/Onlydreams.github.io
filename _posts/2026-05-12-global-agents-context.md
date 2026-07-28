@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: global-agents-context
 title: "AGENTS.md 配置指南：统一 Codex、Claude 等 AI Agent 协作规则"
 date: 2026-05-12 10:00:00 +0800
 updated: 2026-06-29

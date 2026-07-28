@@ -22,7 +22,7 @@ layout: default
           {{ page.date | date: fmt }}
         </time>
         {%- if page.updated -%}
-          • 更新于
+          • {% if page.lang == "en" %}Updated{% else %}更新于{% endif %}
           <time
             class="dt-updated"
             datetime="{{ page.updated | date_to_xmlschema }}"
@@ -41,6 +41,8 @@ layout: default
       </p>
     </header>
 
+    {%- include translation-switcher.html -%}
+
     {%- include post-status.html -%}
 
     <div class="post-content e-content" itemprop="articleBody">
@@ -49,22 +51,26 @@ layout: default
 
     {%- include related-posts.html -%}
 
-    <nav class="post-bottom-nav" aria-label="文章导航">
-      <div class="post-adjacent-nav" aria-label="相邻文章">
+    <nav class="post-bottom-nav" aria-label="{% if page.lang == "en" %}Article navigation{% else %}文章导航{% endif %}">
+      <div class="post-adjacent-nav" aria-label="{% if page.lang == "en" %}Adjacent articles{% else %}相邻文章{% endif %}">
         {%- if page.previous -%}
           <a class="post-adjacent-link previous" href="{{ page.previous.url | relative_url }}">
-            <span>上一篇</span>
+            <span>{% if page.lang == "en" %}Previous{% else %}上一篇{% endif %}</span>
             {{ page.previous.title | escape }}
           </a>
         {%- endif -%}
         {%- if page.next -%}
           <a class="post-adjacent-link next" href="{{ page.next.url | relative_url }}">
-            <span>下一篇</span>
+            <span>{% if page.lang == "en" %}Next{% else %}下一篇{% endif %}</span>
             {{ page.next.title | escape }}
           </a>
         {%- endif -%}
       </div>
-      <a href="{{ '/' | relative_url }}" class="back-to-list">&larr; 返回文章列表</a>
+      {%- if page.lang == "en" -%}
+        <a href="{{ '/en/' | relative_url }}" class="back-to-list">&larr; Back to English articles</a>
+      {%- else -%}
+        <a href="{{ '/' | relative_url }}" class="back-to-list">&larr; 返回文章列表</a>
+      {%- endif -%}
     </nav>
 
     {%- include comments.html -%}
@@ -75,6 +81,6 @@ layout: default
   {%- include toc.html html=content -%}
 </div>
 
-<button id="back-to-top" class="back-to-top" aria-label="返回顶部">
+<button id="back-to-top" class="back-to-top" aria-label="{% if page.lang == "en" %}Back to top{% else %}返回顶部{% endif %}">
   &uarr;
 </button>
