@@ -7,3 +7,6 @@
 - key: macos-tooling
   title: macOS 开发工具链
   description: macOS 开发环境、AI 工具和桌面端问题处理记录。
+- key: windows-troubleshooting
+  title: Windows 桌面与设备排障
+  description: Windows 桌面应用、浏览器、USB 设备与系统状态异常的实测排查记录。

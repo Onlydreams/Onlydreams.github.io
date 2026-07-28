@@ -5,9 +5,10 @@ date: 2026-07-12 15:50:00 +0800
 updated: 2026-07-13
 categories: [AI, 开发工具]
 tags: [codex, superpowers, plugin, skills, troubleshooting]
-series: [ai-agent]
+series: [ai-agent, windows-troubleshooting]
 series_order:
   ai-agent: 22
+  windows-troubleshooting: 1
 status:
   label: 当前可用
   verified: 2026-07-13

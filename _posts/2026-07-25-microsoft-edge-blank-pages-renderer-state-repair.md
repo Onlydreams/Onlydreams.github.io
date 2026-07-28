@@ -5,6 +5,9 @@ date: 2026-07-25 09:00:00 +0800
 author: Onlydreams
 categories: [开发工具, 浏览器]
 tags: [edge, windows, renderer, extension, troubleshooting]
+series: [windows-troubleshooting]
+series_order:
+  windows-troubleshooting: 2
 status:
   label: 当前可用
   verified: 2026-07-25
