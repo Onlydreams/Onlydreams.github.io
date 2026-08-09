@@ -557,17 +557,19 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, 'decoding="async"'
   end
 
-  def test_home_page_shows_excerpts_tags_and_updated_time
+  def test_paginated_post_lists_show_excerpts_tags_and_updated_time
     html = read_site("index.html")
-    updated_html = read_site("page2/index.html")
+    paginated_html = ([File.join(SITE, "index.html")] + Dir[File.join(SITE, "page*/index.html")].sort)
+      .map { |path| File.read(path) }
+      .join("\n")
     tags_html = read_site("tags/index.html")
 
     assert_includes html, 'class="post-card-excerpt"'
     assert_includes html, 'class="post-card-tags"'
-    assert_includes html, "/tags/#tag-codex"
+    assert_includes paginated_html, "/tags/#tag-codex"
     assert_includes tags_html, 'id="tag-codex"'
-    assert_includes updated_html, 'class="post-updated"'
-    assert_includes updated_html, "<time datetime="
+    assert_includes paginated_html, 'class="post-updated"'
+    assert_includes paginated_html, "<time datetime="
   end
 
   def test_home_page_exposes_existing_series_as_topic_cards
