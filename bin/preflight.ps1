@@ -7,6 +7,12 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $requiredRuby = (Get-Content -LiteralPath (Join-Path $repoRoot ".ruby-version") -Raw).Trim()
+$requiredRubyParts = $requiredRuby -split '\.'
+if ($requiredRubyParts.Count -lt 2) {
+  throw "Onlydreams toolchain error: invalid Ruby baseline in .ruby-version: $requiredRuby"
+}
+$requiredRubySeries = "$($requiredRubyParts[0]).$($requiredRubyParts[1])"
+$rubyVersionCheck = Join-Path $repoRoot "bin/ruby_version_compatible.rb"
 $bundlerVersion = (
   Get-Content -LiteralPath (Join-Path $repoRoot "Gemfile.lock") |
     Select-String -Pattern '^BUNDLED WITH$' -Context 0, 1 |
@@ -16,6 +22,9 @@ $bundlerVersion = (
 
 if (-not $bundlerVersion) {
   throw "Onlydreams toolchain error: could not read the Bundler version from Gemfile.lock."
+}
+if (-not (Test-Path -LiteralPath $rubyVersionCheck -PathType Leaf)) {
+  throw "Onlydreams toolchain error: Ruby compatibility check is missing: $rubyVersionCheck"
 }
 
 $rubyCandidates = @()
@@ -45,14 +54,19 @@ foreach ($candidate in ($rubyCandidates | Select-Object -Unique)) {
   }
 
   $version = & $candidate --version
-  if ($LASTEXITCODE -eq 0 -and $version -match "^ruby\s+$([regex]::Escape($requiredRuby))(?=p|\s|$)") {
+  if ($LASTEXITCODE -ne 0) {
+    continue
+  }
+
+  & $candidate $rubyVersionCheck $requiredRuby
+  if ($LASTEXITCODE -eq 0) {
     $rubyExecutable = $candidate
     break
   }
 }
 
 if (-not $rubyExecutable) {
-  throw "Onlydreams toolchain error: Ruby $requiredRuby is required. Install it, activate your version manager, or set ONLYDREAMS_RUBY to its ruby.exe path."
+  throw "Onlydreams toolchain error: Ruby $requiredRuby or newer within $requiredRubySeries.x is required. Install it, activate your version manager, or set ONLYDREAMS_RUBY to a compatible ruby.exe path."
 }
 
 $rubyDirectory = Split-Path -Parent $rubyExecutable
@@ -87,7 +101,7 @@ $env:ONLYDREAMS_BUNDLER_VERSION = $bundlerVersion
 
 & $bundleExecutable ("_{0}_" -f $bundlerVersion) --version | Out-Null
 if ($LASTEXITCODE -ne 0) {
-  throw "Onlydreams toolchain error: Bundler $bundlerVersion is unavailable for Ruby $requiredRuby. Reinstall the exact Ruby version from .ruby-version."
+  throw "Onlydreams toolchain error: Bundler $bundlerVersion is unavailable for the selected Ruby. Reinstall a compatible Ruby with its Bundler."
 }
 
 function Invoke-ProjectBundle {

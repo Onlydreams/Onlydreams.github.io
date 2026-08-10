@@ -9,6 +9,7 @@ require "tmpdir"
 require "yaml"
 
 require_relative "../.github/scripts/indexnow"
+require_relative "../bin/ruby_version_compatible"
 
 class SiteFeaturesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
@@ -807,13 +808,25 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes powershell_script, '"-rbundler/setup" "test/site_features_test.rb"'
     assert_includes bash_preflight, "unset BUNDLE_PATH BUNDLE_GEMFILE BUNDLE_BIN_PATH GEM_HOME GEM_PATH RUBYOPT"
     assert_includes bash_preflight, "REQUIRED_RUBY"
+    assert_includes bash_preflight, "ruby_version_compatible.rb"
     assert_includes powershell_preflight, "Remove-Item Env:BUNDLE_PATH"
     assert_includes powershell_preflight, "Remove-Item Env:GEM_HOME"
+    assert_includes powershell_preflight, "ruby_version_compatible.rb"
     assert_includes bash_preflight, '"_${ONLYDREAMS_BUNDLER_VERSION}_" --version'
     assert_includes powershell_preflight, '("_{0}_" -f $bundlerVersion) --version'
     assert_includes powershell_preflight, "ONLYDREAMS_RUBY"
     assert_includes powershell_preflight, '("_{0}_" -f $env:ONLYDREAMS_BUNDLER_VERSION)'
     assert_includes powershell_preflight, "$LASTEXITCODE"
+  end
+
+  def test_local_ruby_accepts_forward_patches_only_within_the_ci_minor_series
+    baseline = "3.3.11"
+
+    assert OnlydreamsRubyVersion.compatible?(required: baseline, actual: "3.3.11")
+    assert OnlydreamsRubyVersion.compatible?(required: baseline, actual: "3.3.12")
+    refute OnlydreamsRubyVersion.compatible?(required: baseline, actual: "3.3.10")
+    refute OnlydreamsRubyVersion.compatible?(required: baseline, actual: "3.4.0")
+    refute OnlydreamsRubyVersion.compatible?(required: baseline, actual: "3.2.99")
   end
 
   def test_indexnow_wait_checks_expected_site_urls

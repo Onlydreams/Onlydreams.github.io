@@ -12,12 +12,12 @@
 
 ## 开发环境与工具链
 
-- Ruby 必须与 `.ruby-version` 完全一致；Bundler 和 gems 以 `Gemfile.lock` 为准，项目依赖安装到忽略的 `vendor/bundle`。
-- 初始化脚本负责准备仓库依赖，不替代 Ruby 运行时安装。Windows 优先安装匹配版本的 RubyInstaller Ruby+Devkit x64，并完成所需的 MSYS2/Devkit 初始化；macOS / Linux 使用版本管理器或包管理器选择精确版本。
+- `.ruby-version` 记录 CI 使用的精确 Ruby 基线；本地入口接受同一 major/minor 系列中不低于该基线的 patch 版本，不接受更旧 patch 或未经验证的新 minor。Bundler 和 gems 以 `Gemfile.lock` 为准，项目依赖安装到忽略的 `vendor/bundle`。
+- 初始化脚本负责准备仓库依赖，不替代 Ruby 运行时安装。Windows 优先安装兼容系列的 RubyInstaller Ruby+Devkit x64，并完成所需的 MSYS2/Devkit 初始化；macOS / Linux 使用版本管理器或包管理器选择兼容 patch 版本。CI 仍按 `.ruby-version` 使用精确基线。
 - 日常操作必须使用仓库 toolchain 入口；不要直接运行裸 `bundle` 或 `bundle exec`，除非正在排查 Bundler 或入口脚本本身。
 - 非标准 Ruby 路径只在当前 shell 设置 `ONLYDREAMS_RUBY`；不要把项目 Ruby 路径写入全局 shell 配置。
 - 不要持久设置 `BUNDLE_PATH`、`GEM_HOME`、`GEM_PATH` 或 `RUBYOPT`；入口脚本会在当前进程隔离外部环境，避免不同 Ruby 版本互相污染。
-- 出现 `expected Ruby ...` 时，安装或激活 `.ruby-version` 指定版本；出现 `Bundler ... is unavailable` 时，检查该 Ruby 的安装完整性，不要借用其他 Ruby 的全局 gems。
+- 出现 `expected Ruby ...` 时，安装或激活报错中声明的兼容版本范围；出现 `Bundler ... is unavailable` 时，检查所选 Ruby 的安装完整性，不要借用其他 Ruby 的全局 gems。
 
 ### macOS / Linux
 

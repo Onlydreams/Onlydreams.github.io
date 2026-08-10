@@ -6,7 +6,7 @@
 
 ## 本地开发
 
-Ruby 版本以 [`.ruby-version`](.ruby-version) 为准。仓库操作统一使用项目脚本。
+[`.ruby-version`](.ruby-version) 记录 CI 的 Ruby 基线版本；本地项目脚本也接受同一 minor 系列中不低于该基线的 patch 版本。仓库操作统一使用项目脚本。
 
 macOS / Linux：
 

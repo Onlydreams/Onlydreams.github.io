@@ -2,10 +2,12 @@
 set -euo pipefail
 
 # This file is intentionally sourceable so bin/setup and bin/test share the
-# exact same Ruby and Bundler environment.
+# same compatible Ruby and Bundler environment.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REQUIRED_RUBY="$(tr -d '[:space:]' < "$ROOT_DIR/.ruby-version")"
+REQUIRED_RUBY_SERIES="${REQUIRED_RUBY%.*}"
+RUBY_VERSION_CHECK="$ROOT_DIR/bin/ruby_version_compatible.rb"
 BUNDLER_VERSION="$(awk '/^BUNDLED WITH$/{getline; gsub(/^[[:space:]]+|[[:space:]]+$/, ""); print; exit}' "$ROOT_DIR/Gemfile.lock")"
 
 fail() {
@@ -14,7 +16,7 @@ fail() {
 }
 
 version_matches() {
-  "$1" --version 2>/dev/null | grep -Eq "^ruby ${REQUIRED_RUBY}([p[:space:]]|$)"
+  "$1" "$RUBY_VERSION_CHECK" "$REQUIRED_RUBY"
 }
 
 find_ruby() {
@@ -29,10 +31,12 @@ find_ruby() {
 }
 
 main() {
+  [[ -r "$RUBY_VERSION_CHECK" ]] || fail "Ruby compatibility check is missing: $RUBY_VERSION_CHECK"
+
   local ruby_executable
   ruby_executable="$(find_ruby)"
-  [[ -n "$ruby_executable" ]] || fail "Ruby ${REQUIRED_RUBY} is not installed. Install the version in .ruby-version, then retry."
-  version_matches "$ruby_executable" || fail "expected Ruby ${REQUIRED_RUBY}, got $($ruby_executable --version). Set ONLYDREAMS_RUBY to the matching executable or activate your version manager."
+  [[ -n "$ruby_executable" ]] || fail "Ruby ${REQUIRED_RUBY} or newer within ${REQUIRED_RUBY_SERIES}.x is not installed."
+  version_matches "$ruby_executable" || fail "expected Ruby ${REQUIRED_RUBY} or newer within ${REQUIRED_RUBY_SERIES}.x, got $($ruby_executable --version). Set ONLYDREAMS_RUBY to a compatible executable or activate your version manager."
 
   local ruby_dir
   ruby_dir="$(cd "$(dirname "$ruby_executable")" && pwd)"
@@ -51,7 +55,7 @@ main() {
   [[ -x "$ONLYDREAMS_BUNDLE" ]] || fail "bundle executable was not found next to $ruby_executable."
 
   if ! "$ONLYDREAMS_BUNDLE" "_${ONLYDREAMS_BUNDLER_VERSION}_" --version >/dev/null; then
-    fail "Bundler ${ONLYDREAMS_BUNDLER_VERSION} is unavailable for Ruby ${REQUIRED_RUBY}. Reinstall the exact Ruby version from .ruby-version."
+    fail "Bundler ${ONLYDREAMS_BUNDLER_VERSION} is unavailable for the selected Ruby. Reinstall a compatible Ruby with its Bundler."
   fi
 }
 
