@@ -17,20 +17,20 @@ status:
   risk: 这是个人协作规则模板；复用前应删改本机路径、工具偏好和授权边界，并避免把项目规则错误提升到全局范围。
 ---
 
-记录个人全局 `AGENTS.md` 的上下文、协作偏好、编码约定和行为优先级。当前方案把 Git 仓库中的 `GLOBAL_AGENTS.md` 作为版本化权威源，再部署为 Codex 实际读取的 `~/.codex/AGENTS.md`。
+记录个人全局 `AGENTS.md` 的上下文、协作偏好、编码约定和行为优先级。当前方案把 Git 仓库中的 `GLOBAL_AGENTS.md` 作为版本化权威源，再部署为 Codex home 中默认加载的 `AGENTS.md`。
 
 ---
 
 ## 先区分权威源和加载入口
 
-根据 [OpenAI Docs 的 AGENTS.md 说明](https://learn.chatgpt.com/docs/agent-configuration/agents-md)，Codex 启动任务时会从 `~/.codex/AGENTS.md` 读取个人全局规则，再从项目根目录向当前目录逐层读取项目级 `AGENTS.md` 或 override 文件；路径越接近当前工作目录，优先级越高。
+根据 [OpenAI Docs 的 AGENTS.md 说明](https://learn.chatgpt.com/docs/agent-configuration/agents-md)，Codex 启动任务时会先检查 Codex home：如果存在非空的 `AGENTS.override.md`，就读取它；否则读取 `AGENTS.md`。Codex home 默认为 `~/.codex`，设置 `CODEX_HOME` 后应以实际目录为准。随后 Codex 从项目根目录向当前目录逐层读取项目级 `AGENTS.override.md`、`AGENTS.md` 或已配置的 fallback 文件；路径越接近当前工作目录，优先级越高。
 
 但仓库中的 `GLOBAL_AGENTS.md` 不是 Codex 自动识别的特殊文件。我的维护模型是：
 
 | 文件 | 职责 |
 |---|---|
 | `<my-skills-repo>/GLOBAL_AGENTS.md` | Git 版本化权威源，所有长期修改先落在这里 |
-| `<home>/.codex/AGENTS.md` | Codex 实际加载的部署副本 |
+| `<codex-home>/AGENTS.md` | Codex 默认加载的部署副本；存在同级 override 时会被替代 |
 | `<project>/AGENTS.md` | 只适用于具体项目的构建、测试、内容和发布规则 |
 
 其他 AI Agent 是否读取 `AGENTS.md`，取决于各自支持的配置入口。下面的模板尽量保持工具无关，但部署时仍应映射到目标工具真正支持的位置。模板中提到的 `CLAUDE.md` 和 `.claude/rules/` 是跨工具维护策略：只有当前工具确实会加载这些文件时，它们才参与项目级优先级；对 Codex 本身，自动发现链仍然只有 `AGENTS.md`、`AGENTS.override.md` 和已配置的 fallback 文件。
@@ -129,7 +129,7 @@ status:
 
 ```text
 修改仓库权威源 GLOBAL_AGENTS.md
-→ 部署到 ~/.codex/AGENTS.md
+→ 部署到 <codex-home>/AGENTS.md
 → 比较内容或 SHA-256
 → 新建任务确认新规则已加载
 → 按需要提交并推送 Git 仓库

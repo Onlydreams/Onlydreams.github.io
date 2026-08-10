@@ -11,11 +11,11 @@ series_order:
 status:
   label: 当前可用
   verified: 2026-08-10
-  environment: Skillshare CLI 0.20.25 / Git / Windows PowerShell / Codex AGENTS.md
-  risk: 已复核当前 source、targets、AGENTS.md 部署和 Git 推送；空白新机器未在本次核验中完整重装，执行前应替换占位符并检查 dry-run、备份与远端范围。
+  environment: Skillshare CLI 0.20.24 / Skillshare skill 0.20.25 / Git / macOS zsh / Windows PowerShell 7 / Codex AGENTS.md
+  risk: 已复核当前 source、targets、AGENTS.md 部署和 Git 推送；空白新机器与 Linux 未在本次核验中完整重装，执行前应替换占位符并检查 dry-run、备份与远端范围。
 ---
 
-我目前用一个 Git 仓库保存全局协作规则和个人 Agent Skills：GitHub 负责版本记录与跨机器传输，Skillshare 负责把 `skills/` 分发给多个 AI 工具，Codex 全局 `AGENTS.md` 则通过独立复制和哈希校验部署。三者职责分开，避免把 Git、配置部署和 Skills 同步混成一套隐式机制。
+我目前用一个 Git 仓库保存全局协作规则和个人 Agent Skills：GitHub 负责版本记录与跨机器传输，Skillshare 负责把 `skills/` 分发给多个 AI 工具，Codex 全局 `AGENTS.md` 则通过独立复制和内容校验部署。三者职责分开，避免把 Git、配置部署和 Skills 同步混成一套隐式机制。
 
 ---
 
@@ -67,59 +67,102 @@ Skillshare 已经支持 extras，可以同步 rules、commands 和 prompts。当
 
 - 目前只有一个明确的 Codex 全局目标文件；
 - 希望修改全局行为时显式确认，而不是顺带随所有 Skills 同步；
-- 复制后做 SHA-256 对比，容易证明部署副本与权威源一致；
+- 复制后比较字节内容或 SHA-256，容易证明部署副本与权威源一致；
 - Codex 的加载位置和 Skillshare target 是两个不同概念。
 
 如果以后要同时维护 Claude rules、Cursor rules、commands、prompts 等多组文件，再迁移到 Skillshare extras 或专门的 dotfiles 工具更合理。当前规模下，显式部署比增加一层配置更容易审计。
 
 ## 把已有 Git 仓库接入 Skillshare
 
-示例使用 Windows PowerShell。这里的前提是远端仓库已经存在，并包含 `GLOBAL_AGENTS.md` 与 `skills/`；如果从空仓库开始，应先在主机器创建这两个内容、完成第一次 Git 提交和推送，再执行下面的接入步骤。
+本文把负责编辑权威源并向 Git 远端发布的设备称为“权威源机器”。这是一种工作流角色，不代表 macOS、Linux 或 Windows。除明确标注的文件部署片段外，下文的 Git 与 Skillshare 命令在 `zsh`、`bash` 和 PowerShell 7 中相同。
+
+这里的前提是远端仓库已经存在，并包含 `GLOBAL_AGENTS.md` 与 `skills/`；如果从空仓库开始，应先在任意选定的权威源机器创建这两个内容、完成第一次 Git 提交和推送，再执行下面的接入步骤。
 
 clone 仓库后，让其中的 `skills/` 成为 Skillshare source：
 
-```powershell
-git clone <repository-url> <my-skills-repo>
-Set-Location <my-skills-repo>
+```text
+git clone "<repository-url>" "<my-skills-repo>"
+cd "<my-skills-repo>"
 
-skillshare init --source <my-skills-repo>/skills --all-targets --no-copy --git --git-root root --no-skill
+skillshare init --source "<my-skills-repo>/skills" --targets "codex,claude" --no-copy --git --git-root root --no-skill
 skillshare status
 skillshare target list
+skillshare doctor
 ```
 
 几个参数的目的：
 
 - `--source`：明确 `skills/` 是 source，而不是依赖默认目录。
-- `--all-targets`：加入当前检测到的工具；共享机器或 CI 应改用 `--targets` 缩小范围。
+- `--targets`：只加入当前机器真正需要的工具，示例列表应按实际环境替换。
 - `--no-copy`：不把各 target 的现有文件自动回灌到 source。
 - `--git-root root`：Git 根目录包含 `GLOBAL_AGENTS.md` 和 `skills/`，而不只跟踪 Skills 子目录。
 - `--no-skill`：保留 Git 仓库中已经版本化的内置 Skillshare skill，不在恢复过程中按新机 CLI 版本改写 source。需要升级时，另行运行 `skillshare upgrade --skill`，审查 diff 后再提交。
 
+需要接入全部已检测工具时，可以把 `--targets` 改为 `--all-targets`，但它不是安全默认值。部分运行时会同时扫描专用 target 和 universal target；如果 `skillshare doctor` 报告重复发现路径，应移除重叠 target 或缩小 targets，而不是让两条路径长期同时写入。
+
 已有 Skills 需要迁移时，先预览：
 
-```powershell
-skillshare collect --all --dry-run
+```text
+skillshare collect <target> --dry-run
 ```
 
-只有确认属于个人长期维护集合的内容，才执行正式 collect。第三方 Skill 的首次获取与日后多机器同步也要分开理解：`install` 从上游获取，个人 Git 仓库保存筛选和维护后的结果。
+按 target 逐个确认，只有属于个人长期维护集合的内容才执行正式 collect。不要默认使用 `collect --all`，也不要从 Codex、Claude 等目录回收工具自带或无关的 target-local Skills。第三方 Skill 的首次获取与日后多机器同步也要分开理解：`install` 从上游获取，个人 Git 仓库保存筛选和维护后的结果。
 
 ## 部署 Codex 全局 AGENTS.md
 
-[OpenAI Docs](https://learn.chatgpt.com/docs/agent-configuration/agents-md) 说明，Codex 默认读取 `<home>/.codex/AGENTS.md`，并在启动任务时把它与项目级规则组合。仓库根目录的 `GLOBAL_AGENTS.md` 只是本方案约定的权威源，Codex 不会自动加载它。
+[OpenAI Docs](https://learn.chatgpt.com/docs/agent-configuration/agents-md) 说明，Codex 默认从 `~/.codex` 读取全局规则；设置 `CODEX_HOME` 后应改用对应目录。如果 Codex home 中存在非空的 `AGENTS.override.md`，它会替代同级 `AGENTS.md`。仓库根目录的 `GLOBAL_AGENTS.md` 只是本方案约定的权威源，Codex 不会自动加载它。
 
-在仓库根目录执行下面的 PowerShell：
+### macOS / Linux
+
+在 `bash` 或 `zsh` 中执行：
+
+```bash
+codex_home="${CODEX_HOME:-${HOME}/.codex}"
+deployed_agents="${codex_home}/AGENTS.md"
+
+if ! mkdir -p "${codex_home}"; then
+  printf '%s\n' 'Cannot create Codex home.' >&2
+  exit 1
+fi
+
+if [ -f "${deployed_agents}" ]; then
+  if ! cp "${deployed_agents}" "${deployed_agents}.bak"; then
+    printf '%s\n' 'Cannot back up the deployed AGENTS.md.' >&2
+    exit 1
+  fi
+fi
+
+if ! cp ./GLOBAL_AGENTS.md "${deployed_agents}"; then
+  printf '%s\n' 'Cannot deploy GLOBAL_AGENTS.md.' >&2
+  exit 1
+fi
+
+if ! cmp -s ./GLOBAL_AGENTS.md "${deployed_agents}"; then
+  printf '%s\n' 'GLOBAL_AGENTS.md deployment verification failed.' >&2
+  exit 1
+fi
+```
+
+### Windows PowerShell 7
+
+在仓库根目录执行：
 
 ```powershell
-$deployedAgents = Join-Path $env:USERPROFILE '.codex\AGENTS.md'
+$codexHome = if ($env:CODEX_HOME) {
+  $env:CODEX_HOME
+} else {
+  Join-Path $env:USERPROFILE '.codex'
+}
+$deployedAgents = Join-Path $codexHome 'AGENTS.md'
 $deployedDirectory = Split-Path -Parent $deployedAgents
 
-New-Item -ItemType Directory -Force -Path $deployedDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $deployedDirectory -ErrorAction Stop | Out-Null
 
 if (Test-Path -LiteralPath $deployedAgents) {
-  Copy-Item -LiteralPath $deployedAgents -Destination "$deployedAgents.bak" -Force
+  Copy-Item -LiteralPath $deployedAgents -Destination "$deployedAgents.bak" -Force -ErrorAction Stop
 }
 
-Copy-Item -LiteralPath '.\GLOBAL_AGENTS.md' -Destination $deployedAgents -Force
+Copy-Item -LiteralPath '.\GLOBAL_AGENTS.md' -Destination $deployedAgents -Force -ErrorAction Stop
 
 $sourceHash = (Get-FileHash -LiteralPath '.\GLOBAL_AGENTS.md' -Algorithm SHA256).Hash
 $deployedHash = (Get-FileHash -LiteralPath $deployedAgents -Algorithm SHA256).Hash
@@ -129,22 +172,22 @@ if ($sourceHash -ne $deployedHash) {
 }
 ```
 
-这个脚本只保留一份 `.bak`，适合当前的单文件部署。需要长期快照、机器差异模板或更多 dotfiles 时，应升级为独立部署脚本或 Chezmoi 一类工具，而不是继续扩张临时复制命令。
+两个脚本都只保留一份 `.bak`：POSIX 版本直接比较字节内容，PowerShell 版本比较 SHA-256。它们适合当前的单文件部署；需要长期快照、机器差异模板或更多 dotfiles 时，应升级为独立部署脚本或 Chezmoi 一类工具，而不是继续扩张临时复制命令。
 
 全局规则通常在新任务启动时读取。部署成功后，应新建 Codex 任务验证，不要假设正在运行的旧任务已经重新加载磁盘内容。
 
-## 主机器的日常更新流程
+## 权威源机器的日常更新流程
 
 修改前先确认工作树：
 
-```powershell
-Set-Location <my-skills-repo>
+```text
+cd "<my-skills-repo>"
 git status --short
 ```
 
 如果存在本地修改，先确认范围并按后文的 checkpoint 流程处理。只有工作树干净时，才拉取远端：
 
-```powershell
+```text
 skillshare pull --dry-run
 skillshare pull
 skillshare status
@@ -153,13 +196,13 @@ skillshare status
 如果只修改 `GLOBAL_AGENTS.md`：
 
 1. 先修改仓库权威源。
-2. 重新运行上面的部署与哈希校验。
+2. 重新运行上面的部署与内容校验。
 3. 新建 Codex 任务确认规则已加载。
 4. 提交和推送仓库。
 
 如果修改、新增或删除 Skill：
 
-```powershell
+```text
 skillshare sync --dry-run
 skillshare sync
 skillshare doctor
@@ -168,22 +211,22 @@ skillshare audit
 
 完成所有改动后，使用 Skillshare 的 Git 预检和推送：
 
-```powershell
+```text
 skillshare push --dry-run
 skillshare push -m "Update shared agent configuration"
 ```
 
 `push --dry-run` 用来确认即将提交的文件和提交信息。它不是授权扩大提交范围的理由；工作树中存在无关修改时，仍应先停下来区分范围。
 
-## 另一台机器如何恢复
+## 其他机器如何恢复与同步
 
 空白机器首次恢复：
 
-```powershell
-git clone <repository-url> <my-skills-repo>
-Set-Location <my-skills-repo>
+```text
+git clone "<repository-url>" "<my-skills-repo>"
+cd "<my-skills-repo>"
 
-skillshare init --source <my-skills-repo>/skills --all-targets --no-copy --git --git-root root --no-skill
+skillshare init --source "<my-skills-repo>/skills" --targets "codex,claude" --no-copy --git --git-root root --no-skill
 skillshare sync
 skillshare doctor
 skillshare status
@@ -191,11 +234,11 @@ skillshare status
 
 个人 Skills 已随 `git clone` 恢复，不需要再用裸 `skillshare install` 重装。只有配置明确声明了未纳入 Git 的远程或 tracked 依赖时，才应按配置或明确 source 逐项执行 `install`。
 
-然后执行 `GLOBAL_AGENTS.md` 的部署与哈希校验。`skillshare sync` 只负责 Skills；它不会因为仓库根目录存在 `GLOBAL_AGENTS.md` 就自动复制到 Codex home。
+然后执行 `GLOBAL_AGENTS.md` 的部署与内容校验。`skillshare sync` 只负责 Skills；它不会因为仓库根目录存在 `GLOBAL_AGENTS.md` 就自动复制到 Codex home。
 
 已经初始化过的机器，日常只需要：
 
-```powershell
+```text
 skillshare pull --dry-run
 skillshare pull
 skillshare status
@@ -209,7 +252,7 @@ skillshare status
 
 先建立本地 Git 检查点，不立即推送：
 
-```powershell
+```text
 skillshare commit --dry-run
 skillshare commit -m "Checkpoint local changes"
 skillshare pull
@@ -219,7 +262,7 @@ skillshare pull
 
 ### 大范围同步或模式切换
 
-```powershell
+```text
 skillshare backup --dry-run
 skillshare backup
 skillshare sync --dry-run
@@ -229,7 +272,7 @@ backup 主要保护 target-local 内容；merge 模式的链接指向 source，�
 
 ### 误删 Skill
 
-```powershell
+```text
 skillshare trash restore <skill-name>
 skillshare sync
 ```
@@ -263,13 +306,13 @@ Git + 一次显式复制 + Skillshare 已经覆盖版本化、部署、target �
 
 2026 年 8 月 10 日，本机核验了以下范围：
 
-- Skillshare CLI 与内置 Skill 均为 `v0.20.25`；
+- Skillshare CLI 为 `v0.20.24`，内置 Skillshare skill 为 `v0.20.25`；
 - 自定义 `skills/` source 存在，已配置 targets 处于同步状态；
 - `GLOBAL_AGENTS.md` v2.4 与 Codex 部署副本内容一致；
-- Skillshare 审计没有 CRITICAL 阻止项；
+- Skillshare 审计在当前阈值下没有 CRITICAL 阻止项；这不代表不存在较低级别发现；
 - Git 推送完成后，本地与远端保持同步。
 
-本次没有在一台全新机器上重新执行完整安装，因此“空白机器恢复”部分依据当前 CLI 帮助、现有配置和已经使用的同步模型整理，不把它表述为本轮全新端到端复测。
+原有流程已在 Windows PowerShell 7 环境核验；本轮又在 macOS `zsh` 环境复核了 CLI、source/targets 状态和 POSIX 部署脚本。没有在全新 macOS、Linux 或 Windows 机器上重新执行完整安装，因此“空白机器恢复”与 Linux 部分依据当前 CLI 帮助、现有配置和跨平台命令语义整理，不把它表述为本轮全新端到端复测。
 
 ## 参考资料
 

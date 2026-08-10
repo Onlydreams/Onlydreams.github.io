@@ -13,7 +13,7 @@ series_order:
 status:
   label: 当前可用
   verified: 2026-08-10
-  environment: Skillshare CLI 0.20.25 / Windows PowerShell / Claude / Codex Skills
+  environment: Skillshare CLI 0.20.24 / Skillshare skill 0.20.25 / macOS zsh / Windows PowerShell 7 / Claude / Codex Skills
   risk: 会修改本地 skills 源目录和已配置 targets；迁移、覆盖或删除前应先检查 dry-run、目标列表和恢复方案。
 ---
 
@@ -60,7 +60,7 @@ brew install skillshare
 
 Homebrew 版本可能比直接安装脚本晚几天发布。
 
-### Windows PowerShell
+### Windows PowerShell 7
 
 ```powershell
 irm https://raw.githubusercontent.com/runkids/skillshare/main/install.ps1 | iex
@@ -68,19 +68,21 @@ irm https://raw.githubusercontent.com/runkids/skillshare/main/install.ps1 | iex
 
 ### 升级并检查版本
 
-```bash
+```text
 skillshare upgrade --dry-run
 skillshare upgrade
 skillshare --version
 ```
 
-2026 年 8 月 10 日核验时，当前 CLI 与内置 Skillshare skill 均为 `v0.20.25`。工具仍在快速迭代，具体参数应以本机 `skillshare <command> --help` 为准。
+2026 年 8 月 10 日核验时，当前 CLI 为 `v0.20.24`，内置 Skillshare skill 为 `v0.20.25`。二者版本号不要求相同，也不能用 Skill 元数据代替 CLI 版本。工具仍在快速迭代，具体参数应以本机 `skillshare --version` 和 `skillshare <command> --help` 为准。
+
+除上面的分平台安装命令外，下文只使用 Git 与 Skillshare 自身的跨 shell 命令，可在 `zsh`、`bash` 或 PowerShell 7 中执行；代码块使用 `text`，不表示要求某一种 shell。
 
 ## 初始化 source 与 targets
 
 交互式初始化：
 
-```bash
+```text
 skillshare init
 ```
 
@@ -95,7 +97,7 @@ skillshare init
 
 完成后先检查，不要立即覆盖已有目录：
 
-```bash
+```text
 skillshare status
 skillshare target list
 skillshare doctor
@@ -103,43 +105,43 @@ skillshare doctor
 
 无人值守环境应显式传入目标和迁移策略，例如：
 
-```bash
-skillshare init --all-targets --no-copy --git --skill
+```text
+skillshare init --targets "codex,claude" --no-copy --git --skill
 ```
 
-`--no-copy` 表示不把 target 中的现有 Skills 自动回收进 source。CI、devcontainer 或共享机器上，通常还应使用 `--targets` 只选择需要的工具。
+`--no-copy` 表示不把 target 中的现有 Skills 自动回收进 source。`--targets` 应替换为当前机器真正需要的工具；只有审查过全部检测结果后才使用 `--all-targets`。初始化后运行 `skillshare doctor`，如果专用 target 与 universal target 被同一工具重复发现，应保留一条明确的分发路径，而不是忽略警告。
 
 ## 安全迁移已有 Skills
 
 如果 Skills 原先散落在 Claude、Codex 或其他 target 中，可以在首次迁移时收集一次。先预览：
 
-```bash
-skillshare collect --all --dry-run
+```text
+skillshare collect <target> --dry-run
 ```
 
-确认范围后再去掉 `--dry-run`。不要收集：
+逐个 target 确认范围后再去掉 `--dry-run`。只有确实需要一次迁移多个已审查 target 时才使用 `--all`。不要收集：
 
 - 工具自带的默认 Skills；
 - 缓存和生成文件；
 - 只应留在单个工具中的实验内容；
 - source 中已经存在的旧副本。
 
-`collect` 是迁移和恢复操作，不是日常双向同步。初始化完成后，正常方向应保持为 source → targets。
+`collect` 是迁移和恢复操作，不是日常双向同步。初始化完成后，正常方向应保持为 source → targets；不要默认从 Codex、Claude 或其他 target 回收工具自带和 target-local Skills。
 
 ## 安装或新建 Skill
 
 ### 从 Git 仓库安装
 
-```bash
+```text
 skillshare install github.com/<owner>/<repository>
 skillshare sync
 ```
 
-`install` 会自动执行安全审计，默认在出现 CRITICAL 发现时阻止安装。`--force` 会绕过阻止条件，`--skip-audit` 会完全跳过扫描；只有在看懂发现并接受风险时才应使用。
+`install` 会自动执行安全审计，默认在出现 CRITICAL 发现时阻止安装。没有 CRITICAL 阻止项不等于审计结果干净，HIGH、MEDIUM 等非阻断发现仍需逐项处理。`--force` 会绕过阻止条件，`--skip-audit` 会完全跳过扫描；只有在看懂发现并接受风险时才应使用。
 
 也可以单独审计当前 source：
 
-```bash
+```text
 skillshare audit
 ```
 
@@ -147,7 +149,7 @@ skillshare audit
 
 ### 新建自己的 Skill
 
-```bash
+```text
 skillshare new my-skill
 skillshare sync
 ```
@@ -166,7 +168,7 @@ skillshare sync
 
 Windows 上的链接可使用 NTFS junction，不需要把所有 target 都切成 copy。如果某个工具、容器或受限文件系统不能跟随链接，只修改该 target：
 
-```bash
+```text
 skillshare target claude --mode copy
 skillshare sync
 ```
@@ -175,7 +177,7 @@ copy 模式中的 source 修改要等下一次 `sync` 才会出现在 target。�
 
 切换模式或批量同步前可以预览：
 
-```bash
+```text
 skillshare sync --dry-run
 skillshare sync
 ```
@@ -207,13 +209,13 @@ skillshare sync
 
 全局 source 可以绑定 Git 远端：
 
-```bash
+```text
 skillshare init --remote <repository-url>
 ```
 
-主机器修改完成后，先检查同步与推送范围：
+负责维护权威 source 的机器修改完成后，先检查同步与推送范围：
 
-```bash
+```text
 skillshare sync --dry-run
 skillshare sync
 skillshare doctor
@@ -221,9 +223,9 @@ skillshare push --dry-run
 skillshare push -m "Update shared skills"
 ```
 
-另一台机器执行：
+其他机器执行：
 
-```bash
+```text
 skillshare pull --dry-run
 skillshare pull
 skillshare status
@@ -235,7 +237,7 @@ skillshare status
 
 本机有未提交变更时，可以先建立只保存在本地的检查点：
 
-```bash
+```text
 skillshare commit --dry-run
 skillshare commit -m "Checkpoint local changes"
 skillshare pull
@@ -243,14 +245,14 @@ skillshare pull
 
 如果 Git 报真实内容冲突，应进入 source 所在仓库，确认双方变更后手动解决，再执行：
 
-```bash
+```text
 skillshare sync
 skillshare doctor
 ```
 
 执行大范围模式切换或清理前，可以备份 target-local 内容：
 
-```bash
+```text
 skillshare backup --dry-run
 skillshare backup
 skillshare backup --list
