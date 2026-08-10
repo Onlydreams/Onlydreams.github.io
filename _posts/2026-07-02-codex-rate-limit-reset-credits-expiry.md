@@ -6,7 +6,7 @@ categories: [AI, 开发工具]
 tags: [codex, chatgpt, rate-limit, credits, usage]
 series: [ai-agent]
 series_order:
-  ai-agent: 4
+  ai-agent: 5
 status:
   label: 当前可用
   verified: 2026-07-02

@@ -7,7 +7,7 @@ categories: [AI, 开发工具]
 tags: [codex, electron, gpu, macos, intel, plugin]
 series: [ai-agent, macos-tooling]
 series_order:
-  ai-agent: 3
+  ai-agent: 4
   macos-tooling: 3
 status:
   label: 待复核

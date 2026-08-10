@@ -4,7 +4,7 @@ lang: zh-CN
 translation_key: skillshare-guide
 title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skills"
 date: 2026-05-04 19:00:00 +0800
-updated: 2026-07-13
+updated: 2026-08-10
 categories: [AI, 开发工具]
 tags: [skillshare, skills, agent, cli, claude, codex]
 series: [ai-agent]
@@ -12,30 +12,41 @@ series_order:
   ai-agent: 1
 status:
   label: 当前可用
-  verified: 2026-07-13
-  environment: Skillshare CLI / Claude / Codex Skills
-  risk: 会影响本地 skills 目录和同步流程，执行前确认目标目录和备份策略。
+  verified: 2026-08-10
+  environment: Skillshare CLI 0.20.25 / Windows PowerShell / Claude / Codex Skills
+  risk: 会修改本地 skills 源目录和已配置 targets；迁移、覆盖或删除前应先检查 dry-run、目标列表和恢复方案。
 ---
 
-记录 [Skillshare](https://skillshare.runkids.cc/docs) 的安装、初始化、同步和跨设备使用方式，用一个源目录统一管理 AI CLI、编码助手和 Agent 的 skills。
+[Skillshare](https://skillshare.runkids.cc/docs) 用一个源目录管理 Codex、Claude、Cursor 等工具使用的 Agent Skills。本文介绍安装、初始化、安全迁移、同步模式和 Git 跨机器同步；完整的个人配置方案另见 [GitHub + Skillshare 跨机器同步实战](/posts/github-skillshare-cross-machine-sync/)。
 
 ---
 
-## 目标
+## Skillshare 解决什么问题
 
-Skillshare 适合解决一个问题：不同 AI 工具和 Agent 各自维护 skills 目录，手动复制容易混乱，也不方便在多台电脑之间同步。
+不同 AI CLI 和编码工具通常各自维护一个 skills 目录。直接复制同一个 Skill，时间久了会出现三个问题：
 
-通过 Skillshare，可以把所有 skills 放到一个源目录，再同步到不同 AI 工具、Agent 或 CLI 的目标目录：
+- 不清楚哪一份才是权威源；
+- 同名 Skill 在不同工具中逐渐漂移；
+- 换电脑后要重新安装和核对每一份文件。
 
-- 单机使用：修改一次，执行 `skillshare sync` 同步到所有已配置目标。
-- 多机使用：通过远端 Git 仓库执行 `skillshare push` / `skillshare pull`。
-- 第三方 skills：安装前可用 `skillshare audit` 做安全扫描。
+Skillshare 把日常数据流固定为单向同步：
 
-## 安装
+```text
+Skillshare source
+    ├── skill-a/
+    ├── skill-b/
+    └── skill-c/
+          ↓ skillshare sync
+Claude / Codex / Cursor / 其他 targets
+```
 
-### MacOS / Linux
+源目录是唯一应该长期维护的副本。各 target 根据配置使用逐 Skill 链接、整目录链接或真实文件副本。
 
-使用安装脚本：
+## 安装与升级
+
+### macOS / Linux
+
+使用官方安装脚本：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh | sh
@@ -47,186 +58,216 @@ curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh 
 brew install skillshare
 ```
 
+Homebrew 版本可能比直接安装脚本晚几天发布。
+
 ### Windows PowerShell
 
 ```powershell
 irm https://raw.githubusercontent.com/runkids/skillshare/main/install.ps1 | iex
 ```
 
-### 升级
+### 升级并检查版本
 
 ```bash
+skillshare upgrade --dry-run
 skillshare upgrade
+skillshare --version
 ```
 
-本文核验时，官方 Releases 页面列出的最新版本是 v0.20.21，本机用于命令复核的是 v0.19.23。快速迭代期间参数可能变化，遇到差异时应以当前安装版本的 `skillshare <command> --help` 为准。
+2026 年 8 月 10 日核验时，当前 CLI 与内置 Skillshare skill 均为 `v0.20.25`。工具仍在快速迭代，具体参数应以本机 `skillshare <command> --help` 为准。
 
-## 初始化
+## 初始化 source 与 targets
 
-在终端执行：
+交互式初始化：
 
 ```bash
 skillshare init
 ```
 
-初始化会完成三件事：
+初始化流程会选择源目录、检测已安装的 AI 工具、配置 targets，并询问是否安装 Skillshare 自带的调用 Skill。
 
-- 创建 skills 源目录：`~/.config/skillshare/skills/`
-- 检测本机已安装的 AI 工具、Agent 或 CLI
-- 生成 Skillshare 配置文件：`config.yaml`
+默认全局目录因平台而异：
 
-初始化完成后，可以先查看当前状态：
+| 平台 | 配置和 source 位置 |
+|---|---|
+| macOS / Linux | `~/.config/skillshare/` |
+| Windows | `%AppData%\skillshare\` |
+
+完成后先检查，不要立即覆盖已有目录：
 
 ```bash
 skillshare status
 skillshare target list
+skillshare doctor
 ```
 
-## 添加 Skill
+无人值守环境应显式传入目标和迁移策略，例如：
 
-### 可选：迁移已有 Skill
+```bash
+skillshare init --all-targets --no-copy --git --skill
+```
 
-源目录应当是长期维护的 source of truth。只有首次迁移、并且确认目标目录中的内容确实需要纳入源目录时，才从 Claude、Codex 或其他目标端收集。先预览，不要直接覆盖：
+`--no-copy` 表示不把 target 中的现有 Skills 自动回收进 source。CI、devcontainer 或共享机器上，通常还应使用 `--targets` 只选择需要的工具。
+
+## 安全迁移已有 Skills
+
+如果 Skills 原先散落在 Claude、Codex 或其他 target 中，可以在首次迁移时收集一次。先预览：
 
 ```bash
 skillshare collect --all --dry-run
 ```
 
-确认预览范围后，再去掉 `--dry-run`。不要把工具自带的默认 skills、缓存内容或与自己源仓库无关的 target-local skills 回灌到源目录。
+确认范围后再去掉 `--dry-run`。不要收集：
 
-### 从 GitHub 安装
+- 工具自带的默认 Skills；
+- 缓存和生成文件；
+- 只应留在单个工具中的实验内容；
+- source 中已经存在的旧副本。
+
+`collect` 是迁移和恢复操作，不是日常双向同步。初始化完成后，正常方向应保持为 source → targets。
+
+## 安装或新建 Skill
+
+### 从 Git 仓库安装
 
 ```bash
-skillshare install github.com/<用户名>/<仓库名>
+skillshare install github.com/<owner>/<repository>
 skillshare sync
 ```
 
-安装第三方仓库前，建议先做一次安全扫描：
+`install` 会自动执行安全审计，默认在出现 CRITICAL 发现时阻止安装。`--force` 会绕过阻止条件，`--skip-audit` 会完全跳过扫描；只有在看懂发现并接受风险时才应使用。
+
+也可以单独审计当前 source：
 
 ```bash
 skillshare audit
 ```
 
+从上游安装与跨机器同步是两件事：`install` 负责把第三方 Skill 纳入自己的 source，Git 与 `push` / `pull` 负责同步已经筛选和维护的个人集合。
+
 ### 新建自己的 Skill
 
 ```bash
 skillshare new my-skill
-```
-
-命令会在源目录中生成一个新的 skill 目录，并创建 `SKILL.md` 模板。编辑完成后执行同步：
-
-```bash
 skillshare sync
 ```
 
-## 同步机制
+命令会生成新的 Skill 目录和 `SKILL.md` 模板。编辑应发生在 source，而不是 target 里的生成副本。
 
-修改、新增或删除 skill 后，执行：
+## 理解三种同步模式
 
-```bash
-skillshare sync
-```
+每个 target 都可以独立选择模式：
 
-默认同步方式是软链接：各 AI 工具或 Agent 的 skills 目录指向 Skillshare 的源目录。Windows 下会使用 NTFS junctions。
+| 模式 | 行为 | target-local Skills |
+|---|---|---|
+| `merge` | 默认模式，为每个 Skill 创建链接 | 保留 |
+| `copy` | 复制真实文件，并用 manifest 跟踪托管内容 | 保留 |
+| `symlink` | 整个 target 目录链接到 source | 无法保留 |
 
-如果软链接在某些环境中不可用，例如 Docker、受限文件系统或同步盘目录，可以切换为 copy 模式：
+Windows 上的链接可使用 NTFS junction，不需要把所有 target 都切成 copy。如果某个工具、容器或受限文件系统不能跟随链接，只修改该 target：
 
 ```bash
 skillshare target claude --mode copy
 skillshare sync
 ```
 
-## 常用命令
+copy 模式中的 source 修改要等下一次 `sync` 才会出现在 target。不要在 target 中长期编辑托管副本，否则下次同步可能覆盖它。
 
-| 命令                          | 作用                |
-| ----------------------------- | ------------------- |
-| `skillshare status`           | 查看当前状态        |
-| `skillshare list`             | 查看已安装的 skills |
-| `skillshare target list`      | 查看已配置同步目标  |
-| `skillshare sync`             | 同步到所有目标      |
-| `skillshare update --all`     | 更新所有 skill 仓库 |
-| `skillshare uninstall <name>` | 卸载指定 skill      |
-| `skillshare enable <name>`    | 启用指定 skill      |
-| `skillshare disable <name>`   | 禁用指定 skill      |
-| `skillshare audit`            | 执行安全扫描        |
-| `skillshare ui`               | 打开 Web 管理面板   |
-
-## 跨机器同步
-
-多台电脑共用一套 skills 时，可以给 Skillshare 源目录绑定一个 Git 远端仓库。
-
-### 1. 创建远端仓库
-
-在 GitHub、Gitee 或自建 Git 服务中创建一个空仓库，复制仓库 URL。
-
-HTTPS 和 SSH 地址都可以，认证由本机 Git 配置处理。
-
-### 2. 绑定远端
+切换模式或批量同步前可以预览：
 
 ```bash
-skillshare init --remote <仓库URL>
-```
-
-如果已经执行过 `skillshare init`，这条命令会绑定远端，不会重置已有源目录。
-
-### 3. 推送本机更新
-
-第一台电脑改完 skill 后执行：
-
-```bash
-skillshare push -m "更新说明"
-```
-
-### 4. 拉取远端更新
-
-第二台电脑执行：
-
-```bash
-skillshare pull
-```
-
-`skillshare pull` 会先拉取远端仓库，再执行 `skillshare sync`。
-
-## 冲突处理
-
-如果拉取时报本机有未提交改动，可以先提交并推送本机更新：
-
-```bash
-skillshare push -m "本机更新"
-skillshare pull
-```
-
-也可以手动暂存当前改动：
-
-```bash
-cd ~/.config/skillshare/skills
-git stash
-skillshare pull
-git stash pop
-```
-
-如果提示远端有新提交，先拉再推：
-
-```bash
-skillshare pull
-skillshare push -m "同步更新"
-```
-
-如果出现真实文件冲突，进入源目录手动解决冲突后提交：
-
-```bash
-cd ~/.config/skillshare/skills
-git add .
-git commit -m "merge skills"
+skillshare sync --dry-run
 skillshare sync
 ```
 
-## 使用建议
+## 常用命令
 
-- 单机使用时，记住 `skillshare sync` 即可。
-- 多机使用时，围绕 `skillshare push` 和 `skillshare pull` 建立习惯。
-- 安装第三方 skills 前，先运行 `skillshare audit`。
-- 修改 target 同步模式后，再执行一次 `skillshare sync`。
-- `collect` 是迁移工具，不是日常双向同步流程；日常方向应保持源目录到目标端。
+| 命令 | 作用 |
+|---|---|
+| `skillshare status` | 查看 source、targets、同步状态和版本 |
+| `skillshare list` | 查看已安装、启用或禁用的 Skills |
+| `skillshare target list` | 查看 targets 与同步模式 |
+| `skillshare diff` | 比较 source 与 targets |
+| `skillshare sync` | 把 source 分发到 targets |
+| `skillshare check` | 检查上游更新和元数据问题 |
+| `skillshare update --all` | 更新所有可更新 Skills |
+| `skillshare commit` | 创建本地 Git 检查点，不推送 |
+| `skillshare push` | 提交并推送全局 source |
+| `skillshare pull` | 拉取远端并同步 targets |
+| `skillshare backup` | 备份 target-local 内容 |
+| `skillshare uninstall <name>` | 把 Skill 移入 7 天 trash |
+| `skillshare trash restore <name>` | 从 trash 恢复 Skill |
+| `skillshare audit` | 执行安全扫描 |
+| `skillshare doctor` | 检查配置、链接和同步漂移 |
+| `skillshare ui` | 打开本地 Web 管理面板 |
 
-官方文档：[https://skillshare.runkids.cc/docs](https://skillshare.runkids.cc/docs)
+安装、更新、卸载、collect 或修改 target 后，都应再运行一次 `skillshare sync`。
+
+## 用 Git 跨机器同步
+
+全局 source 可以绑定 Git 远端：
+
+```bash
+skillshare init --remote <repository-url>
+```
+
+主机器修改完成后，先检查同步与推送范围：
+
+```bash
+skillshare sync --dry-run
+skillshare sync
+skillshare doctor
+skillshare push --dry-run
+skillshare push -m "Update shared skills"
+```
+
+另一台机器执行：
+
+```bash
+skillshare pull --dry-run
+skillshare pull
+skillshare status
+```
+
+`pull` 会从 Git 远端更新 source，然后同步已配置 targets。它不会替代其他工具的任意配置部署；例如 Codex 全局 `AGENTS.md` 是否同步，取决于你是否另外配置了 Skillshare extras 或独立部署流程。
+
+## 冲突与恢复
+
+本机有未提交变更时，可以先建立只保存在本地的检查点：
+
+```bash
+skillshare commit --dry-run
+skillshare commit -m "Checkpoint local changes"
+skillshare pull
+```
+
+如果 Git 报真实内容冲突，应进入 source 所在仓库，确认双方变更后手动解决，再执行：
+
+```bash
+skillshare sync
+skillshare doctor
+```
+
+执行大范围模式切换或清理前，可以备份 target-local 内容：
+
+```bash
+skillshare backup --dry-run
+skillshare backup
+skillshare backup --list
+```
+
+merge 模式中的链接指向 source，本身不会被重复备份；Skillshare 主要保存 target-local 内容。删除 Skill 应使用 `uninstall`，不要对链接目录直接执行递归删除。
+
+## 使用边界
+
+- Skillshare source 是 Skills 的权威源，不要继续维护多份 target 副本。
+- GitHub 等 Git 远端负责版本记录与跨机器传输，不负责决定哪些工具加载哪些 Skill。
+- Skillshare 负责分发、筛选、审计和恢复，不等于通用 dotfiles 管理器。
+- 单个全局配置可以继续使用明确的复制与哈希校验；需要管理大量 rules、commands 或 prompts 时，再考虑 Skillshare extras。
+- 项目级 Skills 和 `AGENTS.md` 应随项目仓库维护，不要无条件提升到个人全局范围。
+
+## 参考资料
+
+- [Skillshare 官方文档](https://skillshare.runkids.cc/docs)
+- [Skillshare First Sync](https://skillshare.runkids.cc/docs/getting-started/first-sync/)
+- [GitHub + Skillshare 跨机器同步实战](/posts/github-skillshare-cross-machine-sync/)

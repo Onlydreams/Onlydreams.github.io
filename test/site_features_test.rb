@@ -70,10 +70,12 @@ class SiteFeaturesTest < Minitest::Test
 
     skillshare_index = html.index("/posts/skillshare-guide/", ai_agent_index)
     agents_index = html.index("/posts/global-agents-context/", ai_agent_index)
+    cross_machine_index = html.index("/posts/github-skillshare-cross-machine-sync/", ai_agent_index)
     codex_index = html.index("/posts/codex-desktop-gpu-rendering-bug/", ai_agent_index)
     worldcup_index = html.index("/posts/worldcup-predictor-agent-skill/", ai_agent_index)
     assert_operator skillshare_index, :<, agents_index
-    assert_operator agents_index, :<, codex_index
+    assert_operator agents_index, :<, cross_machine_index
+    assert_operator cross_machine_index, :<, codex_index
     assert_operator codex_index, :<, worldcup_index
 
     homebrew_index = html.index("/posts/macos-homebrew-acceleration/", network_proxy_index)
@@ -93,9 +95,10 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "当前可用"
     assert_includes html, "待复核"
     assert_includes html, "/posts/global-agents-context/"
+    assert_includes html, "/posts/github-skillshare-cross-machine-sync/"
     assert_includes html, "/posts/worldcup-predictor-agent-skill/"
     assert_includes html, "/posts/macos-homebrew-acceleration/"
-    assert_includes html, "Codex / Claude / AGENTS.md"
+    assert_includes html, "Codex AGENTS.md / GLOBAL_AGENTS.md v2.4"
     assert_includes html, "USTC 镜像的连通性、Git 协议和远端提交已核验，但尚未重新完成一次 brew update"
     assert_includes html, 'class="status-post-list"'
     assert_includes html, 'class="status-post-risk"'
@@ -108,6 +111,7 @@ class SiteFeaturesTest < Minitest::Test
     refute_nil current_status_section
     refute_nil needs_review_section
     assert_includes current_status_section, "/posts/global-agents-context/"
+    assert_includes current_status_section, "/posts/github-skillshare-cross-machine-sync/"
     assert_includes current_status_section, "/posts/worldcup-predictor-agent-skill/"
     refute_includes current_status_section, "/posts/macos-homebrew-acceleration/"
     refute_includes current_status_section, "/posts/macos-claude-deepseek/"
@@ -115,6 +119,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes needs_review_section, "/posts/codex-desktop-gpu-rendering-bug/"
     assert_includes needs_review_section, "/posts/macos-homebrew-acceleration/"
     refute_includes needs_review_section, "/posts/global-agents-context/"
+    refute_includes needs_review_section, "/posts/github-skillshare-cross-machine-sync/"
     assert_operator html.index('id="status-当前可用"'), :<, html.index('id="status-待复核"')
   end
 
@@ -317,9 +322,9 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "状态"
     assert_includes html, "当前可用"
     assert_includes html, "最后验证"
-    assert_includes html, "2026-06-29"
+    assert_includes html, "2026-08-10"
     assert_includes html, "适用环境"
-    assert_includes html, "Codex / Claude / AGENTS.md"
+    assert_includes html, "Codex AGENTS.md / GLOBAL_AGENTS.md v2.4"
     assert_includes html, "风险提示"
     assert_includes html, "这是个人协作规则模板"
     assert_includes styles, ".post-status"
