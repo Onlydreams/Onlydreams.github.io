@@ -1,7 +1,10 @@
 ---
 layout: post
-title: "Microsoft Edge 全部网页空白、扩展同时崩溃：更新错配与 renderer 状态修复记录"
+lang: zh-CN
+translation_key: microsoft-edge-blank-pages-renderer-state-repair
+title: "Microsoft Edge 大版本更新后全部网页空白：连续两次 renderer 状态复发与修复"
 date: 2026-07-25 09:00:00 +0800
+updated: 2026-08-11
 author: Onlydreams
 categories: [开发工具, 浏览器]
 tags: [edge, windows, renderer, extension, troubleshooting]
@@ -10,28 +13,57 @@ series_order:
   windows-troubleshooting: 2
 status:
   label: 当前可用
-  verified: 2026-07-25
-  environment: Windows 11 Pro / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83
-  risk: 本文记录的是特定版本错配下的实测修复；edge.mitigation_manager 属于未公开的内部状态，只有完成备份并复现相同证据后才应修改。
+  verified: 2026-08-11
+  environment: Windows x64 build 26200.8973 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83、150.0.4078.83 → 151.0.4129.72 / Edge Update 1.3.225.7
+  risk: 同一设备连续两次大版本更新复现了相同故障链，但不能据此推断所有设备都会受影响；edge.mitigation_manager 属于未公开的内部状态，只有完成备份并在隔离副本中建立相同因果证据后才应修改。
 ---
 
-记录一次 Microsoft Edge 所有网页、设置页和扩展页同时空白的排查。最终确认并不是某个扩展损坏，而是 Edge 更新未完成切换与旧版 renderer 兼容状态叠加；修复程序版本后，再移除一个可自动重建的状态对象，原有书签、历史、Cookie、密码和扩展均得以保留。
+记录 Microsoft Edge 在连续两次 Stable 大版本更新后，所有网页、设置页和扩展页同时空白的排查。两次故障都由更新未完成程序切换与旧版 renderer 兼容状态叠加造成；修复程序版本后，再移除一个已通过隔离实验确认可重建的状态对象，原有书签、历史、Cookie、密码和扩展均得以保留。
 
 ---
 
 ## 先说结论
 
-这次故障由两个问题叠加：
+两次故障都由两个问题叠加：
 
-1. Edge 150 已经下载并登记，但实际启动的 `msedge.exe` 仍是 149，程序文件长期处于新旧版本错配状态。
-2. 原用户数据顶层的 `Local State` 保留了 149 写入的 `edge.mitigation_manager`，其中 renderer AppContainer 兼容状态没有随程序更新正确重建，导致 renderer 启动后立即退出。
+1. 新版 Edge 已经下载并登记，但实际启动的 `msedge.exe` 仍是上一大版本，程序文件长期处于新旧版本错配状态。
+2. 原用户数据顶层的 `Local State` 保留了旧版写入的 `edge.mitigation_manager`，其中 renderer AppContainer 兼容状态没有随程序更新正确重建，导致 renderer 启动后立即退出。
 
 扩展报错只是连带现象。禁用所有扩展以后，renderer 数量仍然是 0；同一套 Edge 程序使用全新临时配置却能正常生成 renderer，说明网络、GPU、沙箱和扩展本身都不是这次故障的直接原因。
 
-最终修复分为两步：
+两次最终修复都分为两步：
 
-- 通过官方包覆盖安装，让实际程序从 149 正常切换到 150。
-- 在完整备份和副本验证后，只移除 `Local State` 里的 `edge.mitigation_manager`，由 Edge 150 自动重建。
+- 通过官方包覆盖安装，让实际程序完成 149→150 或 150→151 的版本切换。
+- 在完整备份和副本验证后，只移除 `Local State` 里的 `edge.mitigation_manager`，由当前版本自动重建。
+
+## 2026-08-11：150→151 再次复发
+
+2026-07-25 首次完成 149→150 修复后，2026-08-11 又在 150→151 更新中出现相同故障。第二次不是仅凭症状类比，而是重新执行了版本、进程、Breadcrumbs、临时 profile 和单文件副本对照。
+
+| 证据 | 149→150 | 150→151 |
+|---|---|---|
+| 实际 `msedge.exe` | `149.0.4022.98` | `150.0.4078.83` |
+| 已登记/待切换版本 | `150.0.4078.83` | `151.0.4129.72` |
+| `new_msedge.exe` | 存在 | 存在，文件时间停留在 2026-08-06 |
+| 原配置 renderer | 0 | 连续三次采样均为 0 |
+| `renderer_app_container_incompatible_version` | `149.0.4022.98` | `150.0.4078.83` |
+| `renderer_app_container_compatible_count` | 100 | 100 |
+
+第二次故障发生时，Edge 共保留 6 个进程：浏览器主进程、GPU、网络和 utility 进程仍在，但 renderer 为 0。当天更新的 Breadcrumbs 中检测到 30 次 `RenderProcessGone` 和 14 次 `ERR_ABORTED`。
+
+覆盖安装 151 后，正式 `msedge.exe` 已切换到 `151.0.4129.72`，`new_msedge.exe` 和旧 150 目录也已消失；但原配置首次启动仍是 5 个进程、0 个 renderer，`edge.mitigation_manager` 仍指向 150。这说明程序更新错配和 renderer 状态残留是前后相连、但需要分别修复的两层问题。
+
+第二次隔离验证得到三组明确结果：
+
+| 临时 profile | renderer 数量 |
+|---|---:|
+| 全新 profile | 4 |
+| 全新 profile 只复制原 `Local State` | 0 |
+| 同一副本只移除 `edge.mitigation_manager` | 3 |
+
+把相同最小修改应用到原配置后，正常网页和 `edge://settings` 复测时 renderer 增至 6；Breadcrumbs 新增 3 次 `FinishNav` 和 3 次 `PageLoad`，没有新增 `RenderProcessGone` 或 `ERR_ABORTED`。Edge 151 自动重建了 `edge.mitigation_manager`，不兼容版本更新为 151，兼容计数归零。
+
+2026-08-11 已通过 Microsoft Edge 内置“发送反馈”提交脱敏报告。这里仅能确认报告已经发出，不能写成微软已受理、确认根因或安排修复。
 
 ### 本文适用的故障指纹
 
@@ -40,14 +72,14 @@ status:
 - 普通网页、`edge://settings` 和 `edge://extensions` 同时空白或崩溃，关闭 Edge 后多个扩展一起报告崩溃。
 - 浏览器主进程、网络进程和 GPU 进程仍在，但带有 `--type=renderer` 的进程数量为 0。
 - Edge Breadcrumbs 在导航后连续记录 `RenderProcessGone` 和 `ERR_ABORTED`。
-- 实际 `msedge.exe` 为 `149.0.4022.98`，包管理器登记版本却是 `150.0.4078.83`。
-- 应用目录存在 `new_msedge.exe`，更新日志长期出现 `pv=150 / opv=149`。
-- `Local State` 的 `edge.mitigation_manager` 中，`renderer_app_container_incompatible_version` 仍指向 `149.0.4022.98`，`renderer_app_container_compatible_count` 为 100。
+- 实际 `msedge.exe` 落后于包管理器登记版本：首次为 `149.0.4022.98` 对 `150.0.4078.83`，第二次为 `150.0.4078.83` 对 `151.0.4129.72`。
+- 应用目录存在目标版本的 `new_msedge.exe`；首次更新日志长期出现 `pv=150 / opv=149`，第二次则直接观察到 150、151 两个版本目录长期并存。
+- `Local State` 的 `edge.mitigation_manager` 中，`renderer_app_container_incompatible_version` 仍指向实际运行的旧版本，`renderer_app_container_compatible_count` 为 100。
 - 同一程序使用临时配置可以产生 renderer；只把原 `Local State` 放入隔离配置后，renderer 又降为 0。
 
 如果只有个别网站打不开、临时配置同样失败、renderer 进程正常存在，或者程序版本没有错配，就不属于本文已经验证的故障链。此时应继续排查网络、GPU、系统策略、安全软件或特定扩展，不要套用后面的字段级修复。
 
-这不是所有 Edge 空白页的通用答案。微软当前的已知问题页面没有登记这组精确组合，内部状态字段也没有公开契约。本文的价值主要是展示怎样用对照实验把故障缩小到一个文件、一个对象，而不是看到空白页就直接删除整个用户目录。
+这不是所有 Edge 空白页的通用答案。截至 2026-08-11，微软当前的已知问题页面仍没有登记这组精确组合，内部状态字段也没有公开契约。本文的价值主要是展示怎样用对照实验把故障缩小到一个文件、一个对象，而不是看到空白页就直接删除整个用户目录。
 
 ## 故障现象
 
@@ -100,7 +132,9 @@ $edgeExe = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
 winget list --id Microsoft.Edge --exact
 ```
 
-本次实际二进制仍是 `149.0.4022.98`，`winget` 登记的却是 `150.0.4078.83`。应用目录中还存在 150 版的 `new_msedge.exe`，更新日志持续出现新旧版本不一致。
+首次故障时，实际二进制仍是 `149.0.4022.98`，`winget` 登记的却是 `150.0.4078.83`。应用目录中还存在 150 版的 `new_msedge.exe`，更新日志持续出现新旧版本不一致。
+
+第二次故障时，实际二进制仍是 `150.0.4078.83`，`winget` 登记版本和 `new_msedge.exe` 已经是 `151.0.4129.72`，应用目录同时保留 150、151 两个版本目录。覆盖安装完成后，正式二进制切换到 151，`new_msedge.exe` 与旧 150 目录才消失。
 
 微软的更新故障文档把“安装完成但版本没有变化”列为明确症状，并建议在重试更新前结束全部 Edge 与 WebView2 进程。系统级更新日志通常位于：
 
@@ -170,7 +204,7 @@ $localState.edge.mitigation_manager |
   ConvertTo-Json -Depth 10
 ```
 
-本次状态中记录的 renderer AppContainer 不兼容版本仍是 149，兼容探测计数为 100。这个值与实际运行版本、renderer 全部退出的现象吻合，但仅凭“看到了该字段”仍不足以修改文件。
+两次状态中记录的 renderer AppContainer 不兼容版本分别仍是 149 和 150，兼容探测计数都为 100。这些值与实际运行版本、renderer 全部退出的现象吻合，但仅凭“看到了该字段”仍不足以修改文件。
 
 这里只读取并显示 `edge.mitigation_manager`。不要公开上传完整 `Local State`、整个 `User Data`、Cookie/登录数据库，或未经检查的 Edge 更新日志；这些文件可能包含账号、网站、profile 和设备相关信息。需要提交支持材料时，先复制到隔离目录并逐项脱敏。
 
@@ -206,7 +240,7 @@ if ($LASTEXITCODE -ge 8) {
 设置 → 应用 → 已安装的应用 → Microsoft Edge → 修改 → 修复
 ```
 
-本次机器因为注册版本与实际安装版本错配，图形界面的 Repair 入口返回“安装程序技术与当前安装版本不匹配”。普通 `winget upgrade` 又因为没有更高版本而拒绝执行，最终使用官方 winget 源覆盖部署同一版本：
+首次故障时，图形界面的 Repair 入口因为注册版本与实际安装版本错配而返回“安装程序技术与当前安装版本不匹配”。普通 `winget upgrade` 又因为没有更高版本而拒绝执行，最终使用官方 winget 源覆盖部署登记版本；第二次 150→151 复发时，同一条覆盖安装路径也完成了程序切换：
 
 ```powershell
 winget install --id Microsoft.Edge --exact --source winget --force
@@ -218,7 +252,7 @@ winget install --id Microsoft.Edge --exact --source winget --force
 - `new_msedge.exe` 是否消失。
 - 更新日志是否不再持续记录新旧版本错配。
 
-覆盖安装后，实际程序已经从 149 切换到 150，但原配置下 renderer 仍然是 0。这说明版本错配是故障链的一层，而不是全部根因。
+两次覆盖安装后，实际程序都成功切换到登记版本，但原配置下 renderer 仍然是 0。这说明版本错配是故障链的一层，而不是全部根因。
 
 ## 修复第二层：只移除可重建的异常对象
 
@@ -305,13 +339,13 @@ Copy-Item -LiteralPath "<上一步输出的 .bak 文件>" `
 
 ## 修复后的验证
 
-修复后使用原来的 `User Data\Default` 启动，没有创建新 profile。结果是：
+修复后使用原来的 `User Data\Default` 启动，没有创建新 profile。两次结果是：
 
-- renderer 从 0 恢复为多个正常进程，最终检测到 8 个。
+- renderer 从 0 恢复为多个正常进程；首次最终检测到 8 个，第二次在普通网页和内置页复测后检测到 6 个。
 - 网页 renderer 与扩展 renderer 都能稳定存活。
 - 必应、`edge://extensions` 和设置页可以正常加载。
-- Breadcrumbs 出现 `FinishNav` 和 `PageLoad`，不再连续记录 `RenderProcessGone` 与 `ERR_ABORTED`。
-- `edge.mitigation_manager` 由 Edge 150 自动重建，旧的 149 状态不再保留。
+- Breadcrumbs 出现 `FinishNav` 和 `PageLoad`；第二次复测新增 3 次 `FinishNav` 和 3 次 `PageLoad`，没有新增 `RenderProcessGone` 或 `ERR_ABORTED`。
+- `edge.mitigation_manager` 由当前版本自动重建，旧版状态不再保留；第二次重建后不兼容版本更新为 151，兼容计数归零。
 - 书签、历史、Cookie、密码和扩展目录没有重置。
 
 验证重点不是“窗口能打开”，而是同一组 before/after 信号：
@@ -333,22 +367,24 @@ $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
 
 ## 能确认什么，不能确认什么
 
-本次可以确认：
+两次排查可以确认：
 
 - 多个扩展同时报错是 renderer 整体死亡后的结果，不是单个扩展的直接证据。
-- 149→150 更新未完成切换是实际存在的应用层故障。
+- 149→150、150→151 两次更新都实际存在程序未完成切换的问题。
 - 原 `Local State` 可以在隔离环境中单独复现 renderer 归零。
 - 在同一副本中只移除 `edge.mitigation_manager` 可以恢复渲染。
 - 相同最小修改应用到原配置后，页面和扩展均恢复。
+- 这组“程序切换失败 + renderer 兼容状态残留”的故障链在同一设备的连续两次大版本更新中可以重复出现。
 
 但不能把它扩大成：
 
-- Edge 149 存在一个已被微软正式确认的通用 renderer 缺陷。
+- Edge 149、150 或 Edge Update 存在一个已被微软正式确认的通用 renderer 缺陷。
+- 所有设备或每次大版本更新都会复现。
 - 所有空白页都应该删除 `edge.mitigation_manager`。
 - `edge.mitigation_manager` 的结构和行为在后续版本中保持不变。
 - 看到扩展崩溃通知就能排除扩展问题。
 
-截至 2026-07-25，微软已知问题页面列出了 Edge 150 的其他问题，但没有登记本文这组“更新错配、全部 renderer 退出、多个扩展同时崩溃”的精确组合。因此，最稳妥的做法仍是保留证据链：先做临时 profile 对照，再缩小到单个文件和字段，最后执行可回退的最小修复。
+截至 2026-08-11，微软已知问题页面列出了 Edge 150、151 的其他问题，但没有登记本文这组“更新错配、全部 renderer 退出、多个扩展同时崩溃”的精确组合。本文已经通过 Edge 内置反馈提交脱敏报告，但提交本身不代表微软已受理、确认根因或安排修复。因此，最稳妥的做法仍是保留证据链：先做临时 profile 对照，再缩小到单个文件和字段，最后执行可回退的最小修复。
 
 ## 参考
 

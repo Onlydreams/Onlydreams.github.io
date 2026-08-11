@@ -139,14 +139,15 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, '<html lang="en">'
     assert_includes html, "Selected English editions of original Chinese articles"
     assert_includes html, "Latest English articles"
-    assert_equal 5, html.scan(%r{href="/en/posts/[^"]+/"}).size
+    assert_equal 6, html.scan(%r{href="/en/posts/[^"]+/"}).size
 
     [
       "/en/posts/skillshare-guide/",
       "/en/posts/global-agents-context/",
       "/en/posts/github-skillshare-cross-machine-sync/",
       "/en/posts/agent-skills-after-model-upgrade/",
-      "/en/posts/worldcup-predictor-skill-development-retrospective/"
+      "/en/posts/worldcup-predictor-skill-development-retrospective/",
+      "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"
     ].each do |url|
       assert_includes html, %(href="#{url}")
     end
@@ -192,7 +193,8 @@ class SiteFeaturesTest < Minitest::Test
       ["AGENTS.md Guide: A Practical Global Configuration for Codex and Other Coding Agents", "/en/posts/global-agents-context/"],
       ["Synchronize Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare", "/en/posts/github-skillshare-cross-machine-sync/"],
       ["How to Use Agent Skills After a Model Upgrade: Replace Generic Process with Specialized Constraints", "/en/posts/agent-skills-after-model-upgrade/"],
-      ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"]
+      ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"],
+      ["Microsoft Edge Goes Blank After Major Updates: Two Recurrent Renderer-State Failures and a Data-Preserving Repair", "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"]
     ]
     chinese_surfaces = {
       "homepage" => read_site("index.html"),
@@ -554,6 +556,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "更新于"
     assert_includes html, "2026-07-13"
     assert_includes html, 'itemprop="dateModified"'
+    assert_includes html, '"dateModified":"2026-07-13'
   end
 
   def test_markdown_images_render_with_lazy_loading_hints

@@ -14,7 +14,7 @@ class ContentHealthTest < Minitest::Test
   REQUIRED_STATUS_KEYS = %w[label verified environment risk].freeze
   ALLOWED_STATUS_LABELS = ["当前可用", "待复核", "已失效"].freeze
   ALLOWED_CATEGORIES = ["AI", "开发工具", "网络与代理", "浏览器", "体育技术"].freeze
-  ALLOWED_ENGLISH_CATEGORIES = ["AI", "Developer Tools", "Sports Technology"].freeze
+  ALLOWED_ENGLISH_CATEGORIES = ["AI", "Developer Tools", "Browsers", "Sports Technology"].freeze
   FORBIDDEN_TAG_ALIASES = { "agents" => "agent" }.freeze
   SENSITIVE_PATTERNS = {
     "GitHub noreply email" => /users\.noreply\.github\.com/i,
@@ -45,7 +45,7 @@ class ContentHealthTest < Minitest::Test
   end
 
   def test_selected_english_posts_have_complete_front_matter
-    assert_equal 5, english_posts.size
+    assert_equal 6, english_posts.size
 
     english_posts.each do |post|
       missing_keys = REQUIRED_ENGLISH_FRONT_MATTER_KEYS.reject do |key|
