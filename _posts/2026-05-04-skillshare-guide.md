@@ -4,7 +4,7 @@ lang: zh-CN
 translation_key: skillshare-guide
 title: "Skillshare 上手指南：统一管理 Claude、Codex 等 AI Agent Skills"
 date: 2026-05-04 19:00:00 +0800
-updated: 2026-08-10
+updated: 2026-08-11
 categories: [AI, 开发工具]
 tags: [skillshare, skills, agent, cli, claude, codex]
 series: [ai-agent]
@@ -12,8 +12,8 @@ series_order:
   ai-agent: 1
 status:
   label: 当前可用
-  verified: 2026-08-10
-  environment: Skillshare CLI 0.20.24 / Skillshare skill 0.20.25 / macOS zsh / Windows PowerShell 7 / Claude / Codex Skills
+  verified: 2026-08-11
+  environment: Windows Skillshare CLI/skill 0.20.25 / macOS CLI 0.20.24 + skill 0.20.25 / zsh / PowerShell 7 / Claude / Codex Skills
   risk: 会修改本地 skills 源目录和已配置 targets；迁移、覆盖或删除前应先检查 dry-run、目标列表和恢复方案。
 ---
 
@@ -74,7 +74,7 @@ skillshare upgrade
 skillshare --version
 ```
 
-2026 年 8 月 10 日核验时，当前 CLI 为 `v0.20.24`，内置 Skillshare skill 为 `v0.20.25`。二者版本号不要求相同，也不能用 Skill 元数据代替 CLI 版本。工具仍在快速迭代，具体参数应以本机 `skillshare --version` 和 `skillshare <command> --help` 为准。
+截至 2026 年 8 月 11 日，Windows 实测 CLI 与内置 Skillshare skill 均为 `v0.20.25`；macOS 实测 CLI 为 `v0.20.24`、Skill 为 `v0.20.25`。二者版本号不要求相同，也不能用 Skill 元数据代替 CLI 版本。工具仍在快速迭代，具体参数应以本机 `skillshare --version` 和 `skillshare <command> --help` 为准。
 
 除上面的分平台安装命令外，下文只使用 Git 与 Skillshare 自身的跨 shell 命令，可在 `zsh`、`bash` 或 PowerShell 7 中执行；代码块使用 `text`，不表示要求某一种 shell。
 
@@ -259,6 +259,8 @@ skillshare backup --list
 ```
 
 merge 模式中的链接指向 source，本身不会被重复备份；Skillshare 主要保存 target-local 内容。删除 Skill 应使用 `uninstall`，不要对链接目录直接执行递归删除。
+
+如果删除旧 source 仓库后重新 clone，先运行 `skillshare status`、`skillshare diff` 和 `skillshare sync --dry-run`。在一次 Windows `v0.20.25` 实测中，`doctor` 没有显示断链，但直接检查 NTFS junction 的 `LinkTarget` 发现了指向旧 source 的残留；正式 `sync` 清理旧链接并补齐新 Skills。完整检查命令和证据边界见 [GitHub + Skillshare 跨机器同步实战](/posts/github-skillshare-cross-machine-sync/#windows-%E9%87%8D%E6%96%B0-clone-%E5%90%8E%E6%A3%80%E6%9F%A5%E6%97%A7-junction)。
 
 ## 使用边界
 

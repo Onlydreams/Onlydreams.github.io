@@ -1,8 +1,10 @@
 ---
 layout: post
 lang: zh-CN
+translation_key: github-skillshare-cross-machine-sync
 title: "GitHub + Skillshare 跨机器同步实战：管理 Codex 全局 AGENTS.md 与 Agent Skills"
 date: 2026-08-10 12:15:00 +0800
+updated: 2026-08-11
 categories: [AI, 开发工具]
 tags: [skillshare, github, codex, skills, agent, workflow]
 series: [ai-agent]
@@ -10,9 +12,9 @@ series_order:
   ai-agent: 3
 status:
   label: 当前可用
-  verified: 2026-08-10
-  environment: Skillshare CLI 0.20.24 / Skillshare skill 0.20.25 / Git / macOS zsh / Windows PowerShell 7 / Codex AGENTS.md
-  risk: 已复核当前 source、targets、AGENTS.md 部署和 Git 推送；空白新机器与 Linux 未在本次核验中完整重装，执行前应替换占位符并检查 dry-run、备份与远端范围。
+  verified: 2026-08-11
+  environment: Windows Skillshare CLI/skill 0.20.25 / macOS CLI 0.20.24 + skill 0.20.25 / Git / zsh / PowerShell 7 / Codex AGENTS.md
+  risk: 已复核现有机器同步、Windows 重新 clone 后的 junction 恢复、AGENTS.md 部署和 Git 推送；空白新机器与 Linux 未在本次核验中完整重装，执行前应替换占位符并检查 dry-run、备份与远端范围。
 ---
 
 我目前用一个 Git 仓库保存全局协作规则和个人 Agent Skills：GitHub 负责版本记录与跨机器传输，Skillshare 负责把 `skills/` 分发给多个 AI 工具，Codex 全局 `AGENTS.md` 则通过独立复制和内容校验部署。三者职责分开，避免把 Git、配置部署和 Skills 同步混成一套隐式机制。
@@ -246,6 +248,52 @@ skillshare status
 
 如果远端提交同时修改了 `GLOBAL_AGENTS.md`，还要重新执行独立部署步骤。这是有意保留的显式操作，不是同步遗漏。
 
+### Windows 重新 clone 后检查旧 junction
+
+如果删除旧 source 仓库后重新 clone，即使新仓库仍放在相同路径，target 中原有的 NTFS junction 也不应直接视为有效。实际遇到过的故障指纹是：
+
+- target 目录里仍能看到 Skill 名称；
+- `skillshare status` 仍能识别 source 与 targets；
+- source 已新增或删除 Skill，但 target 集合没有随之变化；
+- `skillshare doctor` 可能没有报告断链，直接检查 junction 的 `LinkTarget` 才能确认目标是否存在。
+
+先让 Skillshare 比较 source 与 targets，再预览修复：
+
+```text
+skillshare status --json
+skillshare diff --json
+skillshare doctor --json
+skillshare sync --dry-run
+```
+
+确认 dry-run 只会清理旧链接、补齐当前 source 中的 Skills，并保留 merge 模式下的 target-local 内容后，再执行：
+
+```text
+skillshare sync
+skillshare diff --json
+```
+
+merge 模式下，`diff --json` 仍可能列出 target-local Skill；如果该条目的 `is_sync` 为 `false`，它不属于 Skillshare 要执行的同步变更。应同时结合 `status`、`doctor` 和实际链接检查判断，不要仅因看到 `remove` 字样就删除本地内容。
+
+Windows PowerShell 7 可以额外直接验证所有已配置 target 中的 junction 目标：
+
+```powershell
+$skillshareStatus = skillshare status --json | ConvertFrom-Json -ErrorAction Stop
+
+$brokenJunctions = foreach ($configuredTarget in $skillshareStatus.targets) {
+  Get-ChildItem -LiteralPath $configuredTarget.path -Force -ErrorAction Stop |
+    Where-Object { $_.LinkType } |
+    Where-Object {
+      -not (Test-Path -LiteralPath $_.LinkTarget -PathType Container)
+    } |
+    Select-Object @{ Name = 'Target'; Expression = { $configuredTarget.name } }, Name, LinkTarget
+}
+
+$brokenJunctions
+```
+
+没有输出表示这次枚举到的 junction 目标都存在；它不能替代内容审计，也不验证 copy 模式文件。2026 年 8 月 11 日的一次 Windows 实测中，直接检查发现 14 个旧 junction 指向已经不存在的 source 目录，同时有 6 个新 Skills 尚未分发；`skillshare sync --dry-run` 正确预览了清理与补齐范围，正式同步后 105 个 junction 全部有效。这里能确认的是该版本和该环境下的观察结果，不据此断言所有版本的 `doctor` 都会漏报。
+
 ## 冲突、误删和恢复
 
 ### 本机有未提交内容
@@ -304,15 +352,16 @@ Git + 一次显式复制 + Skillshare 已经覆盖版本化、部署、target �
 
 ## 当前核验范围
 
-2026 年 8 月 10 日，本机核验了以下范围：
+截至 2026 年 8 月 11 日，两台现有机器核验了以下范围：
 
-- Skillshare CLI 为 `v0.20.24`，内置 Skillshare skill 为 `v0.20.25`；
+- Windows 上 Skillshare CLI 与内置 Skillshare skill 均为 `v0.20.25`；macOS 上 CLI 为 `v0.20.24`、Skill 为 `v0.20.25`；
 - 自定义 `skills/` source 存在，已配置 targets 处于同步状态；
 - `GLOBAL_AGENTS.md` v2.4 与 Codex 部署副本内容一致；
 - Skillshare 审计在当前阈值下没有 CRITICAL 阻止项；这不代表不存在较低级别发现；
-- Git 推送完成后，本地与远端保持同步。
+- Git 推送完成后，本地与远端保持同步；
+- Windows source 仓库重新 clone 后，已通过 dry-run、正式 sync 与 junction `LinkTarget` 枚举完成恢复复测。
 
-原有流程已在 Windows PowerShell 7 环境核验；本轮又在 macOS `zsh` 环境复核了 CLI、source/targets 状态和 POSIX 部署脚本。没有在全新 macOS、Linux 或 Windows 机器上重新执行完整安装，因此“空白机器恢复”与 Linux 部分依据当前 CLI 帮助、现有配置和跨平台命令语义整理，不把它表述为本轮全新端到端复测。
+原有流程已在 Windows PowerShell 7 环境核验，并在 macOS `zsh` 环境复核了 CLI、source/targets 状态和 POSIX 部署脚本。Windows 本轮覆盖的是“删除旧 source 后重新 clone 并修复 targets”，不是空白系统安装。没有在全新 macOS、Linux 或 Windows 机器上重新执行完整安装，因此“空白机器恢复”与 Linux 部分仍依据当前 CLI 帮助、现有配置和跨平台命令语义整理，不把它表述为全新端到端复测。
 
 ## 参考资料
 

@@ -139,11 +139,12 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, '<html lang="en">'
     assert_includes html, "Selected English editions of original Chinese articles"
     assert_includes html, "Latest English articles"
-    assert_equal 4, html.scan(%r{href="/en/posts/[^"]+/"}).size
+    assert_equal 5, html.scan(%r{href="/en/posts/[^"]+/"}).size
 
     [
       "/en/posts/skillshare-guide/",
       "/en/posts/global-agents-context/",
+      "/en/posts/github-skillshare-cross-machine-sync/",
       "/en/posts/agent-skills-after-model-upgrade/",
       "/en/posts/worldcup-predictor-skill-development-retrospective/"
     ].each do |url|
@@ -189,6 +190,7 @@ class SiteFeaturesTest < Minitest::Test
     english_articles = [
       ["Skillshare Guide: Manage AI Agent Skills Across Claude, Codex, and Other Tools", "/en/posts/skillshare-guide/"],
       ["AGENTS.md Guide: A Practical Global Configuration for Codex and Other Coding Agents", "/en/posts/global-agents-context/"],
+      ["Synchronize Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare", "/en/posts/github-skillshare-cross-machine-sync/"],
       ["How to Use Agent Skills After a Model Upgrade: Replace Generic Process with Specialized Constraints", "/en/posts/agent-skills-after-model-upgrade/"],
       ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"]
     ]

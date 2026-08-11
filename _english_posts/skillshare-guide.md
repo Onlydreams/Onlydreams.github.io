@@ -4,51 +4,46 @@ lang: en
 translation_key: skillshare-guide
 title: "Skillshare Guide: Manage AI Agent Skills Across Claude, Codex, and Other Tools"
 date: 2026-07-28 00:01:00 +0800
+updated: 2026-08-11
 categories: [AI, Developer Tools]
 tags: [skillshare, skills, agent, cli, claude, codex]
 status:
   label: 当前可用
-  verified: 2026-07-28
-  environment: Skillshare CLI 0.20.21 / Claude / Codex Skills
-  risk: Skillshare changes local skill directories and synchronization targets. Review the target list, sync mode, and recovery plan before mutating an existing setup.
+  verified: 2026-08-11
+  environment: Windows Skillshare CLI/skill 0.20.25 / macOS CLI 0.20.24 + skill 0.20.25 / zsh / PowerShell 7 / Claude / Codex Skills
+  risk: Skillshare changes local skill directories and configured targets. Review dry-run output, target scope, sync mode, and recovery options before migrations, overwrites, or removals.
 ---
 
-[Skillshare](https://skillshare.runkids.cc/docs) turns one source directory into the source of truth for skills used by Codex, Claude, Cursor, and other AI tools. This guide covers installation, first-time setup, safe migration, synchronization, and multi-machine use.
+[Skillshare](https://skillshare.runkids.cc/docs) uses one source directory to manage Agent Skills consumed by Codex, Claude, and other AI tools. This guide covers installation, initialization, safe migration, sync modes, and Git-based multi-machine synchronization. For a complete personal setup, see [Synchronizing Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare](/en/posts/github-skillshare-cross-machine-sync/).
 
 ---
 
 ## What problem Skillshare solves
 
-AI coding tools usually keep skills in different directories. Copying the same skill into each directory creates three recurring problems:
+AI coding tools usually keep skills in different directories. Copying the same skill into each directory creates recurring problems:
 
-- edits drift between tools;
 - it becomes unclear which copy is authoritative;
-- moving to a second computer requires another manual installation pass.
+- same-named skills drift between tools;
+- moving to another computer requires another manual installation and verification pass.
 
-Skillshare replaces those copies with a one-way model:
+Skillshare fixes the daily data flow in one direction:
 
 ```text
-source directory
+Skillshare source
     ├── skill-a/
     ├── skill-b/
     └── skill-c/
           ↓ skillshare sync
-Claude / Codex / Cursor / other configured targets
+Claude / Codex / other configured targets
 ```
 
-The source directory remains authoritative. Targets receive symlinks, junctions, or copied files according to their configured sync mode.
+The source directory is the only copy intended for long-term maintenance. Each target receives per-skill links, a whole-directory link, or real file copies according to its configured mode.
 
-This model supports three common workflows:
-
-- **One computer:** edit once, then run `skillshare sync`.
-- **Multiple computers:** store the source in Git and use `skillshare push` and `skillshare pull`.
-- **Third-party skills:** install through Skillshare and inspect them with its built-in security audit.
-
-## Install and update the CLI
+## Install and upgrade
 
 ### macOS and Linux
 
-Install with the official script:
+Use the official installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh | sh
@@ -60,204 +55,220 @@ Homebrew is also supported:
 brew install skillshare
 ```
 
-The Homebrew package can lag behind the direct installer. Use the installed CLI's help output when a flag differs from this guide.
+The Homebrew package may lag behind the direct installer by a few days.
 
-### Windows PowerShell
+### Windows PowerShell 7
 
 ```powershell
 irm https://raw.githubusercontent.com/runkids/skillshare/main/install.ps1 | iex
 ```
 
-### Upgrade
+### Upgrade and verify versions
 
-```bash
+```text
+skillshare upgrade --dry-run
 skillshare upgrade
+skillshare --version
 ```
 
-During this article's verification, the local CLI was `0.20.21` and reported `0.20.22` as available. Skillshare evolves quickly, so treat `skillshare <command> --help` as the command-level source of truth for your installed version.
+As of August 11, 2026, the Windows environment used for this guide had CLI and bundled Skillshare skill `0.20.25`; the macOS environment had CLI `0.20.24` and skill `0.20.25`. The CLI and skill versions do not need to match, and skill metadata is not a substitute for `skillshare --version`. Skillshare evolves quickly, so use `skillshare --version` and `skillshare <command> --help` as the local source of truth.
+
+Except for the platform-specific installation commands above, the Git and Skillshare commands below work in `zsh`, `bash`, and PowerShell 7. Their code blocks use `text` to avoid implying a required shell.
 
 ## Initialize the source and targets
 
-For an interactive setup, run:
+For interactive setup:
 
-```bash
+```text
 skillshare init
 ```
 
-The initialization flow creates the configuration and source directories, detects installed AI tools, and asks which targets to manage. On macOS and Linux, the default global source is:
+Initialization selects the source directory, detects installed AI tools, configures targets, and asks whether to install Skillshare's own calling skill.
+
+Default global locations differ by platform:
+
+| Platform | Configuration and source |
+|---|---|
+| macOS / Linux | `~/.config/skillshare/` |
+| Windows | `%AppData%\skillshare\` |
+
+Inspect the result before overwriting any existing directory:
 
 ```text
-~/.config/skillshare/skills/
-```
-
-After initialization, inspect the result:
-
-```bash
 skillshare status
 skillshare target list
+skillshare doctor
 ```
 
-Do not skip this check on an existing machine. A target list is operational configuration: it determines which directories a later sync may change.
+For unattended setup, make both the target list and migration policy explicit:
 
-For unattended environments, pass explicit flags instead of relying on prompts. A typical global setup is:
-
-```bash
-skillshare init \
-  --all-targets \
-  --no-copy \
-  --no-skill
+```text
+skillshare init --targets "codex,claude" --no-copy --git --skill
 ```
 
-Choose targets more narrowly in CI, devcontainers, or shared environments.
+`--no-copy` prevents target contents from being imported automatically into the source. Replace the target list with the tools the machine actually uses. Only use `--all-targets` after reviewing every detected tool. If `skillshare doctor` reports that one runtime discovers the same skills through multiple target paths, keep one intentional distribution route instead of ignoring the overlap.
 
-## Migrate existing skills without reversing the source of truth
+## Migrate existing skills safely
 
-If you already maintain skills inside Claude, Codex, or another tool, you may want to collect them into Skillshare once. Preview the migration first:
+If skills already live in Claude, Codex, or another target, you may collect them once during migration. Preview one target first:
 
-```bash
-skillshare collect --all --dry-run
+```text
+skillshare collect <target> --dry-run
 ```
 
-Only remove `--dry-run` after confirming that the discovered files genuinely belong in the shared source.
-
-Avoid collecting:
+Remove `--dry-run` only after reviewing the scope. Use `--all` only for a deliberate, reviewed one-time migration. Do not collect:
 
 - built-in skills shipped by a tool;
 - caches or generated files;
 - target-local experiments that should remain private to one tool;
 - stale copies of skills already present in the source.
 
-`collect` is a migration and recovery operation, not the normal direction of daily synchronization. After setup, the intended flow is source to targets.
+`collect` is a migration and recovery operation, not the normal direction of daily synchronization. After setup, the intended flow remains source to targets. Do not routinely collect built-in or target-local skills from Codex, Claude, or other tools.
 
-## Install or create skills
+## Install or create a skill
 
 ### Install from a Git repository
 
-```bash
+```text
 skillshare install github.com/<owner>/<repository>
 skillshare sync
 ```
 
-Skillshare runs a security audit during installation. Critical findings can block the operation. Review findings before deciding whether an override is justified.
+Skillshare runs a security audit during installation. CRITICAL findings block the operation by default, but the absence of a CRITICAL blocker does not mean the audit is clean: HIGH and MEDIUM findings still require review. `--force` overrides the block and `--skip-audit` skips scanning, so use either only after understanding the findings and accepting the risk.
 
-You can also audit the current source directly:
+You can audit the current source separately:
 
-```bash
+```text
 skillshare audit
 ```
 
+Installing from upstream and synchronizing across your own computers are separate operations. `install` imports a third-party skill into your source; Git plus `push` and `pull` distribute the reviewed personal collection.
+
 ### Create your own skill
 
-```bash
+```text
 skillshare new my-skill
-```
-
-The command scaffolds a skill directory and `SKILL.md`. Edit the new skill in the source directory, then synchronize it:
-
-```bash
 skillshare sync
 ```
 
-## Understand sync modes
+The command creates a skill directory and `SKILL.md` template. Edit the new skill in the source directory, not in a generated target.
 
-Run synchronization after adding, updating, removing, enabling, disabling, or retargeting skills:
+## Understand the three sync modes
 
-```bash
-skillshare sync
-```
+Each target can select its own mode:
 
-Current Skillshare documentation distinguishes three modes:
-
-| Mode | Behavior | Suitable for |
+| Mode | Behavior | Target-local skills |
 |---|---|---|
-| `merge` | Creates per-skill links while preserving target-local skills | Most personal setups |
-| `symlink` | Replaces the whole target directory with one link | Fully managed targets |
-| `copy` | Writes real files on each sync | Containers, restricted filesystems, or tools that cannot follow links |
+| `merge` | Creates one link per managed skill | Preserved |
+| `copy` | Writes real files tracked by a manifest | Preserved |
+| `symlink` | Links the whole target directory to the source | Cannot be preserved |
 
-On Windows, linked targets can use NTFS junctions. If a target cannot use links, switch only that target to copy mode:
+On Windows, linked targets can use NTFS junctions; you do not need to switch every target to copy mode. If one tool, container, or restricted filesystem cannot follow links, change only that target:
 
-```bash
+```text
 skillshare target claude --mode copy
 skillshare sync
 ```
 
-Copy mode introduces a delay: source edits do not reach the target until the next sync. It also makes target-local edits easier to lose, which is another reason to keep the source authoritative.
+Copy mode means source edits reach the target only after the next sync. Do not maintain managed copies inside targets, because a later sync may overwrite them.
+
+Preview broad synchronization or mode changes first:
+
+```text
+skillshare sync --dry-run
+skillshare sync
+```
 
 ## Commands worth remembering
 
 | Command | Purpose |
 |---|---|
-| `skillshare status` | Inspect the source, targets, sync state, audit policy, and version |
-| `skillshare list` | List discovered skills |
-| `skillshare target list` | Inspect configured targets |
-| `skillshare sync` | Apply the source to targets |
-| `skillshare check` | Check tracked skills for updates |
-| `skillshare update --all` | Update all tracked skill repositories |
-| `skillshare uninstall <name>` | Move a skill to Skillshare trash |
-| `skillshare enable <name>` | Restore a disabled skill to synchronization |
-| `skillshare disable <name>` | Exclude a skill from synchronization |
+| `skillshare status` | Inspect source, targets, sync state, and version |
+| `skillshare list` | List installed, enabled, or disabled skills |
+| `skillshare target list` | Inspect targets and modes |
+| `skillshare diff` | Compare source and targets |
+| `skillshare sync` | Distribute source to targets |
+| `skillshare check` | Check upstream updates and metadata |
+| `skillshare update --all` | Update all updatable skills |
+| `skillshare commit` | Create a local Git checkpoint without pushing |
+| `skillshare push` | Commit and push the global source |
+| `skillshare pull` | Pull the remote and synchronize targets |
+| `skillshare backup` | Back up target-local content |
+| `skillshare uninstall <name>` | Move a skill to the seven-day trash |
+| `skillshare trash restore <name>` | Restore a skill from trash |
 | `skillshare audit` | Run the security audit |
-| `skillshare doctor` | Diagnose configuration and target problems |
+| `skillshare doctor` | Diagnose configuration, links, and sync drift |
 | `skillshare ui` | Open the local web dashboard |
 
-After a mutation, run `skillshare sync` unless the command documentation explicitly states otherwise.
+Run `skillshare sync` after installing, updating, uninstalling, collecting, or changing targets.
 
-## Synchronize across computers
+## Synchronize across computers with Git
 
-Skillshare can bind the source to a Git remote. Create an empty repository on GitHub, Gitee, or another Git host, then initialize with its URL:
+The global source can be connected to a Git remote:
 
-```bash
+```text
 skillshare init --remote <repository-url>
 ```
 
-On the first computer, publish an intentional checkpoint:
+On the machine responsible for the authoritative source, inspect synchronization and push scope first:
 
-```bash
+```text
+skillshare sync --dry-run
+skillshare sync
+skillshare doctor
+skillshare push --dry-run
 skillshare push -m "Update shared skills"
 ```
 
 On another computer:
 
-```bash
+```text
+skillshare pull --dry-run
+skillshare pull
+skillshare status
+```
+
+`pull` updates the source and then synchronizes configured targets. It does not deploy unrelated tool configuration such as Codex global `AGENTS.md` unless that file has its own Skillshare extras or deployment workflow.
+
+## Conflicts and recovery
+
+If the local source contains uncommitted work, create a local checkpoint without pushing it immediately:
+
+```text
+skillshare commit --dry-run
+skillshare commit -m "Checkpoint local changes"
 skillshare pull
 ```
 
-`pull` updates the source and then synchronizes configured targets.
+Resolve real Git conflicts in the source repository, inspect the result, and then run:
 
-If the local source contains uncommitted work, preserve it before pulling. One option is to checkpoint it:
-
-```bash
-skillshare push -m "Save local skill changes"
-skillshare pull
-```
-
-For a manual Git workflow:
-
-```bash
-cd ~/.config/skillshare/skills
-git stash
-skillshare pull
-git stash pop
-```
-
-Resolve real merge conflicts in the source repository, commit the resolution, and then run:
-
-```bash
+```text
 skillshare sync
+skillshare doctor
 ```
 
-## A safe operating routine
+Before a broad mode change or cleanup, back up target-local content:
 
-For a stable setup, keep the routine small:
+```text
+skillshare backup --dry-run
+skillshare backup
+skillshare backup --list
+```
 
-1. Treat the Skillshare source as the only editable copy.
-2. Run `skillshare status` before changing targets or migrating existing files.
-3. Preview collection and broad synchronization changes with `--dry-run` where supported.
-4. Audit third-party skills before trusting them with tools or data.
-5. Run `skillshare sync` after source or target changes.
-6. Use Git checkpoints before risky migrations or cross-machine merges.
-7. Use `skillshare doctor` when targets disappear or links become inconsistent.
+In merge mode, links point to the source and can be rebuilt by the next sync. Use `uninstall` for removals; do not recursively delete directories that may be links.
 
-The essential idea is not the command list. It is maintaining a clear direction of ownership: one reviewed source, many generated targets.
+If you delete and re-clone the source repository, run `status`, `diff`, and `sync --dry-run` before trusting existing targets. In one Windows `0.20.25` verification, `doctor` did not surface stale NTFS junctions, while direct inspection of their `LinkTarget` values found links to the removed source. A normal `sync` cleaned the stale links and distributed the new skills. In merge mode, a target-local item may still appear in JSON diff output with `is_sync: false`; that is not a managed removal. The full commands and evidence limits are in the [cross-machine workflow](/en/posts/github-skillshare-cross-machine-sync/#check-old-windows-junctions-after-re-cloning).
 
-Official documentation: [Skillshare docs](https://skillshare.runkids.cc/docs)
+## Operating boundaries
+
+- Treat the Skillshare source as the authoritative copy; do not maintain independent target copies.
+- Use a Git remote for version history and transport, not for deciding which tools load which skills.
+- Use Skillshare for distribution, filtering, audit, and recovery; it is not a general-purpose dotfiles manager.
+- Deploy one global configuration file explicitly with a content or hash check. Consider Skillshare extras only when rules, commands, and prompts become a larger managed set.
+- Keep project-level skills and `AGENTS.md` files in their project repositories instead of promoting them to global defaults.
+
+## References
+
+- [Skillshare documentation](https://skillshare.runkids.cc/docs)
+- [Skillshare First Sync](https://skillshare.runkids.cc/docs/getting-started/first-sync/)
+- [Cross-machine GitHub + Skillshare workflow](/en/posts/github-skillshare-cross-machine-sync/)

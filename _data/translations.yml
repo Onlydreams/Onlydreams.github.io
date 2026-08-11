@@ -7,6 +7,9 @@ skillshare-guide:
 global-agents-context:
   zh: /posts/global-agents-context/
   en: /en/posts/global-agents-context/
+github-skillshare-cross-machine-sync:
+  zh: /posts/github-skillshare-cross-machine-sync/
+  en: /en/posts/github-skillshare-cross-machine-sync/
 agent-skills-after-model-upgrade:
   zh: /posts/agent-skills-after-model-upgrade/
   en: /en/posts/agent-skills-after-model-upgrade/

@@ -4,22 +4,35 @@ lang: en
 translation_key: global-agents-context
 title: "AGENTS.md Guide: A Practical Global Configuration for Codex and Other Coding Agents"
 date: 2026-07-28 00:02:00 +0800
+updated: 2026-08-11
 categories: [AI]
 tags: [agent, codex, claude, rules, workflow]
 status:
   label: 当前可用
-  verified: 2026-07-28
-  environment: Codex / Claude / AGENTS.md
-  risk: This is a personal collaboration template, not a universal policy. Remove rules that do not match your repositories, tools, and risk model.
+  verified: 2026-08-11
+  environment: Codex AGENTS.md / GLOBAL_AGENTS.md v2.4
+  risk: This is a personal collaboration template, not a universal policy. Remove machine-specific paths, tool preferences, and authorization boundaries before reuse, and do not promote repository rules to global scope by accident.
 ---
 
-A global `AGENTS.md` can give coding agents consistent collaboration preferences without duplicating repository-specific build commands or architecture rules. The template below focuses on scope, evidence, safety, and completion criteria.
+A global `AGENTS.md` can give coding agents consistent collaboration preferences without duplicating repository-specific build commands or architecture rules. In this setup, `GLOBAL_AGENTS.md` in a Git repository is the versioned authority, while `AGENTS.md` in Codex home is an explicitly deployed copy.
 
 ---
 
-## What belongs in a global AGENTS.md
+## Separate the authority from the loading entry point
 
-Codex reads `AGENTS.md` before starting work and layers global guidance with more specific project instructions. A useful division is:
+According to [OpenAI's AGENTS.md documentation](https://learn.chatgpt.com/docs/agent-configuration/agents-md), Codex checks its home directory first. It reads a non-empty `AGENTS.override.md` when present; otherwise it reads `AGENTS.md`. Codex home defaults to `~/.codex` but can be changed with `CODEX_HOME`. Codex then walks from the project root toward the current directory, checking `AGENTS.override.md`, `AGENTS.md`, and configured fallback names at each level. Guidance closer to the working directory appears later and therefore takes precedence.
+
+`GLOBAL_AGENTS.md` is not a filename Codex discovers automatically. It is a maintenance convention:
+
+| File | Responsibility |
+|---|---|
+| `<my-skills-repo>/GLOBAL_AGENTS.md` | Versioned authority; durable edits start here |
+| `<codex-home>/AGENTS.md` | Default deployed copy; a non-empty sibling override replaces it |
+| `<project>/AGENTS.md` | Build, test, content, and release rules for one repository |
+
+Other AI agents load `AGENTS.md`, `CLAUDE.md`, or tool-specific rule directories only when that tool explicitly supports those locations. For Codex itself, the automatic chain is limited to `AGENTS.md`, `AGENTS.override.md`, and configured fallback names.
+
+A useful division is:
 
 - **Global file:** personal communication style, default safety posture, evidence standards, and recurring workflow preferences.
 - **Repository file:** supported setup, build, test, review, and release commands; project architecture; content or code conventions.
@@ -28,7 +41,7 @@ Codex reads `AGENTS.md` before starting work and layers global guidance with mor
 
 Closer project guidance should override broad personal defaults when the two conflict. This keeps a global file reusable without forcing every repository into the same workflow.
 
-For Codex, the default personal path is:
+For Codex, the default personal path remains:
 
 ```text
 ~/.codex/AGENTS.md
@@ -38,7 +51,9 @@ The following is an English adaptation of the global configuration I use. Copy i
 
 ## GLOBAL AGENTS.md — personal defaults
 
-> Version: v2.2
+> Version: v2.4
+>
+> Last updated: 2026-08-10
 >
 > Scope: all sessions, including work outside repositories
 >
@@ -55,6 +70,7 @@ The following is an English adaptation of the global configuration I use. Copy i
 ### 2. Workflow preferences
 
 - Inspect the current environment instead of assuming macOS, Linux, or Windows.
+- On Windows, use PowerShell 7 (`pwsh`) by default unless a command genuinely requires `cmd.exe`.
 - Prefer commands, code, and short operational paths that can be used directly from a terminal or editor.
 - Before coding, identify the goal, constraints, and acceptance criteria. Surface uncertainty before making a high-risk assumption.
 - For high-risk or irreversible decisions, present two or three concrete options and wait for confirmation. Handle low-risk implementation details conservatively using repository conventions.
@@ -62,6 +78,9 @@ The following is an English adaptation of the global configuration I use. Copy i
 - Recheck time-sensitive facts such as prices, plans, regulations, product rules, sports information, recommendations, and rankings. Separate official confirmation, third-party evidence, and unresolved claims.
 - When I provide a screenshot, filename, error, or log, start with the most likely diagnosis and next action, then explain the reasoning and fallback.
 - For system, network, proxy, permission, remote-access, or batch operations, start with reversible diagnostics. Explain the risk before changing persistent configuration or connectivity.
+- Before committing, pushing, or publishing, inspect the branch and worktree, stage only the requested files, run the required validation, and complete the push when explicitly authorized.
+- For local configuration, installation paths, tool versions, network state, or proxy questions, inspect current files and command output. Treat memory only as a lead for facts that may drift.
+- Diagnose network, VPN, TUN, remote-access, or throughput problems before optimizing, then retest on the real or closest representative path.
 - During review, debugging, or optimization, separate confirmed defects from possible risks. If I ask for a final artifact, converge on a usable deliverable instead of stopping at commentary.
 - Before posting a public issue or bug report, search for an existing report and add precise environment, reproduction, and evidence to the best matching thread.
 - Before publishing articles, prompts, issues, or technical notes, remove secrets, personal paths, private endpoints, account identifiers, and other environment details that do not need to be public.
@@ -104,6 +123,8 @@ The following is an English adaptation of the global configuration I use. Copy i
 
 - If the same preference conflict repeats, ask whether it should become durable guidance.
 - Do not edit repository-level `AGENTS.md`, `CLAUDE.md`, or agent rule files without explicit authorization.
+- When asked to update global rules, edit the versioned `<my-skills-repo>/GLOBAL_AGENTS.md` first, deploy it to `<codex-home>/AGENTS.md`, and verify both copies. Stop if the authority repository is unavailable.
+- Add new rules by default, but consolidate, replace, or retire stale and conflicting rules only with explicit confirmation.
 - Prefer one authoritative source for cross-tool rules. Compatibility files should point to that source instead of duplicating it.
 - Keep reusable skills and documentation tool-neutral unless a target tool genuinely requires dedicated metadata.
 - Remove, replace, or consolidate rules when they become stale or contradictory; do not let a global file grow by append-only habit.
@@ -112,8 +133,25 @@ The following is an English adaptation of the global configuration I use. Copy i
 
 - This file defines personal defaults across sessions.
 - Repository and nested guidance override global defaults for the code they govern.
+- Tool-specific files such as `CLAUDE.md` participate only for tools that actually load them; Codex does not treat those filenames as part of its automatic `AGENTS.md` chain.
 - A current-task prompt can narrow the requested scope but should not silently weaken safety boundaries.
 - Put durable behavior in the narrowest location where it remains true.
+
+## Update and deployment workflow
+
+Keep modification, deployment, and verification as separate steps:
+
+```text
+Edit the authoritative GLOBAL_AGENTS.md in Git
+→ deploy it to <codex-home>/AGENTS.md
+→ compare content or SHA-256
+→ start a new Codex task to confirm the rule is loaded
+→ commit and push the authority repository when needed
+```
+
+Codex builds the instruction chain when a task starts. Do not assume an already running task has reloaded every rule after the file changes.
+
+Skill distribution and `AGENTS.md` deployment are also separate paths. The complete setup is documented in [Synchronizing Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare](/en/posts/github-skillshare-cross-machine-sync/); general Skillshare commands are covered in the [Skillshare guide](/en/posts/skillshare-guide/).
 
 ## Why this template avoids universal process rules
 

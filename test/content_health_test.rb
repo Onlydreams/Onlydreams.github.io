@@ -45,7 +45,7 @@ class ContentHealthTest < Minitest::Test
   end
 
   def test_selected_english_posts_have_complete_front_matter
-    assert_equal 4, english_posts.size
+    assert_equal 5, english_posts.size
 
     english_posts.each do |post|
       missing_keys = REQUIRED_ENGLISH_FRONT_MATTER_KEYS.reject do |key|
