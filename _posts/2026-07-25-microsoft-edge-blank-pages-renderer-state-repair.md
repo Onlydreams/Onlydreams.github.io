@@ -66,12 +66,235 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
 
 ### 脚本全文：下载版与正文同步
 
-下面直接嵌入仓库中的源文件，而不是维护另一份手工复制。网页正文、下载链接和 Git 仓库中的脚本因此始终是同一份内容；审查后如不愿运行下载文件，也可以复制以下全文保存为 `.ps1`。
+下面嵌入仓库中的源文件副本：修改 `tools/repair-edge-renderer.ps1` 后运行 `ruby bin/embed_article_scripts.rb` 重新嵌入，`test/content_health_test.rb` 会逐字节校验正文与源文件保持一致（GitHub Pages 的安全构建模式不执行自定义 Jekyll 插件，因此不使用模板标签）。网页正文、下载链接和 Git 仓库中的脚本因此始终是同一份内容；审查后如不愿运行下载文件，也可以复制以下全文保存为 `.ps1`。
 
 <details>
 <summary>展开 <code>repair-edge-renderer.ps1</code> 全文</summary>
 
-<pre><code class="language-powershell">{% source_file tools/repair-edge-renderer.ps1 %}</code></pre>
+<pre><code class="language-powershell">[CmdletBinding()]
+param(
+  [switch]$Repair,
+  [switch]$SkipUpdate
+)
+
+$ErrorActionPreference = &quot;Stop&quot;
+
+function Write-Status {
+  param([string]$Message)
+  Write-Host &quot;[Edge renderer repair] $Message&quot;
+}
+
+function Get-EdgePaths {
+  $applicationDirectory = Join-Path ${env:ProgramFiles(x86)} &quot;Microsoft\Edge\Application&quot;
+  $launcher = Join-Path $applicationDirectory &quot;msedge.exe&quot;
+  $userData = Join-Path $env:LOCALAPPDATA &quot;Microsoft\Edge\User Data&quot;
+  $localState = Join-Path $userData &quot;Local State&quot;
+
+  if (-not (Test-Path -LiteralPath $launcher)) {
+    throw &quot;找不到 Edge 启动文件：$launcher&quot;
+  }
+  if (-not (Test-Path -LiteralPath $localState)) {
+    throw &quot;找不到 Edge Local State，停止处理。&quot;
+  }
+
+  $versionDirectories = @(
+    Get-ChildItem -LiteralPath $applicationDirectory -Directory |
+      Where-Object { $_.Name -match &quot;^\d+\.\d+\.\d+\.\d+$&quot; } |
+      Sort-Object { [version]$_.Name } -Descending
+  )
+  $currentVersionDirectory = $versionDirectories | Select-Object -First 1
+  if (-not $currentVersionDirectory) {
+    throw &quot;找不到 Edge 版本目录，停止处理。&quot;
+  }
+
+  $currentBinary = Join-Path $currentVersionDirectory.FullName &quot;msedge.exe&quot;
+  if (-not (Test-Path -LiteralPath $currentBinary)) {
+    throw &quot;找不到当前版本 Edge 二进制，停止处理。&quot;
+  }
+
+  [pscustomobject]@{
+    ApplicationDirectory = $applicationDirectory
+    Launcher = $launcher
+    CurrentBinary = $currentBinary
+    UserData = $userData
+    LocalState = $localState
+  }
+}
+
+function Get-RendererCount {
+  param([string]$ProfilePath)
+
+  $processes = @(
+    Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
+      Where-Object { $_.CommandLine -like &quot;*$ProfilePath*&quot; }
+  )
+  [pscustomobject]@{
+    ProcessCount = $processes.Count
+    RendererCount = @($processes | Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }).Count
+    ProcessIds = @($processes.ProcessId)
+  }
+}
+
+function Stop-ProfileEdge {
+  param([string]$ProfilePath)
+
+  $result = Get-RendererCount -ProfilePath $ProfilePath
+  if ($result.ProcessIds.Count -gt 0) {
+    Stop-Process -Id $result.ProcessIds -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+  }
+}
+
+function Test-ProfileRenderer {
+  param(
+    [string]$EdgeBinary,
+    [string]$ProfilePath
+  )
+
+  Start-Process -FilePath $EdgeBinary -ArgumentList @(
+    &quot;--user-data-dir=$ProfilePath&quot;,
+    &quot;--no-first-run&quot;,
+    &quot;--disable-extensions&quot;,
+    &quot;edge://settings&quot;
+  )
+  Start-Sleep -Seconds 6
+
+  try {
+    Get-RendererCount -ProfilePath $ProfilePath
+  } finally {
+    Stop-ProfileEdge -ProfilePath $ProfilePath
+  }
+}
+
+function Copy-EdgeBackup {
+  param([string]$UserDataPath)
+
+  $backupBase = Join-Path $env:LOCALAPPDATA &quot;Edge-Recovery&quot;
+  $backupRoot = Join-Path $backupBase (&quot;Edge-User-Data-backup-&quot; + (Get-Date -Format &quot;yyyyMMdd-HHmmss&quot;))
+  New-Item -ItemType Directory -Path $backupBase -Force | Out-Null
+
+  &amp; robocopy $UserDataPath $backupRoot /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /XJ /NFL /NDL /NJH /NJS /NP
+  if ($LASTEXITCODE -ge 8) {
+    throw &quot;Edge 用户数据备份失败，Robocopy exit code: $LASTEXITCODE&quot;
+  }
+
+  $criticalFiles = @(&quot;Local State&quot;, &quot;Default\Bookmarks&quot;, &quot;Default\History&quot;, &quot;Default\Login Data&quot;, &quot;Default\Network\Cookies&quot;, &quot;Default\Preferences&quot;)
+  foreach ($relativePath in $criticalFiles) {
+    $source = Join-Path $UserDataPath $relativePath
+    $backup = Join-Path $backupRoot $relativePath
+    if ((Test-Path -LiteralPath $source) -and ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $backup -Algorithm SHA256).Hash)) {
+      throw &quot;备份校验失败：$relativePath&quot;
+    }
+  }
+
+  $backupRoot
+}
+
+function Remove-MitigationManager {
+  param([string]$LocalStatePath)
+
+  $state = Get-Content -LiteralPath $LocalStatePath -Raw | ConvertFrom-Json
+  if (-not $state.edge -or -not ($state.edge.PSObject.Properties.Name -contains &quot;mitigation_manager&quot;)) {
+    throw &quot;edge.mitigation_manager 不存在，停止处理。&quot;
+  }
+  $state.edge.PSObject.Properties.Remove(&quot;mitigation_manager&quot;)
+  $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
+  [System.IO.File]::WriteAllText($LocalStatePath, ($state | ConvertTo-Json -Depth 100 -Compress), $utf8WithoutBom)
+
+  $validated = Get-Content -LiteralPath $LocalStatePath -Raw | ConvertFrom-Json
+  if ($validated.edge.PSObject.Properties.Name -contains &quot;mitigation_manager&quot;) {
+    throw &quot;验证失败：临时文件中的目标对象仍然存在。&quot;
+  }
+}
+
+$paths = Get-EdgePaths
+$launcherVersion = (Get-Item -LiteralPath $paths.Launcher).VersionInfo.FileVersion
+$currentVersion = (Get-Item -LiteralPath $paths.CurrentBinary).VersionInfo.FileVersion
+$state = Get-Content -LiteralPath $paths.LocalState -Raw | ConvertFrom-Json
+$manager = $state.edge.mitigation_manager
+
+if (-not $Repair) {
+  [pscustomobject]@{
+    launcher_version = $launcherVersion
+    newest_version_binary = $currentVersion
+    new_msedge_exists = Test-Path -LiteralPath (Join-Path $paths.ApplicationDirectory &quot;new_msedge.exe&quot;)
+    mitigation_manager_present = $null -ne $manager
+    incompatible_version = $manager.renderer_app_container_incompatible_version
+    compatible_count = $manager.renderer_app_container_compatible_count
+  } | Format-List
+  Write-Status &quot;仅完成诊断。确认全部网页和内置页都空白后，再运行 -Repair。&quot;
+  exit 0
+}
+
+Write-Status &quot;请先保存 Edge 中未提交的表单或下载任务；按 Enter 后将关闭 Edge。&quot;
+[void](Read-Host)
+Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 2
+if (Get-Process -Name msedge -ErrorAction SilentlyContinue) {
+  throw &quot;Edge 仍在运行，停止处理。&quot;
+}
+
+if (-not $SkipUpdate) {
+  Write-Status &quot;尝试通过官方 winget 源覆盖安装 Edge。&quot;
+  &amp; winget install --id Microsoft.Edge --exact --source winget --force --accept-package-agreements --accept-source-agreements --silent
+  if ($LASTEXITCODE -ne 0) {
+    throw &quot;Edge 覆盖安装失败，exit code: $LASTEXITCODE&quot;
+  }
+  $paths = Get-EdgePaths
+}
+
+$backupRoot = Copy-EdgeBackup -UserDataPath $paths.UserData
+Write-Status &quot;完整备份已校验：$backupRoot&quot;
+
+$testBase = Join-Path $env:TEMP (&quot;edge-renderer-diagnostic-&quot; + (Get-Date -Format &quot;yyyyMMdd-HHmmss&quot;))
+$freshProfile = Join-Path $testBase &quot;fresh&quot;
+$copiedStateProfile = Join-Path $testBase &quot;copied-local-state&quot;
+New-Item -ItemType Directory -Path $freshProfile, $copiedStateProfile -Force | Out-Null
+
+try {
+  $fresh = Test-ProfileRenderer -EdgeBinary $paths.CurrentBinary -ProfilePath $freshProfile
+  if ($fresh.RendererCount -lt 1) {
+    throw &quot;全新临时 profile 也没有 renderer，不属于本文可自动修复的故障链。&quot;
+  }
+
+  Copy-Item -LiteralPath $paths.LocalState -Destination (Join-Path $copiedStateProfile &quot;Local State&quot;)
+  $copied = Test-ProfileRenderer -EdgeBinary $paths.CurrentBinary -ProfilePath $copiedStateProfile
+  if ($copied.RendererCount -gt 0) {
+    throw &quot;只复制 Local State 未复现故障，停止处理原文件。&quot;
+  }
+
+  Remove-MitigationManager -LocalStatePath (Join-Path $copiedStateProfile &quot;Local State&quot;)
+  $repairedCopy = Test-ProfileRenderer -EdgeBinary $paths.CurrentBinary -ProfilePath $copiedStateProfile
+  if ($repairedCopy.RendererCount -lt 1) {
+    throw &quot;临时副本修复后仍没有 renderer，停止处理原文件。&quot;
+  }
+} finally {
+  if (Test-Path -LiteralPath $testBase) {
+    Remove-Item -LiteralPath $testBase -Recurse -Force
+  }
+}
+
+$timestamp = Get-Date -Format &quot;yyyyMMdd-HHmmss&quot;
+$rollbackPath = &quot;$($paths.LocalState).pre-mitigation-fix-$timestamp.bak&quot;
+$temporaryPath = &quot;$($paths.LocalState).repair-tmp&quot;
+Copy-Item -LiteralPath $paths.LocalState -Destination $rollbackPath
+Copy-Item -LiteralPath $paths.LocalState -Destination $temporaryPath
+Remove-MitigationManager -LocalStatePath $temporaryPath
+Move-Item -LiteralPath $temporaryPath -Destination $paths.LocalState -Force
+
+Start-Process -FilePath $paths.Launcher -ArgumentList &quot;edge://settings&quot;
+Start-Sleep -Seconds 7
+$normalProfileRenderers = @(
+  Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
+    Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }
+).Count
+
+if ($normalProfileRenderers -lt 1) {
+  throw &quot;原配置启动后仍没有 renderer；回滚文件保留在：$rollbackPath&quot;
+}
+
+Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
+</code></pre>
 </details>
 
 ## 2026-08-19：同主版本补丁更新同样复发
@@ -419,14 +642,14 @@ $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
 
 ## 能确认什么，不能确认什么
 
-两次排查可以确认：
+三次排查可以确认：
 
 - 多个扩展同时报错是 renderer 整体死亡后的结果，不是单个扩展的直接证据。
-- 149→150、150→151 两次更新都实际存在程序未完成切换的问题。
+- 149→150、150→151 和 151.0.4129.72→151.0.4129.93 三次更新都实际存在程序未完成切换的问题。
 - 原 `Local State` 可以在隔离环境中单独复现 renderer 归零。
 - 在同一副本中只移除 `edge.mitigation_manager` 可以恢复渲染。
 - 相同最小修改应用到原配置后，页面和扩展均恢复。
-- 这组“程序切换失败 + renderer 兼容状态残留”的故障链在同一设备的连续两次大版本更新中可以重复出现。
+- 这组“程序切换失败 + renderer 兼容状态残留”的故障链在同一设备的三次更新（两次大版本更新和一次同主版本补丁更新）中可以重复出现。
 
 但不能把它扩大成：
 

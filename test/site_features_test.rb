@@ -194,7 +194,7 @@ class SiteFeaturesTest < Minitest::Test
       ["Synchronize Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare", "/en/posts/github-skillshare-cross-machine-sync/"],
       ["How to Use Agent Skills After a Model Upgrade: Replace Generic Process with Specialized Constraints", "/en/posts/agent-skills-after-model-upgrade/"],
       ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"],
-      ["Microsoft Edge Goes Blank After Major Updates: Two Recurrent Renderer-State Failures and a Data-Preserving Repair", "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"]
+      ["Microsoft Edge Goes Blank After Edge Updates: Recurrent Renderer-State Failures and a Data-Preserving Repair", "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"]
     ]
     chinese_surfaces = {
       "homepage" => read_site("index.html"),
@@ -404,6 +404,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "post-toc-mobile"
     assert_includes script, "window.SiteEnhancements.initPostToc"
     refute_path_exists File.join(ROOT, "_plugins", "toc_filter.rb")
+    refute_path_exists File.join(ROOT, "_plugins", "source_file_tag.rb")
     refute_path_exists File.join(ROOT, ".github", "workflows", "pages.yml")
   end
 

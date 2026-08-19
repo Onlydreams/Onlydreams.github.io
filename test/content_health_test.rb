@@ -5,6 +5,8 @@ require "minitest/autorun"
 require "time"
 require "yaml"
 
+require File.join(File.expand_path("..", __dir__), "bin", "embed_article_scripts.rb")
+
 class ContentHealthTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
   POST_PATHS = Dir[File.join(ROOT, "_posts/*.md")].sort.freeze
@@ -170,6 +172,28 @@ class ContentHealthTest < Minitest::Test
       SENSITIVE_PATTERNS.each do |name, pattern|
         refute_match pattern, text, "#{post[:relative_path]} appears to contain #{name}"
       end
+    end
+  end
+
+  def test_embedded_edge_repair_script_matches_repo_source
+    articles = posts + english_posts
+    expected = EmbedArticleScripts.escaped_script(
+      File.join(ROOT, "tools", "repair-edge-renderer.ps1")
+    )
+
+    [
+      "_posts/2026-07-25-microsoft-edge-blank-pages-renderer-state-repair.md",
+      "_english_posts/microsoft-edge-blank-pages-renderer-state-repair.md"
+    ].each do |relative_path|
+      article = articles.find { |candidate| candidate[:relative_path] == relative_path }
+      refute_nil article, "#{relative_path} must exist"
+
+      match = article[:body].match(%r{<pre><code class="language-powershell">(.*?)</code></pre>}m)
+      refute_nil match, "#{relative_path} must embed the script in a <pre><code> block"
+
+      assert_equal expected, match[1].gsub("\r\n", "\n"),
+        "embedded script in #{relative_path} must match tools/repair-edge-renderer.ps1 byte for byte; " \
+        "run `ruby bin/embed_article_scripts.rb` to re-embed"
     end
   end
 
