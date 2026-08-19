@@ -2,9 +2,9 @@
 layout: post
 lang: zh-CN
 translation_key: microsoft-edge-blank-pages-renderer-state-repair
-title: "Microsoft Edge 大版本更新后全部网页空白：连续两次 renderer 状态复发与修复"
+title: "Microsoft Edge 更新后全部网页空白：renderer 状态复发的快速修复与排查"
 date: 2026-07-25 09:00:00 +0800
-updated: 2026-08-11
+updated: 2026-08-19
 author: Onlydreams
 categories: [开发工具, 浏览器]
 tags: [edge, windows, renderer, extension, troubleshooting]
@@ -13,28 +13,70 @@ series_order:
   windows-troubleshooting: 2
 status:
   label: 当前可用
-  verified: 2026-08-11
-  environment: Windows x64 build 26200.8973 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83、150.0.4078.83 → 151.0.4129.72 / Edge Update 1.3.225.7
-  risk: 同一设备连续两次大版本更新复现了相同故障链，但不能据此推断所有设备都会受影响；edge.mitigation_manager 属于未公开的内部状态，只有完成备份并在隔离副本中建立相同因果证据后才应修改。
+  verified: 2026-08-19
+  environment: Windows x64 build 26200.8973 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83、150.0.4078.83 → 151.0.4129.72、151.0.4129.72 → 151.0.4129.93 / Edge Update 1.3.225.7
+  risk: 已在同一设备的两次大版本更新和一次同主版本补丁更新中复现，但不能据此推断所有设备都会受影响；edge.mitigation_manager 属于未公开的内部状态，脚本也只有在完整备份和三组隔离对照全部通过后才会修改它。
 ---
 
-记录 Microsoft Edge 在连续两次 Stable 大版本更新后，所有网页、设置页和扩展页同时空白的排查。两次故障都由更新未完成程序切换与旧版 renderer 兼容状态叠加造成；修复程序版本后，再移除一个已通过隔离实验确认可重建的状态对象，原有书签、历史、Cookie、密码和扩展均得以保留。
+记录 Microsoft Edge 在更新后所有网页、设置页和扩展页同时空白的排查。已在两次 Stable 大版本更新和一次同主版本补丁更新中观察到同一故障链：更新切换异常叠加旧版 renderer 兼容状态；只移除一个经过隔离实验确认可重建的状态对象，原有书签、历史、Cookie、密码和扩展均得以保留。
 
 ---
 
 ## 先说结论
 
-两次故障都由两个问题叠加：
+根因不是“主版本号变化”本身，而是一次更新没有把程序与 renderer 状态一起完成切换。已验证的故障由两个问题叠加：
 
-1. 新版 Edge 已经下载并登记，但实际启动的 `msedge.exe` 仍是上一大版本，程序文件长期处于新旧版本错配状态。
+1. 新版 Edge 已经下载或安装，但实际启动入口仍指向旧 build，程序文件长期处于新旧版本错配状态。
 2. 原用户数据顶层的 `Local State` 保留了旧版写入的 `edge.mitigation_manager`，其中 renderer AppContainer 兼容状态没有随程序更新正确重建，导致 renderer 启动后立即退出。
 
 扩展报错只是连带现象。禁用所有扩展以后，renderer 数量仍然是 0；同一套 Edge 程序使用全新临时配置却能正常生成 renderer，说明网络、GPU、沙箱和扩展本身都不是这次故障的直接原因。
 
 两次最终修复都分为两步：
 
-- 通过官方包覆盖安装，让实际程序完成 149→150 或 150→151 的版本切换。
+- 优先通过官方包覆盖安装，尝试让实际程序完成版本切换。
 - 在完整备份和副本验证后，只移除 `Local State` 里的 `edge.mitigation_manager`，由当前版本自动重建。
+
+## 快速处理：一条命令，遇到不匹配就停止
+
+针对本文的**精确故障指纹**，仓库提供了可审查的 [repair-edge-renderer.ps1]({{ '/tools/repair-edge-renderer.ps1' | relative_url }})。它把“备份、隔离对照、回滚文件、字段级修复、冷启动复测”收进一个入口；不会因为某个网站打不开就直接改 `Local State`。
+
+先只读诊断：
+
+```powershell
+$script = Join-Path $env:TEMP "repair-edge-renderer.ps1"
+Invoke-WebRequest "https://www.dayjia.com/tools/repair-edge-renderer.ps1" -OutFile $script
+powershell -NoProfile -ExecutionPolicy Bypass -File $script
+```
+
+确认普通网页和 `edge://settings` 都空白后，再运行修复。它会提示先保存表单，随后关闭 Edge；`ExecutionPolicy Bypass` 只作用于这个子进程，不会修改系统执行策略。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair
+```
+
+脚本会依次：尝试官方 winget 覆盖安装、备份并校验完整 `User Data`、验证空 profile 有 renderer、验证“只复制原 `Local State`”会令 renderer 归零、验证删除副本中的目标对象能恢复 renderer，最后才修改原文件并留下单文件回滚副本。任一步失败都会停止；此时不要跳过条件强行改文件。
+
+如果已手动完成官方覆盖安装、只想跳过脚本内的更新步骤，可额外传入 `-SkipUpdate`：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
+```
+
+脚本只适用于本文的全局 renderer 崩溃指纹，不是 Edge 空白页的万能修复器。它不会删除整个 `User Data`、`Default`、Cookie、密码、历史或扩展；完整备份会保留在 `%LOCALAPPDATA%\Edge-Recovery`，临时隔离副本会在验证结束后自动清理。
+
+## 2026-08-19：同主版本补丁更新同样复发
+
+此前两次样本恰好是 `149→150` 和 `150→151`，不应把它概括成“只有大版本才会出错”。2026-08-19 的复发发生在 `151.0.4129.72 → 151.0.4129.93`：主版本仍为 151，但更新目录已出现 `.93`，根目录启动入口仍报告 `.72`，`new_msedge.exe` 仍存在。
+
+原配置打开 `edge://settings` 后保留 6 个 Edge 进程、renderer 为 0；`Local State` 中的 `renderer_app_container_incompatible_version` 仍是 `.72`，兼容计数为 100。使用 `.93` 二进制做隔离对照则得到：
+
+| 临时 profile | renderer 数量 |
+|---|---:|
+| 全新 profile | 3 |
+| 全新 profile 只复制原 `Local State` | 0 |
+| 同一副本只移除 `edge.mitigation_manager` | 3 |
+
+对原文件执行同一最小修改后，正常入口先在内置设置页生成 6 个 renderer；一次冷启动后，普通网页生成 10 个 renderer，`edge.mitigation_manager` 自动重建且兼容计数归零。此结果证明状态对象是这次 renderer 归零的必要条件；它不能证明微软已经确认通用根因，也不能保证后续更新必然采用相同机制。
 
 ## 2026-08-11：150→151 再次复发
 
