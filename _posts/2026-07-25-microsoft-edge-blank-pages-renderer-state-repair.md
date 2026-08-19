@@ -64,6 +64,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
 
 脚本只适用于本文的全局 renderer 崩溃指纹，不是 Edge 空白页的万能修复器。它不会删除整个 `User Data`、`Default`、Cookie、密码、历史或扩展；完整备份会保留在 `%LOCALAPPDATA%\Edge-Recovery`，临时隔离副本会在验证结束后自动清理。
 
+### 脚本全文：下载版与正文同步
+
+下面直接嵌入仓库中的源文件，而不是维护另一份手工复制。网页正文、下载链接和 Git 仓库中的脚本因此始终是同一份内容；审查后如不愿运行下载文件，也可以复制以下全文保存为 `.ps1`。
+
+<details>
+<summary>展开 <code>repair-edge-renderer.ps1</code> 全文</summary>
+
+<pre><code class="language-powershell">{% source_file tools/repair-edge-renderer.ps1 %}</code></pre>
+</details>
+
 ## 2026-08-19：同主版本补丁更新同样复发
 
 此前两次样本恰好是 `149→150` 和 `150→151`，不应把它概括成“只有大版本才会出错”。2026-08-19 的复发发生在 `151.0.4129.72 → 151.0.4129.93`：主版本仍为 151，但更新目录已出现 `.93`，根目录启动入口仍报告 `.72`，`new_msedge.exe` 仍存在。
