@@ -68,9 +68,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
 
 下面嵌入仓库中的源文件副本：修改 `tools/repair-edge-renderer.ps1` 后运行 `ruby bin/embed_article_scripts.rb` 重新嵌入，`test/content_health_test.rb` 会逐字节校验正文与源文件保持一致（GitHub Pages 的安全构建模式不执行自定义 Jekyll 插件，因此不使用模板标签）。网页正文、下载链接和 Git 仓库中的脚本因此始终是同一份内容；审查后如不愿运行下载文件，也可以复制以下全文保存为 `.ps1`。
 
-<details>
-<summary>展开 <code>repair-edge-renderer.ps1</code> 全文</summary>
+<details class="source-disclosure">
+<summary class="source-disclosure__summary">
+<span class="source-disclosure__title"><span class="source-disclosure__chevron" aria-hidden="true"></span><span class="source-disclosure__closed-label">展开</span><span class="source-disclosure__open-label">收起</span> <code>repair-edge-renderer.ps1</code> 全文</span>
+<span class="source-disclosure__meta">PowerShell · 与下载同步</span>
+</summary>
 
+<div class="source-code-block" data-copy-mode="raw" data-copy-label="复制全文" data-copying-label="复制中" data-copied-label="已复制" data-copy-error-label="复制失败">
 <pre><code class="language-powershell">[CmdletBinding()]
 param(
   [switch]$Repair,
@@ -295,6 +299,7 @@ if ($normalProfileRenderers -lt 1) {
 
 Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
 </code></pre>
+</div>
 </details>
 
 ## 2026-08-19：同主版本补丁更新同样复发

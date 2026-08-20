@@ -71,9 +71,13 @@ The script only fits the global renderer-crash fingerprint in this article; it i
 
 The full source below is embedded from the repository's single canonical copy (`tools/repair-edge-renderer.ps1`): after changing the script, run `ruby bin/embed_article_scripts.rb` to re-embed it, and `test/content_health_test.rb` verifies byte-for-byte that the article matches the source (GitHub Pages' safe build mode does not run custom Jekyll plugins, so no template tags are used). The web page, the download link, and the file in the repository are therefore always the same content. If you prefer not to run the downloaded file, you can save the full text below as a `.ps1` file. The script's status messages are in Chinese; the behavior is described above.
 
-<details>
-<summary>Expand the full <code>repair-edge-renderer.ps1</code> source</summary>
+<details class="source-disclosure">
+<summary class="source-disclosure__summary">
+<span class="source-disclosure__title"><span class="source-disclosure__chevron" aria-hidden="true"></span><span class="source-disclosure__closed-label">Expand</span><span class="source-disclosure__open-label">Collapse</span> the full <code>repair-edge-renderer.ps1</code> source</span>
+<span class="source-disclosure__meta">PowerShell · Synced with download</span>
+</summary>
 
+<div class="source-code-block" data-copy-mode="raw" data-copy-label="Copy full source" data-copying-label="Copying" data-copied-label="Copied" data-copy-error-label="Copy failed">
 <pre><code class="language-powershell">[CmdletBinding()]
 param(
   [switch]$Repair,
@@ -298,6 +302,7 @@ if ($normalProfileRenderers -lt 1) {
 
 Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
 </code></pre>
+</div>
 </details>
 
 ## 2026-08-19: the same-major patch update recurred

@@ -445,6 +445,8 @@ class SiteFeaturesTest < Minitest::Test
 
   def test_code_copy_button_behavior_is_available
     script = File.read(File.join(ROOT, "assets/js/code-copy.js"))
+    zh_article = read_site("posts/microsoft-edge-blank-pages-renderer-state-repair/index.html")
+    en_article = read_site("en/posts/microsoft-edge-blank-pages-renderer-state-repair/index.html")
 
     assert_includes script, "initCodeCopyButtons"
     assert_includes script, "navigator.clipboard.writeText"
@@ -459,25 +461,44 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes script, "button.disabled = true"
     assert_includes script, "button.dataset.defaultLabel"
     assert_includes script, 'button.setAttribute("aria-live", "polite")'
+    assert_includes script, 'copyBlock.dataset.copyMode === "raw"'
+    assert_includes script, '.highlighter-rouge, .source-code-block'
+    assert_includes script, "button.dataset.copyingLabel"
+    assert_includes script, "button.dataset.copiedLabel"
+    assert_includes script, "button.dataset.copyErrorLabel"
 
     styles = read_scss_sources
     assert_includes styles, "min-width: 4.75rem"
     assert_includes styles, '.code-copy-button[data-state="success"]'
     assert_includes styles, '.code-copy-button[data-state="error"]'
     assert_includes styles, ".code-copy-button:focus-visible"
+    assert_includes styles, ".source-disclosure__summary:focus-visible"
+    assert_includes styles, ".source-code-block.code-block-with-copy pre"
+    assert_includes styles, 'max-height: unquote("min(68vh, 44rem)")'
+
+    [zh_article, en_article].each do |article|
+      assert_includes article, '<details class="source-disclosure">'
+      assert_includes article, 'class="source-disclosure__summary"'
+      assert_includes article, 'class="source-disclosure__meta"'
+      assert_includes article, 'class="source-code-block" data-copy-mode="raw"'
+    end
+    assert_includes zh_article, 'data-copying-label="复制中" data-copied-label="已复制" data-copy-error-label="复制失败"'
+    assert_includes en_article, 'data-copying-label="Copying" data-copied-label="Copied" data-copy-error-label="Copy failed"'
   end
 
-  def test_code_copy_button_strips_shell_prompts_only_for_command_blocks
+  def test_code_copy_button_strips_prompts_but_preserves_full_source
     result = run_code_copy_dom_test
 
     assert_equal(
       {
-        "button_labels" => ["复制命令", "复制", "复制命令", "复制命令"],
+        "button_labels" => ["复制命令", "复制", "复制命令", "复制命令", "Copy full source"],
+        "success_labels" => ["已复制", "已复制", "已复制", "已复制", "Copied"],
         "copied_texts" => [
           "brew install ruby\nbundle install",
           "> keep this quoted text",
           "# script comment\nbrew update\nbrew install ruby",
-          "cat <<'EOF'\nhello\nEOF\nprintf done \\\n  now"
+          "cat <<'EOF'\nhello\nEOF\nprintf done \\\n  now",
+          "$ErrorActionPreference = \"Stop\"\nPS C:\\> keep this source line\n"
         ]
       },
       result
@@ -1343,6 +1364,23 @@ class SiteFeaturesTest < Minitest::Test
         return wrapper;
       }
 
+      function sourceBlock(text) {
+        const wrapper = new Element("div", { className: "source-code-block" });
+        wrapper.dataset.copyMode = "raw";
+        wrapper.dataset.copyLabel = "Copy full source";
+        wrapper.dataset.copyingLabel = "Copying";
+        wrapper.dataset.copiedLabel = "Copied";
+        wrapper.dataset.copyErrorLabel = "Copy failed";
+        const pre = new Element("pre");
+        const code = new Element("code", {
+          className: "language-powershell",
+          textContent: text
+        });
+        pre.appendChild(code);
+        wrapper.appendChild(pre);
+        return wrapper;
+      }
+
       const commandBlock = codeBlock(
         "language-bash",
         "$ brew install ruby\\ninstalled output\\n$ bundle install\\n"
@@ -1356,7 +1394,10 @@ class SiteFeaturesTest < Minitest::Test
         "language-bash",
         ["$ cat <<'EOF'", "hello", "EOF", "output", "$ printf done \\\\", "  now"].join("\\n") + "\\n"
       );
-      const blocks = [commandBlock, textBlock, shellScriptBlock, heredocBlock];
+      const fullSourceBlock = sourceBlock(
+        '$ErrorActionPreference = "Stop"\\nPS C:\\\\> keep this source line\\n'
+      );
+      const blocks = [commandBlock, textBlock, shellScriptBlock, heredocBlock, fullSourceBlock];
       const copiedTexts = [];
 
       const document = {
@@ -1367,7 +1408,7 @@ class SiteFeaturesTest < Minitest::Test
           return new Element(tagName);
         },
         querySelectorAll(selector) {
-          if (selector === ".highlighter-rouge") {
+          if (selector === ".highlighter-rouge, .source-code-block") {
             return blocks;
           }
           return [];
@@ -1407,9 +1448,10 @@ class SiteFeaturesTest < Minitest::Test
       const buttonLabels = blocks.map((block) => block.querySelector(".code-copy-button").textContent);
       blocks.forEach((block) => block.querySelector(".code-copy-button").listeners.click());
 
-      Promise.resolve().then(() => {
+      setImmediate(() => {
         process.stdout.write(JSON.stringify({
           button_labels: buttonLabels,
+          success_labels: blocks.map((block) => block.querySelector(".code-copy-button").textContent),
           copied_texts: copiedTexts
         }));
       });

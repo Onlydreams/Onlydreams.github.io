@@ -85,9 +85,11 @@
     return /\\\s*$/.test(line);
   }
 
-  function getCommandBlockElement(block) {
+  function getCopyBlockElement(block) {
     if (block.closest) {
-      const closestBlock = block.closest(".highlighter-rouge");
+      const closestBlock = block.closest(
+        ".source-code-block, .highlighter-rouge",
+      );
       if (closestBlock) return closestBlock;
     }
 
@@ -96,7 +98,7 @@
     while (element && element !== document.body) {
       if (
         element.className &&
-        /\bhighlighter-rouge\b/.test(element.className)
+        /\b(?:source-code-block|highlighter-rouge)\b/.test(element.className)
       ) {
         return element;
       }
@@ -108,7 +110,7 @@
   }
 
   function isCommandBlock(block, code) {
-    const commandBlock = getCommandBlockElement(block);
+    const commandBlock = getCopyBlockElement(block);
     const className = [commandBlock.className, block.className, code.className].join(
       " "
     );
@@ -119,6 +121,9 @@
   }
 
   function getCopyText(block, code) {
+    const copyBlock = getCopyBlockElement(block);
+    if (copyBlock.dataset.copyMode === "raw") return code.textContent;
+
     const text = code.textContent.replace(/\s+$/, "");
     if (!isCommandBlock(block, code)) return text;
 
@@ -158,59 +163,89 @@
   }
 
   function getCopyButtonLabel(block, code) {
+    const copyBlock = getCopyBlockElement(block);
+    if (copyBlock.dataset.copyLabel) return copyBlock.dataset.copyLabel;
     if (!isCommandBlock(block, code)) return "复制";
 
     return "复制命令";
   }
 
+  function getCopyStatusLabel(block, name, fallback) {
+    const copyBlock = getCopyBlockElement(block);
+    return copyBlock.dataset[name] || fallback;
+  }
+
   function initCodeCopyButtons() {
-    document.querySelectorAll(".highlighter-rouge").forEach(function (wrapper) {
-      const block = wrapper.querySelector(".highlight");
-      if (!block) return;
+    document
+      .querySelectorAll(".highlighter-rouge, .source-code-block")
+      .forEach(function (wrapper) {
+        const block = /\bsource-code-block\b/.test(wrapper.className)
+          ? wrapper
+          : wrapper.querySelector(".highlight");
+        if (!block) return;
 
-      const code = block.querySelector("pre code");
-      if (!code) return;
+        const code = block.querySelector("pre code");
+        if (!code) return;
 
-      block.classList.add("code-block-with-copy");
+        block.classList.add("code-block-with-copy");
 
-      const existingButtons = block.querySelectorAll(".code-copy-button");
-      existingButtons.forEach(function (button, index) {
-        if (index > 0) {
-          button.remove();
-        }
+        const existingButtons = block.querySelectorAll(".code-copy-button");
+        existingButtons.forEach(function (button, index) {
+          if (index > 0) {
+            button.remove();
+          }
+        });
+
+        if (existingButtons.length > 0) return;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "code-copy-button";
+        button.dataset.defaultLabel = getCopyButtonLabel(wrapper, code);
+        button.dataset.copyingLabel = getCopyStatusLabel(
+          wrapper,
+          "copyingLabel",
+          "复制中",
+        );
+        button.dataset.copiedLabel = getCopyStatusLabel(
+          wrapper,
+          "copiedLabel",
+          "已复制",
+        );
+        button.dataset.copyErrorLabel = getCopyStatusLabel(
+          wrapper,
+          "copyErrorLabel",
+          "复制失败",
+        );
+        button.dataset.state = "idle";
+        button.textContent = button.dataset.defaultLabel;
+        button.setAttribute("aria-label", button.dataset.defaultLabel);
+        button.setAttribute("aria-live", "polite");
+
+        button.addEventListener("click", function () {
+          clearCopyButtonReset(button);
+          button.disabled = true;
+          button.dataset.state = "copying";
+          button.textContent = button.dataset.copyingLabel;
+
+          copyText(getCopyText(wrapper, code))
+            .then(function () {
+              setCopyButtonState(button, button.dataset.copiedLabel, "success");
+            })
+            .catch(function () {
+              setCopyButtonState(
+                button,
+                button.dataset.copyErrorLabel,
+                "error",
+              );
+            })
+            .finally(function () {
+              button.disabled = false;
+            });
+        });
+
+        block.appendChild(button);
       });
-
-      if (existingButtons.length > 0) return;
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "code-copy-button";
-      button.dataset.defaultLabel = getCopyButtonLabel(wrapper, code);
-      button.dataset.state = "idle";
-      button.textContent = button.dataset.defaultLabel;
-      button.setAttribute("aria-label", button.dataset.defaultLabel);
-      button.setAttribute("aria-live", "polite");
-
-      button.addEventListener("click", function () {
-        clearCopyButtonReset(button);
-        button.disabled = true;
-        button.dataset.state = "copying";
-        button.textContent = "复制中";
-
-        copyText(getCopyText(wrapper, code))
-          .then(function () {
-            setCopyButtonState(button, "已复制", "success");
-          })
-          .catch(function () {
-            setCopyButtonState(button, "复制失败", "error");
-          })
-          .finally(function () {
-            button.disabled = false;
-          });
-      });
-
-      block.appendChild(button);
-    });
   }
 
   onReady(initCodeCopyButtons);
