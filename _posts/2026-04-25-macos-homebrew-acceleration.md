@@ -2,7 +2,7 @@
 layout: post
 title: "macOS 开发环境加速：Homebrew 镜像、pip 源与终端代理配置"
 date: 2026-04-25 17:00:00 +0800
-updated: 2026-07-20
+updated: 2026-08-21
 categories: [开发工具, 网络与代理]
 tags: [homebrew, pip, proxy, mirror, zsh]
 series: [network-proxy, macos-tooling]
@@ -16,9 +16,20 @@ status:
   risk: USTC 镜像的连通性、Git 协议和远端提交已核验，但尚未重新完成一次 brew update；配置会修改包管理源和 shell 环境。
 ---
 
-记录本次为加速 macOS 开发环境所做的配置，涵盖 Homebrew、pip 以及终端代理。2026-07-20 已将 Homebrew 主仓库、API 和 Bottles 统一到中科大 USTC 镜像，并在 Clash Verge TUN 模式下移除了 Git 全局代理。镜像可用性和速度会随网络变化，本文把当前配置、故障核验与 2026-04-25 的历史测速样本分开说明。
+`brew update` 慢或高 CPU 空转，不一定只是“镜像没配好”。第三方 tap 仍然直连 GitHub、Homebrew 主仓库与 API/Bottles 没有统一切换、Git 全局代理又与 TUN 重叠，都可能让一次更新经过不同链路。当前方案是清理无镜像 tap、统一使用 USTC，并在 Clash Verge TUN 已接管流量时移除重复的 Git 全局代理。
 
 ---
+
+## 先说结论
+
+我最后没有继续叠加更多代理配置，而是把问题拆成三层处理：Homebrew 自己访问哪些源，第三方 tap 是否仍然绕回 GitHub，以及终端流量是否已经由 TUN 接管。
+
+- Homebrew 主仓库、API 和 Bottles 统一使用同一镜像，避免只改一部分。
+- 没有镜像、又会拖慢 `brew update` 的第三方 tap 直接移除。
+- TUN 已经接管流量时，不再让 Git 固定走本地 HTTP 端口；非 TUN 环境才按需打开当前 shell 代理。
+- 当前配置、故障核验和 2026-04-25 的历史测速样本分开记录，不用一次旧测速替代现在的可用性检查。
+
+镜像速度会随线路和时间变化。本文能确认的是本机配置、连通性和故障链路，不能保证某个镜像在所有网络下长期最快。
 
 ## 一、Homebrew 加速
 

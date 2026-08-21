@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Codex Desktop 插件页错位/渲染异常：Intel Mac GPU 启动参数修复"
+title: "Codex Desktop 插件页错位：Intel Mac GPU 参数临时规避记录"
 date: 2026-05-17 00:00:00 +0800
-updated: 2026-07-13
+updated: 2026-08-21
 categories: [AI, 开发工具]
 tags: [codex, electron, gpu, macos, intel, plugin]
 series: [ai-agent, macos-tooling]
@@ -16,11 +16,21 @@ status:
   risk: 启动参数可能随客户端版本变化，仅适合作为同类渲染问题的排查参考。
 ---
 
-记录一次 Codex Desktop 插件搜索页面渲染错位的排查过程，以及当时在 Intel Mac 上通过强制高性能 GPU 启动规避问题的方法。相关公开 issue 截至 2026-07-13 仍未关闭，但本文没有在当前版本和同类 Intel Mac 上重新复现，因此继续标记为“待复核”。
+Codex Desktop 插件页发生错位时，不要因为清理缓存无效，就直接把问题归因于插件市场或宣布 GPU 根因已经确认。当时的证据链是：插件列表请求正常、常见缓存清理无效，而强制高性能 GPU 参数改变了现象。它只证明该参数在一台 Intel Mac 的当时版本中可以绕开问题，不是当前版本的正式修复。
 
 ---
 
-## 现象
+## 先说结论
+
+当时可复现的临时规避方式是：
+
+```zsh
+open -na "/Applications/Codex.app" --args --force_high_performance_gpu
+```
+
+相关公开 issue 截至 2026-07-13 仍未关闭，但本文没有在当前版本和同类 Intel Mac 上重新复现，因此继续标记为“待复核”。默认启动已经正常时，不应继续保留额外参数；只有故障指纹相同，且缩放、重启和缓存排查都没有改变现象时，才值得比较参数前后的差异。
+
+## 故障现象
 
 Codex Desktop 的插件页面可以打开，但插件搜索区和插件卡片出现明显渲染异常：
 
@@ -77,7 +87,7 @@ rm -rf "$HOME/Library/Application Support/Codex/Cache" \
 
 重新打开 Codex 后，插件页仍然错位。由此可以排除普通缓存损坏。
 
-## 最终修复
+## 历史实测 workaround
 
 [openai/codex#18774](https://github.com/openai/codex/issues/18774) 记录了 Intel Mac 上侧边栏、Plugins 页面和命令浮层发生裁切或错位的同类症状。该 issue 截至 2026-07-13 仍为 open，可用于跟踪官方处理状态；issue 正文并没有把下面的启动参数列为官方修复。
 
