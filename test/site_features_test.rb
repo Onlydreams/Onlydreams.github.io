@@ -139,7 +139,7 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, '<html lang="en">'
     assert_includes html, "Selected English editions of original Chinese articles"
     assert_includes html, "Latest English articles"
-    assert_equal 6, html.scan(%r{href="/en/posts/[^"]+/"}).size
+    assert_equal 9, html.scan(%r{href="/en/posts/[^"]+/"}).size
 
     [
       "/en/posts/skillshare-guide/",
@@ -147,7 +147,10 @@ class SiteFeaturesTest < Minitest::Test
       "/en/posts/github-skillshare-cross-machine-sync/",
       "/en/posts/agent-skills-after-model-upgrade/",
       "/en/posts/worldcup-predictor-skill-development-retrospective/",
-      "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"
+      "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/",
+      "/en/posts/deepseek-harness-vs-claude-code-v4/",
+      "/en/posts/deepseek-harness-low-high-session-log-analysis/",
+      "/en/posts/windows-usb-port-reset-failed-startup-chime/"
     ].each do |url|
       assert_includes html, %(href="#{url}")
     end
@@ -194,7 +197,10 @@ class SiteFeaturesTest < Minitest::Test
       ["Synchronize Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare", "/en/posts/github-skillshare-cross-machine-sync/"],
       ["How to Use Agent Skills After a Model Upgrade: Replace Generic Process with Specialized Constraints", "/en/posts/agent-skills-after-model-upgrade/"],
       ["From Score Guessing to a Calibrated Workflow: One Month Building a World Cup Prediction Skill", "/en/posts/worldcup-predictor-skill-development-retrospective/"],
-      ["Microsoft Edge Goes Blank After Edge Updates: Recurrent Renderer-State Failures and a Data-Preserving Repair", "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"]
+      ["Microsoft Edge Goes Blank After Edge Updates: Recurrent Renderer-State Failures and a Data-Preserving Repair", "/en/posts/microsoft-edge-blank-pages-renderer-state-repair/"],
+      ["DeepSeek Harness vs. Claude Code for DeepSeek V4: Which Is Better for Everyday Developers?", "/en/posts/deepseek-harness-vs-claude-code-v4/"],
+      ["Why DeepSeek Harness Code Reviews Get Slower: Session-Log Diagnosis and a Low vs. High A/B Test", "/en/posts/deepseek-harness-low-high-session-log-analysis/"],
+      ["Windows 11 USB Startup Chime and Code 43: Diagnosing an Unknown USB Device (Port Reset Failed)", "/en/posts/windows-usb-port-reset-failed-startup-chime/"]
     ]
     chinese_surfaces = {
       "homepage" => read_site("index.html"),

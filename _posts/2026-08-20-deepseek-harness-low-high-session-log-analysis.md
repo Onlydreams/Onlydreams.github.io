@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: deepseek-harness-low-high-session-log-analysis
 title: "DeepSeek Harness 为什么越审查越慢：会话日志诊断与 Low/High A/B"
 date: 2026-08-20 00:05:00 +0800
 categories: [AI, 开发工具]

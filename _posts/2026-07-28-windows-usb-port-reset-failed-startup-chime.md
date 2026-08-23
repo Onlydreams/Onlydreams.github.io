@@ -1,5 +1,7 @@
 ---
 layout: post
+lang: zh-CN
+translation_key: windows-usb-port-reset-failed-startup-chime
 title: "Windows 开机 USB 叮咚声排查：未知 USB 设备（端口重置失败）Code 43"
 date: 2026-07-28 09:00:00 +0800
 author: Onlydreams
