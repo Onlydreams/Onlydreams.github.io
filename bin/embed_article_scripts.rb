@@ -65,10 +65,16 @@ module EmbedArticleScripts
     end
 
     block = embedded_block(script_path)
-    new_article = article.sub(
-      %r{#{Regexp.escape(OPEN_BLOCK)}.*?#{Regexp.escape(CLOSE_BLOCK)}}m,
-      block
-    )
+    pattern = %r{
+      #{Regexp.escape(OPEN_BLOCK)}.*?#{Regexp.escape(CLOSE_BLOCK)}
+      (?=\s*</div>\s*</details>)
+    }mx
+    unless article.match?(pattern)
+      raise "embedded source disclosure boundary not found in #{article_path}"
+    end
+    # Use a block so backslash sequences in PowerShell source are inserted
+    # literally instead of being interpreted as String#sub replacement tokens.
+    new_article = article.sub(pattern) { block }
 
     return "already in sync: #{article_path}" if new_article == article
 

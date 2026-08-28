@@ -16,3 +16,4 @@ $jekyllRunner = "load Gem.bin_path('jekyll', 'jekyll')"
 Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "-e" $jekyllRunner "--" "build" }
 Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/site_features_test.rb" }
 Invoke-Checked { & $env:ONLYDREAMS_RUBY "-rbundler/setup" "test/content_health_test.rb" }
+& (Join-Path $PSScriptRoot "..\test\edge_repair_script_test.ps1")

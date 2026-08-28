@@ -4,29 +4,29 @@ lang: en
 translation_key: microsoft-edge-blank-pages-renderer-state-repair
 title: "Microsoft Edge Goes Blank After Edge Updates: Recurrent Renderer-State Failures and a Data-Preserving Repair"
 date: 2026-08-11 10:55:00 +0800
-updated: 2026-08-19
+updated: 2026-08-28
 author: Onlydreams
 categories: [Developer Tools, Browsers]
 tags: [edge, windows, renderer, extension, troubleshooting]
 status:
   label: 当前可用
-  verified: 2026-08-19
-  environment: Windows x64 build 26200.8973 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83, 150.0.4078.83 → 151.0.4129.72, 151.0.4129.72 → 151.0.4129.93 / Edge Update 1.3.225.7
-  risk: The same failure chain recurred three times on one device (two major-version updates and one same-major patch update), but that does not mean every device is affected. edge.mitigation_manager is undocumented internal state; modify it only after a verified backup and an isolated copy prove the same causal link.
+  verified: 2026-08-28
+  environment: Windows x64 build 26200.9168 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83, 150.0.4078.83 → 151.0.4129.72, 151.0.4129.72 → 151.0.4129.93, nominally 151.0.4129.101 → 151.0.4129.107 while the active launcher remained .72 / Edge Update 1.3.263.3
+  risk: The same zero-renderer fingerprint appeared four times on one device, but the fourth incident also proved that the previous repair restored rendering without converging the update entry points. That does not mean every device is affected. edge.mitigation_manager is undocumented internal state; modify it only after a pre-update verified backup, a completed version-switch check, and isolated copies prove the same causal link.
 ---
 
-Microsoft Edge reached the same failure state three times — after the 149→150 and 150→151 Stable major updates and again during the same-major patch update 151.0.4129.72 → 151.0.4129.93: every website, Settings page, and extension page was blank while the browser process remained alive. In every incident, the new binary had been downloaded and registered without replacing the active binary, and stale renderer AppContainer compatibility state then prevented every renderer process from surviving.
+Microsoft Edge reached the same zero-renderer state for a fourth time after the nominal 151.0.4129.101 → 151.0.4129.107 update. The new evidence corrected the earlier conclusion: restoring renderers is not a complete repair unless the root launcher, Edge Update `pv/opv`, and `new_msedge.exe` also converge on the current version. Otherwise later patches can keep reusing the stale launcher and trigger the same state again.
 
 ---
 
 ## The short version
 
-This was not an individual extension failure and it was not fixed by resetting the entire profile. Two layers had to be repaired independently:
+This was not an individual extension failure and it was not fixed by resetting the entire profile. Two layers had to be repaired and verified independently:
 
-1. Complete the pending Edge binary switch with an official package reinstall.
+1. After closing Edge and completing a pre-update backup, finish the binary switch with a Microsoft-signed installer. The root `msedge.exe` and Edge Update `pv` must match the current version, `opv` must be empty, and `new_msedge.exe` must be gone.
 2. After a full backup and copy-based isolation, remove only `edge.mitigation_manager` from the top-level `Local State` file and let the current Edge version rebuild it.
 
-The first incident occurred during the 149→150 update on July 25, 2026. The same chain returned during 150→151 on August 11 and again during the same-major patch update on August 19.
+The August 19 procedure completed only the second layer. Pages and renderers genuinely recovered, but the root launcher, `pv/opv`, and `new_msedge.exe` were not included in the acceptance test. The August 28 recurrence directly disproved the earlier “complete repair” wording.
 
 | Evidence | 149→150 | 150→151 |
 |---|---|---|
@@ -41,7 +41,7 @@ During the second incident, six Edge processes remained: the browser, GPU, netwo
 
 ## Quick fix: one command, and it stops on any mismatch
 
-For this article's exact failure fingerprint, the repository provides an auditable [repair-edge-renderer.ps1]({{ '/tools/repair-edge-renderer.ps1' | relative_url }}). It bundles backup, isolated comparison, rollback, field-level repair, and cold-start re-verification into one entry point; it will not touch `Local State` just because a website fails to open.
+For this article's exact failure fingerprint, the repository provides an auditable [repair-edge-renderer.ps1]({{ '/tools/repair-edge-renderer.ps1' | relative_url }}). It bundles pre-update backup, version-entry convergence, isolated comparison, rollback, field-level repair, and two cold-start checks into one entry point; it will not touch `Local State` just because a website fails to open.
 
 Start with read-only diagnostics:
 
@@ -57,7 +57,7 @@ Once you have confirmed that both normal pages and `edge://settings` are blank, 
 powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair
 ```
 
-The script attempts an official winget reinstall, backs up and verifies the complete `User Data`, verifies that a fresh profile produces renderers, verifies that copying only the original `Local State` drops renderers to zero, verifies that removing the target object from the copy restores renderers, and only then modifies the original file while leaving a single-file rollback copy. Any failed step stops the script; do not skip the conditions and edit the file manually.
+The script closes Edge, backs up and verifies the complete `User Data` before invoking Edge Update, then attempts an official winget reinstall. It requires the root launcher, the sole version directory, `pv/opv`, and `new_msedge.exe` to converge before testing a fresh profile, proving that the original `Local State` drops renderers to zero, and proving that removing the target object from a copy restores them. Only then does it modify the original file and leave a single-file rollback copy. It performs two cold starts, scans existing registry and shortcut entry points, and opens both `edge://settings` and `https://example.com/` on the second start. The script declares the complete repair accepted only after the user confirms that both pages display real content by entering `YES`. Any failed step stops the script; do not skip the conditions and edit the file manually.
 
 If you have already completed the official reinstall manually and only want to skip the update step inside the script, pass `-SkipUpdate`:
 
@@ -65,7 +65,7 @@ If you have already completed the official reinstall manually and only want to s
 powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
 ```
 
-The script only fits the global renderer-crash fingerprint in this article; it is not a universal Edge blank-page fixer. It never deletes the whole `User Data`, `Default`, cookies, passwords, history, or extensions; the complete backup stays in `%LOCALAPPDATA%\Edge-Recovery` and the temporary isolation copies are removed automatically after verification.
+The script only fits the global renderer-crash fingerprint in this article; it is not a universal Edge blank-page fixer. It never deletes the whole `User Data`, `Default`, cookies, passwords, history, or extensions; the complete backup stays in `%LOCALAPPDATA%\Edge-Recovery`, and temporary isolation cleanup retries after Edge releases its files. If the version entry points have not converged, the script stops before modifying the real `Local State`.
 
 ### Full script: the download and the article stay in sync
 
@@ -123,9 +123,143 @@ function Get-EdgePaths {
     ApplicationDirectory = $applicationDirectory
     Launcher = $launcher
     CurrentBinary = $currentBinary
+    CurrentVersion = $currentVersionDirectory.Name
+    VersionDirectories = @($versionDirectories.Name)
     UserData = $userData
     LocalState = $localState
   }
+}
+
+function Get-EdgeUpdateState {
+  $clientKey = &quot;HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}&quot;
+  if (-not (Test-Path -LiteralPath $clientKey)) {
+    throw &quot;找不到 Edge Update 注册状态，停止处理。&quot;
+  }
+
+  $registration = Get-ItemProperty -LiteralPath $clientKey
+  [pscustomobject]@{
+    ProductVersion = [string]$registration.pv
+    OldProductVersion = [string]$registration.opv
+  }
+}
+
+function Test-EdgeVersionSwitchValues {
+  param(
+    [string]$LauncherVersion,
+    [string]$CurrentVersion,
+    [string]$ProductVersion,
+    [string]$OldProductVersion,
+    [bool]$NewMsedgeExists,
+    [string[]]$VersionDirectories
+  )
+
+  $LauncherVersion -eq $CurrentVersion -and
+    $ProductVersion -eq $CurrentVersion -and
+    [string]::IsNullOrEmpty($OldProductVersion) -and
+    -not $NewMsedgeExists -and
+    $VersionDirectories.Count -eq 1 -and
+    $VersionDirectories[0] -eq $CurrentVersion
+}
+
+function Test-EdgeVersionSwitch {
+  param([pscustomobject]$Paths)
+
+  $launcherVersion = (Get-Item -LiteralPath $Paths.Launcher).VersionInfo.FileVersion
+  $currentVersion = (Get-Item -LiteralPath $Paths.CurrentBinary).VersionInfo.FileVersion
+  $updateState = Get-EdgeUpdateState
+  $newMsedgeExists = Test-Path -LiteralPath (Join-Path $Paths.ApplicationDirectory &quot;new_msedge.exe&quot;)
+  $isComplete = Test-EdgeVersionSwitchValues `
+    -LauncherVersion $launcherVersion `
+    -CurrentVersion $currentVersion `
+    -ProductVersion $updateState.ProductVersion `
+    -OldProductVersion $updateState.OldProductVersion `
+    -NewMsedgeExists $newMsedgeExists `
+    -VersionDirectories $Paths.VersionDirectories
+
+  [pscustomobject]@{
+    LauncherVersion = $launcherVersion
+    CurrentVersion = $currentVersion
+    ProductVersion = $updateState.ProductVersion
+    OldProductVersion = $updateState.OldProductVersion
+    NewMsedgeExists = $newMsedgeExists
+    VersionDirectories = $Paths.VersionDirectories
+    IsComplete = $isComplete
+  }
+}
+
+function Test-EdgeEntrypointTargets {
+  param(
+    [string]$Launcher,
+    [pscustomobject[]]$Entrypoints
+  )
+
+  $expectedLauncher = [System.IO.Path]::GetFullPath($Launcher)
+  $staleEntries = @(
+    foreach ($entry in $Entrypoints) {
+      $matches = if ($entry.Type -eq &quot;Shortcut&quot;) {
+        [System.IO.Path]::GetFullPath($entry.Target) -eq $expectedLauncher
+      } else {
+        [string]$entry.Target -like &quot;*$expectedLauncher*&quot;
+      }
+      if (-not $matches) {
+        $entry
+      }
+    }
+  )
+
+  [pscustomobject]@{
+    CheckedCount = $Entrypoints.Count
+    StaleEntries = $staleEntries
+    IsComplete = $Entrypoints.Count -gt 0 -and $staleEntries.Count -eq 0
+  }
+}
+
+function Get-EdgeEntrypointState {
+  param([string]$Launcher)
+
+  $entries = @()
+  $registryPaths = @(
+    &quot;Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe&quot;,
+    &quot;Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Clients\StartMenuInternet\Microsoft Edge\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\MSEdgeHTM\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\MSEdgePDF\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\microsoft-edge\shell\open\command&quot;
+  )
+  foreach ($registryPath in $registryPaths) {
+    if (Test-Path -LiteralPath $registryPath) {
+      $entries += [pscustomobject]@{
+        Type = &quot;Registry&quot;
+        Location = $registryPath
+        Target = (Get-Item -LiteralPath $registryPath).GetValue(&quot;&quot;)
+      }
+    }
+  }
+
+  $shortcutDirectories = @(
+    (Join-Path $env:ProgramData &quot;Microsoft\Windows\Start Menu\Programs&quot;),
+    (Join-Path $env:APPDATA &quot;Microsoft\Windows\Start Menu\Programs&quot;),
+    (Join-Path $env:PUBLIC &quot;Desktop&quot;),
+    (Join-Path $env:USERPROFILE &quot;Desktop&quot;),
+    (Join-Path $env:APPDATA &quot;Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar&quot;)
+  )
+  $shell = New-Object -ComObject WScript.Shell
+  foreach ($directory in $shortcutDirectories) {
+    if (-not (Test-Path -LiteralPath $directory)) {
+      continue
+    }
+    foreach ($shortcutFile in Get-ChildItem -LiteralPath $directory -Filter &quot;*.lnk&quot; -File -ErrorAction SilentlyContinue) {
+      $shortcut = $shell.CreateShortcut($shortcutFile.FullName)
+      if ($shortcut.TargetPath -match &quot;msedge\.exe$&quot;) {
+        $entries += [pscustomobject]@{
+          Type = &quot;Shortcut&quot;
+          Location = $shortcutFile.FullName
+          Target = $shortcut.TargetPath
+        }
+      }
+    }
+  }
+
+  Test-EdgeEntrypointTargets -Launcher $Launcher -Entrypoints $entries
 }
 
 function Get-RendererCount {
@@ -148,7 +282,46 @@ function Stop-ProfileEdge {
   $result = Get-RendererCount -ProfilePath $ProfilePath
   if ($result.ProcessIds.Count -gt 0) {
     Stop-Process -Id $result.ProcessIds -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
+  }
+
+  foreach ($attempt in 1..10) {
+    if ((Get-RendererCount -ProfilePath $ProfilePath).ProcessCount -eq 0) {
+      Start-Sleep -Seconds 2
+      return
+    }
+    Start-Sleep -Seconds 1
+  }
+
+  throw &quot;临时 Edge profile 仍有进程占用，停止处理：$ProfilePath&quot;
+}
+
+function Assert-TemporaryDirectoryPath {
+  param([string]$Path)
+
+  $resolvedPath = [System.IO.Path]::GetFullPath($Path)
+  $resolvedTemp = [System.IO.Path]::GetFullPath($env:TEMP).TrimEnd(&quot;\&quot;) + &quot;\&quot;
+  if (-not $resolvedPath.StartsWith($resolvedTemp, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw &quot;拒绝清理非临时目录：$resolvedPath&quot;
+  }
+
+  $resolvedPath
+}
+
+function Remove-TemporaryDirectory {
+  param([string]$Path)
+
+  $resolvedPath = Assert-TemporaryDirectoryPath -Path $Path
+
+  foreach ($attempt in 1..5) {
+    try {
+      Remove-Item -LiteralPath $resolvedPath -Recurse -Force
+      return
+    } catch {
+      if ($attempt -eq 5) {
+        throw
+      }
+      Start-Sleep -Seconds 1
+    }
   }
 }
 
@@ -214,24 +387,38 @@ function Remove-MitigationManager {
   }
 }
 
-$paths = Get-EdgePaths
-$launcherVersion = (Get-Item -LiteralPath $paths.Launcher).VersionInfo.FileVersion
-$currentVersion = (Get-Item -LiteralPath $paths.CurrentBinary).VersionInfo.FileVersion
-$state = Get-Content -LiteralPath $paths.LocalState -Raw | ConvertFrom-Json
-$manager = $state.edge.mitigation_manager
+function Invoke-EdgeRendererRepair {
+  param(
+    [switch]$RepairRequested,
+    [switch]$SkipUpdateRequested
+  )
 
-if (-not $Repair) {
+  $paths = Get-EdgePaths
+  $launcherVersion = (Get-Item -LiteralPath $paths.Launcher).VersionInfo.FileVersion
+  $currentVersion = (Get-Item -LiteralPath $paths.CurrentBinary).VersionInfo.FileVersion
+  $versionSwitch = Test-EdgeVersionSwitch -Paths $paths
+  $state = Get-Content -LiteralPath $paths.LocalState -Raw | ConvertFrom-Json
+  $manager = $state.edge.mitigation_manager
+
+  if (-not $RepairRequested) {
+    $entrypoints = Get-EdgeEntrypointState -Launcher $paths.Launcher
   [pscustomobject]@{
     launcher_version = $launcherVersion
     newest_version_binary = $currentVersion
-    new_msedge_exists = Test-Path -LiteralPath (Join-Path $paths.ApplicationDirectory &quot;new_msedge.exe&quot;)
+    version_directories = $versionSwitch.VersionDirectories -join &quot;, &quot;
+    registered_version = $versionSwitch.ProductVersion
+    old_registered_version = $versionSwitch.OldProductVersion
+    new_msedge_exists = $versionSwitch.NewMsedgeExists
+    version_switch_complete = $versionSwitch.IsComplete
+    entrypoints_checked = $entrypoints.CheckedCount
+    entrypoints_complete = $entrypoints.IsComplete
     mitigation_manager_present = $null -ne $manager
     incompatible_version = $manager.renderer_app_container_incompatible_version
     compatible_count = $manager.renderer_app_container_compatible_count
   } | Format-List
   Write-Status &quot;仅完成诊断。确认全部网页和内置页都空白后，再运行 -Repair。&quot;
-  exit 0
-}
+    return
+  }
 
 Write-Status &quot;请先保存 Edge 中未提交的表单或下载任务；按 Enter 后将关闭 Edge。&quot;
 [void](Read-Host)
@@ -241,7 +428,10 @@ if (Get-Process -Name msedge -ErrorAction SilentlyContinue) {
   throw &quot;Edge 仍在运行，停止处理。&quot;
 }
 
-if (-not $SkipUpdate) {
+$backupRoot = Copy-EdgeBackup -UserDataPath $paths.UserData
+Write-Status &quot;更新前完整备份已校验：$backupRoot&quot;
+
+if (-not $SkipUpdateRequested) {
   Write-Status &quot;尝试通过官方 winget 源覆盖安装 Edge。&quot;
   &amp; winget install --id Microsoft.Edge --exact --source winget --force --accept-package-agreements --accept-source-agreements --silent
   if ($LASTEXITCODE -ne 0) {
@@ -250,8 +440,11 @@ if (-not $SkipUpdate) {
   $paths = Get-EdgePaths
 }
 
-$backupRoot = Copy-EdgeBackup -UserDataPath $paths.UserData
-Write-Status &quot;完整备份已校验：$backupRoot&quot;
+$versionSwitch = Test-EdgeVersionSwitch -Paths $paths
+if (-not $versionSwitch.IsComplete) {
+  throw &quot;Edge 版本切换未完成：launcher=$($versionSwitch.LauncherVersion)，pv=$($versionSwitch.ProductVersion)，opv=$($versionSwitch.OldProductVersion)，new_msedge=$($versionSwitch.NewMsedgeExists)，版本目录=$($versionSwitch.VersionDirectories -join &#39;,&#39;)。停止修改 Local State。&quot;
+}
+Write-Status &quot;版本入口已收敛：$($versionSwitch.CurrentVersion)&quot;
 
 $testBase = Join-Path $env:TEMP (&quot;edge-renderer-diagnostic-&quot; + (Get-Date -Format &quot;yyyyMMdd-HHmmss&quot;))
 $freshProfile = Join-Path $testBase &quot;fresh&quot;
@@ -277,7 +470,7 @@ try {
   }
 } finally {
   if (Test-Path -LiteralPath $testBase) {
-    Remove-Item -LiteralPath $testBase -Recurse -Force
+    Remove-TemporaryDirectory -Path $testBase
   }
 }
 
@@ -291,19 +484,88 @@ Move-Item -LiteralPath $temporaryPath -Destination $paths.LocalState -Force
 
 Start-Process -FilePath $paths.Launcher -ArgumentList &quot;edge://settings&quot;
 Start-Sleep -Seconds 7
-$normalProfileRenderers = @(
+$firstColdStartRenderers = @(
   Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
     Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }
 ).Count
 
-if ($normalProfileRenderers -lt 1) {
+if ($firstColdStartRenderers -lt 1) {
   throw &quot;原配置启动后仍没有 renderer；回滚文件保留在：$rollbackPath&quot;
 }
 
-Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
+Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 3
+if (Get-Process -Name msedge -ErrorAction SilentlyContinue) {
+  throw &quot;首次冷启动后 Edge 未完全退出，停止最终验收。&quot;
+}
+
+Start-Process -FilePath $paths.Launcher -ArgumentList @(&quot;edge://settings&quot;, &quot;https://example.com/&quot;)
+Start-Sleep -Seconds 7
+$secondColdStartRenderers = @(
+  Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
+    Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }
+).Count
+$finalVersionSwitch = Test-EdgeVersionSwitch -Paths (Get-EdgePaths)
+$finalEntrypoints = Get-EdgeEntrypointState -Launcher $paths.Launcher
+
+if ($secondColdStartRenderers -lt 1 -or -not $finalVersionSwitch.IsComplete -or -not $finalEntrypoints.IsComplete) {
+  throw &quot;最终自动验收失败；第二次冷启动 renderer=$secondColdStartRenderers，版本切换完成=$($finalVersionSwitch.IsComplete)，入口检查=$($finalEntrypoints.CheckedCount)，旧入口=$($finalEntrypoints.StaleEntries.Count)。回滚文件保留在：$rollbackPath&quot;
+}
+
+Write-Status &quot;自动检查通过。请确认 Edge 中的 edge://settings 与 https://example.com/ 均已显示实际内容。&quot;
+$pageConfirmation = Read-Host &quot;两页均正常时输入 YES&quot;
+if ($pageConfirmation -cne &quot;YES&quot;) {
+  throw &quot;未完成人工页面验收，不声明完整修复。回滚文件保留在：$rollbackPath&quot;
+}
+
+Write-Status &quot;完整修复验收完成。两次冷启动 renderer：$firstColdStartRenderers / $secondColdStartRenderers；版本入口：$($finalVersionSwitch.CurrentVersion)；已检查入口：$($finalEntrypoints.CheckedCount)；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
+}
+
+if ($MyInvocation.InvocationName -ne &quot;.&quot;) {
+  Invoke-EdgeRendererRepair -RepairRequested:$Repair -SkipUpdateRequested:$SkipUpdate
+}
 </code></pre>
 </div>
 </details>
+
+## August 28, 2026: a fourth recurrence exposed the incomplete repair
+
+The August 26 Edge Update log described a nominal `151.0.4129.101 → 151.0.4129.107` update and reported a successful installer result. When every page went blank again on August 28, however, the machine was not in a clean `.101 → .107` state:
+
+| Evidence | Before repair |
+|---|---|
+| Root `msedge.exe` | `151.0.4129.72` |
+| Newest version directory and `pv` | `151.0.4129.107` |
+| `opv` | `151.0.4129.72` |
+| `new_msedge.exe` | Present |
+| Original profile | 5 processes, 0 renderers |
+| `renderer_app_container_incompatible_version` | `151.0.4129.72` |
+| `renderer_app_container_compatible_count` | 100 |
+
+This evidence corrected the August 19 conclusion. Removing the target state had restored renderers, which proved the second-layer trigger, but the root `.72` launcher, `opv`, and `new_msedge.exe` had never been part of the acceptance test. The later `.93`, `.101`, and `.107` files landing on disk did not prove that the active entry point switched to any of them.
+
+An isolated `.107` comparison separated a broken current binary from stale user state:
+
+| Temporary profile | Renderer count |
+|---|---:|
+| Fresh profile | 2 |
+| Fresh profile with only the current `Local State` | 0 |
+| Same copy without `edge.mitigation_manager` | Multiple renderers returned |
+
+The complete repair therefore changed one variable at a time. With Edge fully closed, a complete `User Data` backup in place, and six critical-file SHA-256 checks matching, the Microsoft-signed `.107` system-level installer completed the binary switch. The root launcher and `pv` then both reported `.107`, `opv` was empty, `new_msedge.exe` was gone, and only the `.107` version directory remained. The original profile still produced 6 processes and 0 renderers at that point, proving that the binary mismatch and renderer state were connected but independently repairable layers.
+
+Only after a disposable copy passed the field-level test was `edge.mitigation_manager` removed from the real file, with a single-file rollback copy retained. Two consecutive cold starts of the original profile each produced 14 Edge processes and 7 renderers; a later sample still had 3 live renderers. Five registry entry points and three shortcuts all resolved to the version-independent root `Application\msedge.exe`, with no `.72`, `.93`, or `.101` path left behind.
+
+From this incident onward, “repair complete” means all of the following. The revised script checks the machine-verifiable items automatically and keeps actual page display as an explicit human confirmation:
+
+- the root `msedge.exe`, newest version directory, and Edge Update `pv` match;
+- `opv` is empty and `new_msedge.exe` is absent;
+- the original profile creates renderers on two consecutive cold starts;
+- both a normal website and an internal `edge://` page load;
+- registry entry points and shortcuts do not target an old version directory;
+- the complete backup, single-file rollback, and temporary-directory cleanup are all confirmed.
+
+Microsoft's Stable Channel notes describe `.107` only as a collection of bug, performance, and security fixes, and the current Known Issues page does not list this exact fingerprint. It would therefore be inaccurate to call `.107` an official targeted fix. The local test proves only that the `.107` binary works with a fresh profile and does not automatically heal this stale `Local State`.
 
 ## 2026-08-19: the same-major patch update recurred
 
@@ -317,7 +579,7 @@ Opening `edge://settings` with the original profile left 6 Edge processes with 0
 | Fresh profile with only the original `Local State` | 0 |
 | Same copy without `edge.mitigation_manager` | 3 |
 
-Applying the same minimal change to the original file, the normal entry point first produced 6 renderers in the built-in settings page; after one cold start, a normal page produced 10 renderers, and `edge.mitigation_manager` was rebuilt with the compatibility count reset to zero. This proves the state object was necessary for this zero-renderer recurrence; it does not prove that Microsoft has confirmed a universal root cause or that future updates will use the same mechanism.
+Applying the same minimal change to the original file, the normal entry point first produced 6 renderers in the built-in settings page; after one cold start, a normal page produced 10 renderers, and `edge.mitigation_manager` was rebuilt with the compatibility count reset to zero. This proved that the state object was necessary for that zero-renderer recurrence. The August 28 recurrence further proved that the procedure had not converged the version entry points, so it should be described as renderer-state recovery rather than a complete repair.
 
 ## Failure signature
 
@@ -327,14 +589,14 @@ Use this article only when several of these signals appear together:
 - Several extensions report crashes at the same time.
 - The browser, network, and GPU processes remain alive, but no process has `--type=renderer`.
 - Edge Breadcrumbs repeatedly record `RenderProcessGone` and `ERR_ABORTED` after navigation.
-- The active `msedge.exe` version is older than the registered version.
+- The active `msedge.exe` version is older than the registered version; in the fourth sample the root launcher was still `.72` while `pv` had reached `.107`.
 - A target-version `new_msedge.exe` remains in the application directory.
 - `edge.mitigation_manager` identifies the active old version as renderer-AppContainer incompatible and the compatibility count has reached 100.
 - A fresh temporary profile creates renderers, but copying only the original `Local State` into another fresh profile makes the renderer count return to zero.
 
 If only one website fails, a temporary profile also fails, renderer processes exist normally, or the binary versions already matched before the failure, this is not the chain verified here. Investigate networking, GPU state, system policy, security software, or a specific extension instead.
 
-As of August 11, 2026, the Microsoft Edge known-issues page did not list this exact combination. The internal state fields are not a public contract. The point of this write-up is the isolation method, not a universal instruction to delete browser state.
+As of August 28, 2026, the Microsoft Edge known-issues page did not list this exact combination. The internal state fields are not a public contract. The point of this write-up is the isolation method and the separate binary/state acceptance checks, not a universal instruction to delete browser state.
 
 ## Why resetting the profile is the wrong first move
 
@@ -567,9 +829,9 @@ Copy-Item -LiteralPath "<rollback .bak path>" `
   -Force
 ```
 
-## Verification after the second repair
+## Verification after the complete repair
 
-The original `User Data\Default` profile was preserved. After the field-level repair:
+The original `User Data\Default` profile was preserved. The earlier investigations proved that the field-level change restored renderers; the fourth incident added the missing version-entry checks:
 
 - the original profile produced renderer processes again;
 - after opening a normal website and `edge://settings`, 6 renderers were alive;
@@ -577,21 +839,23 @@ The original `User Data\Default` profile was preserved. After the field-level re
 - no new `RenderProcessGone` or `ERR_ABORTED` event appeared;
 - Edge 151 rebuilt `edge.mitigation_manager` with the incompatible version updated to 151 and the compatibility count reset to zero;
 - bookmarks, history, cookies, passwords, and extensions were not reset.
+- after the fourth repair, both the root launcher and `pv` were `151.0.4129.107`, `opv` was empty, `new_msedge.exe` was gone, and only the `.107` version directory remained;
+- two consecutive cold starts each produced 7 renderers, and five registry entry points plus three shortcuts all resolved to the root launcher rather than an old version directory.
 
-The acceptance test is not merely “a window opens.” Count renderers again, load both a normal website and an internal `edge://` page, and compare the same Breadcrumbs signals before and after.
+The acceptance test is not merely “a window opens,” and it cannot stop at “renderers returned.” Count renderers again, load both a normal website and an internal `edge://` page, compare the same Breadcrumbs signals, verify the root launcher and `pv/opv`, confirm that `new_msedge.exe` is gone, and repeat a cold start.
 
 Keep the full backup and single-file rollback copy for several days. Confirm cold starts, a Windows restart, and later automatic updates before deciding to remove them manually.
 
 ## What the evidence proves—and what it does not
 
-The three investigations establish that:
+The four investigations establish that:
 
 - simultaneous extension failures followed the loss of all renderers;
-- the 149→150, 150→151, and 151.0.4129.72→151.0.4129.93 updates all left the active binary behind the registered version;
+- the 149→150, 150→151, 151.0.4129.72→151.0.4129.93, and nominal `.101→.107` update with the active launcher still at `.72` all left the active binary behind the registered version;
 - the original `Local State` reproduced the zero-renderer state in isolation;
 - removing only `edge.mitigation_manager` from the same copied state restored renderers;
 - applying the same minimum change to the original profile restored pages and extensions;
-- this two-layer chain recurred three times on the same device — two consecutive major updates and one same-major patch update.
+- this two-layer chain appeared four times on the same device, and the fourth incident proved that renderer recovery cannot substitute for version-entry convergence.
 
 They do not establish that:
 
@@ -601,11 +865,13 @@ They do not establish that:
 - the undocumented object will keep the same structure or behavior in future versions;
 - an extension can always be ruled out from its crash notification alone.
 
-On August 11, 2026, I submitted a redacted report through Edge's built-in Send feedback tool. Submission does not mean Microsoft has accepted the case, confirmed the cause, or scheduled a fix.
+On August 11, 2026, I submitted a redacted report through Edge's built-in Send feedback tool. Submission does not mean Microsoft has accepted the case, confirmed the cause, or scheduled a fix. As of August 28, Microsoft's Known Issues page still did not list this exact chain, and the `.107` release notes did not name a renderer-state or update-switch fix.
 
 ## References
 
 - [Microsoft Learn: Microsoft Edge stops responding, shows a blank window, or fails to start](https://learn.microsoft.com/en-us/troubleshoot/microsoft-edge/performance/edge-crashes-fails-to-launch)
 - [Microsoft Learn: Edge update, installation, and rollback failures](https://learn.microsoft.com/en-us/troubleshoot/microsoft-edge/manageability/update-install-rollback-failures)
+- [Microsoft Learn: Microsoft Edge Stable Channel release notes](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-stable-channel)
 - [Microsoft Learn: Microsoft Edge known issues](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-known-issues)
+- [Reddit: community reports connecting post-update blank pages with `Local State`](https://www.reddit.com/r/MicrosoftEdge/comments/1pmtril/edge_goes_to_blank_page_for_any_user_that_logs_in/)
 - [Microsoft Q&A: similar report involving every tab, Settings page, and extension](https://learn.microsoft.com/en-us/answers/questions/2398262/microsoft-edge-every-tab-crashes-instantly-includi)

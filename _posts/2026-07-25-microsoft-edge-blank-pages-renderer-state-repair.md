@@ -4,7 +4,7 @@ lang: zh-CN
 translation_key: microsoft-edge-blank-pages-renderer-state-repair
 title: "Microsoft Edge 更新后全部网页空白：renderer 状态复发的快速修复与排查"
 date: 2026-07-25 09:00:00 +0800
-updated: 2026-08-19
+updated: 2026-08-28
 author: Onlydreams
 categories: [开发工具, 浏览器]
 tags: [edge, windows, renderer, extension, troubleshooting]
@@ -13,12 +13,12 @@ series_order:
   windows-troubleshooting: 2
 status:
   label: 当前可用
-  verified: 2026-08-19
-  environment: Windows x64 build 26200.8973 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83、150.0.4078.83 → 151.0.4129.72、151.0.4129.72 → 151.0.4129.93 / Edge Update 1.3.225.7
-  risk: 已在同一设备的两次大版本更新和一次同主版本补丁更新中复现，但不能据此推断所有设备都会受影响；edge.mitigation_manager 属于未公开的内部状态，脚本也只有在完整备份和三组隔离对照全部通过后才会修改它。
+  verified: 2026-08-28
+  environment: Windows x64 build 26200.9168 / Microsoft Edge Stable 149.0.4022.98 → 150.0.4078.83、150.0.4078.83 → 151.0.4129.72、151.0.4129.72 → 151.0.4129.93、名义 151.0.4129.101 → 151.0.4129.107（实际入口仍停在 .72）/ Edge Update 1.3.263.3
+  risk: 已在同一设备四次观察到同一 renderer 归零指纹，但第四次也证明此前只恢复渲染、没有完成更新入口收敛；不能据此推断所有设备都会受影响。edge.mitigation_manager 属于未公开的内部状态，脚本只有在更新前完整备份、版本切换验收和三组隔离对照全部通过后才会修改它。
 ---
 
-记录 Microsoft Edge 在更新后所有网页、设置页和扩展页同时空白的排查。已在两次 Stable 大版本更新和一次同主版本补丁更新中观察到同一故障链：更新切换异常叠加旧版 renderer 兼容状态；只移除一个经过隔离实验确认可重建的状态对象，原有书签、历史、Cookie、密码和扩展均得以保留。
+记录 Microsoft Edge 在更新后所有网页、设置页和扩展页同时空白的排查。第四次复发证明，只让 renderer 恢复并不等于更新链路已经修好：必须先让启动入口、`pv/opv` 和 `new_msedge.exe` 全部收敛到当前版本，再处理经过隔离实验确认可重建的 renderer 状态；否则后续补丁仍可能沿用旧入口并再次归零。
 
 ---
 
@@ -31,14 +31,16 @@ status:
 
 扩展报错只是连带现象。禁用所有扩展以后，renderer 数量仍然是 0；同一套 Edge 程序使用全新临时配置却能正常生成 renderer，说明网络、GPU、沙箱和扩展本身都不是这次故障的直接原因。
 
-两次最终修复都分为两步：
+完整修复必须分为两步，而且两层要分别验收：
 
-- 优先通过官方包覆盖安装，尝试让实际程序完成版本切换。
+- 在关闭 Edge 且完成更新前备份后，通过微软签名的官方安装器完成版本切换；正式 `msedge.exe`、Edge Update 的 `pv` 必须等于当前版本，`opv` 必须清空，`new_msedge.exe` 必须消失。
 - 在完整备份和副本验证后，只移除 `Local State` 里的 `edge.mitigation_manager`，由当前版本自动重建。
+
+2026-08-19 的处理只完成了第二层：页面和 renderer 当时确实恢复，但没有验证根启动入口、`pv/opv` 和 `new_msedge.exe` 已收敛，因此不能再称为“最终修复”。这个验收缺口直到 2026-08-28 再次复发才被直接证伪。
 
 ## 快速处理：一条命令，遇到不匹配就停止
 
-针对本文的**精确故障指纹**，仓库提供了可审查的 [repair-edge-renderer.ps1]({{ '/tools/repair-edge-renderer.ps1' | relative_url }})。它把“备份、隔离对照、回滚文件、字段级修复、冷启动复测”收进一个入口；不会因为某个网站打不开就直接改 `Local State`。
+针对本文的**精确故障指纹**，仓库提供了可审查的 [repair-edge-renderer.ps1]({{ '/tools/repair-edge-renderer.ps1' | relative_url }})。它把“更新前备份、版本入口收敛、隔离对照、回滚文件、字段级修复、两次冷启动复测”收进一个入口；不会因为某个网站打不开就直接改 `Local State`。
 
 先只读诊断：
 
@@ -54,7 +56,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $script
 powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair
 ```
 
-脚本会依次：尝试官方 winget 覆盖安装、备份并校验完整 `User Data`、验证空 profile 有 renderer、验证“只复制原 `Local State`”会令 renderer 归零、验证删除副本中的目标对象能恢复 renderer，最后才修改原文件并留下单文件回滚副本。任一步失败都会停止；此时不要跳过条件强行改文件。
+脚本会依次：关闭 Edge，先备份并校验完整 `User Data`，再尝试官方 winget 覆盖安装；随后要求正式入口版本、唯一版本目录、`pv/opv` 和 `new_msedge.exe` 全部收敛，验证空 profile 有 renderer、验证“只复制原 `Local State`”会令 renderer 归零、验证删除副本中的目标对象能恢复 renderer，最后才修改原文件并留下单文件回滚副本。修复后还会执行两次冷启动，扫描现有注册表和快捷方式入口，并在第二次启动时打开 `edge://settings` 与 `https://example.com/`。只有用户确认两页实际显示内容并输入 `YES` 后，脚本才会声明完整修复验收完成。任一步失败都会停止；此时不要跳过条件强行改文件。
 
 如果已手动完成官方覆盖安装、只想跳过脚本内的更新步骤，可额外传入 `-SkipUpdate`：
 
@@ -62,7 +64,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair
 powershell -NoProfile -ExecutionPolicy Bypass -File $script -Repair -SkipUpdate
 ```
 
-脚本只适用于本文的全局 renderer 崩溃指纹，不是 Edge 空白页的万能修复器。它不会删除整个 `User Data`、`Default`、Cookie、密码、历史或扩展；完整备份会保留在 `%LOCALAPPDATA%\Edge-Recovery`，临时隔离副本会在验证结束后自动清理。
+脚本只适用于本文的全局 renderer 崩溃指纹，不是 Edge 空白页的万能修复器。它不会删除整个 `User Data`、`Default`、Cookie、密码、历史或扩展；完整备份会保留在 `%LOCALAPPDATA%\Edge-Recovery`，临时隔离副本会在进程释放文件后重试清理。若版本入口没有收敛，脚本会在修改真实 `Local State` 前停止。
 
 ### 脚本全文：下载版与正文同步
 
@@ -120,9 +122,143 @@ function Get-EdgePaths {
     ApplicationDirectory = $applicationDirectory
     Launcher = $launcher
     CurrentBinary = $currentBinary
+    CurrentVersion = $currentVersionDirectory.Name
+    VersionDirectories = @($versionDirectories.Name)
     UserData = $userData
     LocalState = $localState
   }
+}
+
+function Get-EdgeUpdateState {
+  $clientKey = &quot;HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}&quot;
+  if (-not (Test-Path -LiteralPath $clientKey)) {
+    throw &quot;找不到 Edge Update 注册状态，停止处理。&quot;
+  }
+
+  $registration = Get-ItemProperty -LiteralPath $clientKey
+  [pscustomobject]@{
+    ProductVersion = [string]$registration.pv
+    OldProductVersion = [string]$registration.opv
+  }
+}
+
+function Test-EdgeVersionSwitchValues {
+  param(
+    [string]$LauncherVersion,
+    [string]$CurrentVersion,
+    [string]$ProductVersion,
+    [string]$OldProductVersion,
+    [bool]$NewMsedgeExists,
+    [string[]]$VersionDirectories
+  )
+
+  $LauncherVersion -eq $CurrentVersion -and
+    $ProductVersion -eq $CurrentVersion -and
+    [string]::IsNullOrEmpty($OldProductVersion) -and
+    -not $NewMsedgeExists -and
+    $VersionDirectories.Count -eq 1 -and
+    $VersionDirectories[0] -eq $CurrentVersion
+}
+
+function Test-EdgeVersionSwitch {
+  param([pscustomobject]$Paths)
+
+  $launcherVersion = (Get-Item -LiteralPath $Paths.Launcher).VersionInfo.FileVersion
+  $currentVersion = (Get-Item -LiteralPath $Paths.CurrentBinary).VersionInfo.FileVersion
+  $updateState = Get-EdgeUpdateState
+  $newMsedgeExists = Test-Path -LiteralPath (Join-Path $Paths.ApplicationDirectory &quot;new_msedge.exe&quot;)
+  $isComplete = Test-EdgeVersionSwitchValues `
+    -LauncherVersion $launcherVersion `
+    -CurrentVersion $currentVersion `
+    -ProductVersion $updateState.ProductVersion `
+    -OldProductVersion $updateState.OldProductVersion `
+    -NewMsedgeExists $newMsedgeExists `
+    -VersionDirectories $Paths.VersionDirectories
+
+  [pscustomobject]@{
+    LauncherVersion = $launcherVersion
+    CurrentVersion = $currentVersion
+    ProductVersion = $updateState.ProductVersion
+    OldProductVersion = $updateState.OldProductVersion
+    NewMsedgeExists = $newMsedgeExists
+    VersionDirectories = $Paths.VersionDirectories
+    IsComplete = $isComplete
+  }
+}
+
+function Test-EdgeEntrypointTargets {
+  param(
+    [string]$Launcher,
+    [pscustomobject[]]$Entrypoints
+  )
+
+  $expectedLauncher = [System.IO.Path]::GetFullPath($Launcher)
+  $staleEntries = @(
+    foreach ($entry in $Entrypoints) {
+      $matches = if ($entry.Type -eq &quot;Shortcut&quot;) {
+        [System.IO.Path]::GetFullPath($entry.Target) -eq $expectedLauncher
+      } else {
+        [string]$entry.Target -like &quot;*$expectedLauncher*&quot;
+      }
+      if (-not $matches) {
+        $entry
+      }
+    }
+  )
+
+  [pscustomobject]@{
+    CheckedCount = $Entrypoints.Count
+    StaleEntries = $staleEntries
+    IsComplete = $Entrypoints.Count -gt 0 -and $staleEntries.Count -eq 0
+  }
+}
+
+function Get-EdgeEntrypointState {
+  param([string]$Launcher)
+
+  $entries = @()
+  $registryPaths = @(
+    &quot;Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe&quot;,
+    &quot;Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Clients\StartMenuInternet\Microsoft Edge\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\MSEdgeHTM\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\MSEdgePDF\shell\open\command&quot;,
+    &quot;Registry::HKEY_CLASSES_ROOT\microsoft-edge\shell\open\command&quot;
+  )
+  foreach ($registryPath in $registryPaths) {
+    if (Test-Path -LiteralPath $registryPath) {
+      $entries += [pscustomobject]@{
+        Type = &quot;Registry&quot;
+        Location = $registryPath
+        Target = (Get-Item -LiteralPath $registryPath).GetValue(&quot;&quot;)
+      }
+    }
+  }
+
+  $shortcutDirectories = @(
+    (Join-Path $env:ProgramData &quot;Microsoft\Windows\Start Menu\Programs&quot;),
+    (Join-Path $env:APPDATA &quot;Microsoft\Windows\Start Menu\Programs&quot;),
+    (Join-Path $env:PUBLIC &quot;Desktop&quot;),
+    (Join-Path $env:USERPROFILE &quot;Desktop&quot;),
+    (Join-Path $env:APPDATA &quot;Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar&quot;)
+  )
+  $shell = New-Object -ComObject WScript.Shell
+  foreach ($directory in $shortcutDirectories) {
+    if (-not (Test-Path -LiteralPath $directory)) {
+      continue
+    }
+    foreach ($shortcutFile in Get-ChildItem -LiteralPath $directory -Filter &quot;*.lnk&quot; -File -ErrorAction SilentlyContinue) {
+      $shortcut = $shell.CreateShortcut($shortcutFile.FullName)
+      if ($shortcut.TargetPath -match &quot;msedge\.exe$&quot;) {
+        $entries += [pscustomobject]@{
+          Type = &quot;Shortcut&quot;
+          Location = $shortcutFile.FullName
+          Target = $shortcut.TargetPath
+        }
+      }
+    }
+  }
+
+  Test-EdgeEntrypointTargets -Launcher $Launcher -Entrypoints $entries
 }
 
 function Get-RendererCount {
@@ -145,7 +281,46 @@ function Stop-ProfileEdge {
   $result = Get-RendererCount -ProfilePath $ProfilePath
   if ($result.ProcessIds.Count -gt 0) {
     Stop-Process -Id $result.ProcessIds -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
+  }
+
+  foreach ($attempt in 1..10) {
+    if ((Get-RendererCount -ProfilePath $ProfilePath).ProcessCount -eq 0) {
+      Start-Sleep -Seconds 2
+      return
+    }
+    Start-Sleep -Seconds 1
+  }
+
+  throw &quot;临时 Edge profile 仍有进程占用，停止处理：$ProfilePath&quot;
+}
+
+function Assert-TemporaryDirectoryPath {
+  param([string]$Path)
+
+  $resolvedPath = [System.IO.Path]::GetFullPath($Path)
+  $resolvedTemp = [System.IO.Path]::GetFullPath($env:TEMP).TrimEnd(&quot;\&quot;) + &quot;\&quot;
+  if (-not $resolvedPath.StartsWith($resolvedTemp, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw &quot;拒绝清理非临时目录：$resolvedPath&quot;
+  }
+
+  $resolvedPath
+}
+
+function Remove-TemporaryDirectory {
+  param([string]$Path)
+
+  $resolvedPath = Assert-TemporaryDirectoryPath -Path $Path
+
+  foreach ($attempt in 1..5) {
+    try {
+      Remove-Item -LiteralPath $resolvedPath -Recurse -Force
+      return
+    } catch {
+      if ($attempt -eq 5) {
+        throw
+      }
+      Start-Sleep -Seconds 1
+    }
   }
 }
 
@@ -211,24 +386,38 @@ function Remove-MitigationManager {
   }
 }
 
-$paths = Get-EdgePaths
-$launcherVersion = (Get-Item -LiteralPath $paths.Launcher).VersionInfo.FileVersion
-$currentVersion = (Get-Item -LiteralPath $paths.CurrentBinary).VersionInfo.FileVersion
-$state = Get-Content -LiteralPath $paths.LocalState -Raw | ConvertFrom-Json
-$manager = $state.edge.mitigation_manager
+function Invoke-EdgeRendererRepair {
+  param(
+    [switch]$RepairRequested,
+    [switch]$SkipUpdateRequested
+  )
 
-if (-not $Repair) {
+  $paths = Get-EdgePaths
+  $launcherVersion = (Get-Item -LiteralPath $paths.Launcher).VersionInfo.FileVersion
+  $currentVersion = (Get-Item -LiteralPath $paths.CurrentBinary).VersionInfo.FileVersion
+  $versionSwitch = Test-EdgeVersionSwitch -Paths $paths
+  $state = Get-Content -LiteralPath $paths.LocalState -Raw | ConvertFrom-Json
+  $manager = $state.edge.mitigation_manager
+
+  if (-not $RepairRequested) {
+    $entrypoints = Get-EdgeEntrypointState -Launcher $paths.Launcher
   [pscustomobject]@{
     launcher_version = $launcherVersion
     newest_version_binary = $currentVersion
-    new_msedge_exists = Test-Path -LiteralPath (Join-Path $paths.ApplicationDirectory &quot;new_msedge.exe&quot;)
+    version_directories = $versionSwitch.VersionDirectories -join &quot;, &quot;
+    registered_version = $versionSwitch.ProductVersion
+    old_registered_version = $versionSwitch.OldProductVersion
+    new_msedge_exists = $versionSwitch.NewMsedgeExists
+    version_switch_complete = $versionSwitch.IsComplete
+    entrypoints_checked = $entrypoints.CheckedCount
+    entrypoints_complete = $entrypoints.IsComplete
     mitigation_manager_present = $null -ne $manager
     incompatible_version = $manager.renderer_app_container_incompatible_version
     compatible_count = $manager.renderer_app_container_compatible_count
   } | Format-List
   Write-Status &quot;仅完成诊断。确认全部网页和内置页都空白后，再运行 -Repair。&quot;
-  exit 0
-}
+    return
+  }
 
 Write-Status &quot;请先保存 Edge 中未提交的表单或下载任务；按 Enter 后将关闭 Edge。&quot;
 [void](Read-Host)
@@ -238,7 +427,10 @@ if (Get-Process -Name msedge -ErrorAction SilentlyContinue) {
   throw &quot;Edge 仍在运行，停止处理。&quot;
 }
 
-if (-not $SkipUpdate) {
+$backupRoot = Copy-EdgeBackup -UserDataPath $paths.UserData
+Write-Status &quot;更新前完整备份已校验：$backupRoot&quot;
+
+if (-not $SkipUpdateRequested) {
   Write-Status &quot;尝试通过官方 winget 源覆盖安装 Edge。&quot;
   &amp; winget install --id Microsoft.Edge --exact --source winget --force --accept-package-agreements --accept-source-agreements --silent
   if ($LASTEXITCODE -ne 0) {
@@ -247,8 +439,11 @@ if (-not $SkipUpdate) {
   $paths = Get-EdgePaths
 }
 
-$backupRoot = Copy-EdgeBackup -UserDataPath $paths.UserData
-Write-Status &quot;完整备份已校验：$backupRoot&quot;
+$versionSwitch = Test-EdgeVersionSwitch -Paths $paths
+if (-not $versionSwitch.IsComplete) {
+  throw &quot;Edge 版本切换未完成：launcher=$($versionSwitch.LauncherVersion)，pv=$($versionSwitch.ProductVersion)，opv=$($versionSwitch.OldProductVersion)，new_msedge=$($versionSwitch.NewMsedgeExists)，版本目录=$($versionSwitch.VersionDirectories -join &#39;,&#39;)。停止修改 Local State。&quot;
+}
+Write-Status &quot;版本入口已收敛：$($versionSwitch.CurrentVersion)&quot;
 
 $testBase = Join-Path $env:TEMP (&quot;edge-renderer-diagnostic-&quot; + (Get-Date -Format &quot;yyyyMMdd-HHmmss&quot;))
 $freshProfile = Join-Path $testBase &quot;fresh&quot;
@@ -274,7 +469,7 @@ try {
   }
 } finally {
   if (Test-Path -LiteralPath $testBase) {
-    Remove-Item -LiteralPath $testBase -Recurse -Force
+    Remove-TemporaryDirectory -Path $testBase
   }
 }
 
@@ -288,19 +483,88 @@ Move-Item -LiteralPath $temporaryPath -Destination $paths.LocalState -Force
 
 Start-Process -FilePath $paths.Launcher -ArgumentList &quot;edge://settings&quot;
 Start-Sleep -Seconds 7
-$normalProfileRenderers = @(
+$firstColdStartRenderers = @(
   Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
     Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }
 ).Count
 
-if ($normalProfileRenderers -lt 1) {
+if ($firstColdStartRenderers -lt 1) {
   throw &quot;原配置启动后仍没有 renderer；回滚文件保留在：$rollbackPath&quot;
 }
 
-Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
+Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 3
+if (Get-Process -Name msedge -ErrorAction SilentlyContinue) {
+  throw &quot;首次冷启动后 Edge 未完全退出，停止最终验收。&quot;
+}
+
+Start-Process -FilePath $paths.Launcher -ArgumentList @(&quot;edge://settings&quot;, &quot;https://example.com/&quot;)
+Start-Sleep -Seconds 7
+$secondColdStartRenderers = @(
+  Get-CimInstance Win32_Process -Filter &quot;Name = &#39;msedge.exe&#39;&quot; |
+    Where-Object { $_.CommandLine -match &quot;--type=renderer&quot; }
+).Count
+$finalVersionSwitch = Test-EdgeVersionSwitch -Paths (Get-EdgePaths)
+$finalEntrypoints = Get-EdgeEntrypointState -Launcher $paths.Launcher
+
+if ($secondColdStartRenderers -lt 1 -or -not $finalVersionSwitch.IsComplete -or -not $finalEntrypoints.IsComplete) {
+  throw &quot;最终自动验收失败；第二次冷启动 renderer=$secondColdStartRenderers，版本切换完成=$($finalVersionSwitch.IsComplete)，入口检查=$($finalEntrypoints.CheckedCount)，旧入口=$($finalEntrypoints.StaleEntries.Count)。回滚文件保留在：$rollbackPath&quot;
+}
+
+Write-Status &quot;自动检查通过。请确认 Edge 中的 edge://settings 与 https://example.com/ 均已显示实际内容。&quot;
+$pageConfirmation = Read-Host &quot;两页均正常时输入 YES&quot;
+if ($pageConfirmation -cne &quot;YES&quot;) {
+  throw &quot;未完成人工页面验收，不声明完整修复。回滚文件保留在：$rollbackPath&quot;
+}
+
+Write-Status &quot;完整修复验收完成。两次冷启动 renderer：$firstColdStartRenderers / $secondColdStartRenderers；版本入口：$($finalVersionSwitch.CurrentVersion)；已检查入口：$($finalEntrypoints.CheckedCount)；完整备份：$backupRoot；单文件回滚：$rollbackPath&quot;
+}
+
+if ($MyInvocation.InvocationName -ne &quot;.&quot;) {
+  Invoke-EdgeRendererRepair -RepairRequested:$Repair -SkipUpdateRequested:$SkipUpdate
+}
 </code></pre>
 </div>
 </details>
+
+## 2026-08-28：第四次复发暴露“只恢复 renderer”并不彻底
+
+8 月 26 日的 Edge Update 日志显示名义更新为 `151.0.4129.101 → 151.0.4129.107`，安装器返回成功；但 8 月 28 日页面再次全部空白时，真实状态并不是一次干净的 `.101 → .107` 切换：
+
+| 证据 | 修复前 |
+|---|---|
+| 根目录 `msedge.exe` | `151.0.4129.72` |
+| 最新版本目录和 `pv` | `151.0.4129.107` |
+| `opv` | `151.0.4129.72` |
+| `new_msedge.exe` | 存在 |
+| 正常 profile | 5 个进程，0 个 renderer |
+| `renderer_app_container_incompatible_version` | `151.0.4129.72` |
+| `renderer_app_container_compatible_count` | 100 |
+
+这组证据反过来否定了 8 月 19 日“最终修复”的表述：当时删除目标状态后 renderer 恢复，只证明了第二层直接触发点；根入口仍可能停在 `.72`，更新器的 `opv` 和 `new_msedge.exe` 也没有被纳入验收。`.93`、`.101` 和 `.107` 先后落盘，并不等于实际入口完成了对应切换。
+
+为了区分“`.107` 本身损坏”和“旧状态仍能拖垮 `.107`”，再次使用 `.107` 二进制做隔离对照：
+
+| 临时 profile | renderer 数量 |
+|---|---:|
+| 全新 profile | 2 |
+| 全新 profile 只复制当前 `Local State` | 0 |
+| 同一副本只移除 `edge.mitigation_manager` | 恢复为多个 renderer |
+
+因此本次修复严格分成两个单变量步骤。先在 Edge 完全退出、完整 `User Data` 已备份且 6 个关键文件 SHA-256 一致的前提下，运行微软有效签名的 `.107` 系统级安装器。完成后，根入口和 `pv` 都变为 `.107`，`opv` 清空，`new_msedge.exe` 消失，旧版本目录清理完毕。此时原 profile 仍是 6 个进程、0 个 renderer，证明版本错配与 renderer 状态残留确实是相连但独立的两层问题。
+
+随后只在通过隔离验证的副本和真实文件中移除 `edge.mitigation_manager`，并保留单文件回滚副本。真实 profile 连续两次冷启动都得到 14 个 Edge 进程、7 个 renderer；稍后再次采样仍有 3 个 renderer 存活。另检查 5 个系统注册入口和 3 个快捷方式，全部指向不带版本号的根入口 `Application\msedge.exe`，没有 `.72`、`.93` 或 `.101` 的版本专属路径。
+
+从这次开始，“修复完成”必须同时满足；新版脚本会自动检查可机器判定的项目，并把页面实际显示保留为明确的人工确认：
+
+- 根目录 `msedge.exe`、最新版本目录和 Edge Update `pv` 三者版本一致；
+- `opv` 为空，`new_msedge.exe` 不存在；
+- 正常 profile 连续两次冷启动都能生成 renderer；
+- 普通网页和 `edge://` 内置页都能加载；
+- 注册入口和快捷方式不指向旧版本目录；
+- 完整备份、单文件回滚和临时目录清理均已确认。
+
+微软的 Stable Channel 说明只把 `.107` 描述为修复多项 bug、性能和安全问题，当前 Known Issues 页面也没有登记本文这组精确指纹。因此不能把 `.107` 写成“官方专项修复”；本机实测只能证明 `.107` 二进制在全新 profile 下正常，但不会自动清理这份旧 `Local State`。
 
 ## 2026-08-19：同主版本补丁更新同样复发
 
@@ -314,7 +578,7 @@ Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers�
 | 全新 profile 只复制原 `Local State` | 0 |
 | 同一副本只移除 `edge.mitigation_manager` | 3 |
 
-对原文件执行同一最小修改后，正常入口先在内置设置页生成 6 个 renderer；一次冷启动后，普通网页生成 10 个 renderer，`edge.mitigation_manager` 自动重建且兼容计数归零。此结果证明状态对象是这次 renderer 归零的必要条件；它不能证明微软已经确认通用根因，也不能保证后续更新必然采用相同机制。
+对原文件执行同一最小修改后，正常入口先在内置设置页生成 6 个 renderer；一次冷启动后，普通网页生成 10 个 renderer，`edge.mitigation_manager` 自动重建且兼容计数归零。此结果证明状态对象是这次 renderer 归零的必要条件；但 2026-08-28 的复发进一步证明，这次处理没有完成版本入口收敛，只能称为 renderer 状态恢复，不能称为完整修复。
 
 ## 2026-08-11：150→151 再次复发
 
@@ -352,14 +616,14 @@ Write-Status &quot;修复完成。原配置 renderer：$normalProfileRenderers�
 - 普通网页、`edge://settings` 和 `edge://extensions` 同时空白或崩溃，关闭 Edge 后多个扩展一起报告崩溃。
 - 浏览器主进程、网络进程和 GPU 进程仍在，但带有 `--type=renderer` 的进程数量为 0。
 - Edge Breadcrumbs 在导航后连续记录 `RenderProcessGone` 和 `ERR_ABORTED`。
-- 实际 `msedge.exe` 落后于包管理器登记版本：首次为 `149.0.4022.98` 对 `150.0.4078.83`，第二次为 `150.0.4078.83` 对 `151.0.4129.72`。
-- 应用目录存在目标版本的 `new_msedge.exe`；首次更新日志长期出现 `pv=150 / opv=149`，第二次则直接观察到 150、151 两个版本目录长期并存。
+- 实际 `msedge.exe` 落后于包管理器登记版本：首次为 `149.0.4022.98` 对 `150.0.4078.83`，第二次为 `150.0.4078.83` 对 `151.0.4129.72`，第四次则是根入口仍为 `.72`、`pv` 已到 `.107`。
+- 应用目录存在目标版本的 `new_msedge.exe`；首次更新日志长期出现 `pv=150 / opv=149`，第四次明确记录 `pv=.107 / opv=.72`。
 - `Local State` 的 `edge.mitigation_manager` 中，`renderer_app_container_incompatible_version` 仍指向实际运行的旧版本，`renderer_app_container_compatible_count` 为 100。
 - 同一程序使用临时配置可以产生 renderer；只把原 `Local State` 放入隔离配置后，renderer 又降为 0。
 
 如果只有个别网站打不开、临时配置同样失败、renderer 进程正常存在，或者程序版本没有错配，就不属于本文已经验证的故障链。此时应继续排查网络、GPU、系统策略、安全软件或特定扩展，不要套用后面的字段级修复。
 
-这不是所有 Edge 空白页的通用答案。截至 2026-08-11，微软当前的已知问题页面仍没有登记这组精确组合，内部状态字段也没有公开契约。本文的价值主要是展示怎样用对照实验把故障缩小到一个文件、一个对象，而不是看到空白页就直接删除整个用户目录。
+这不是所有 Edge 空白页的通用答案。截至 2026-08-28，微软当前的已知问题页面仍没有登记这组精确组合，内部状态字段也没有公开契约。本文的价值主要是展示怎样用对照实验把故障缩小到一个文件、一个对象，并把“渲染恢复”和“更新入口收敛”分别验收，而不是看到空白页就直接删除整个用户目录。
 
 ## 故障现象
 
@@ -617,9 +881,9 @@ Copy-Item -LiteralPath "<上一步输出的 .bak 文件>" `
   -Force
 ```
 
-## 修复后的验证
+## 完整修复后的验证
 
-修复后使用原来的 `User Data\Default` 启动，没有创建新 profile。两次结果是：
+修复后使用原来的 `User Data\Default` 启动，没有创建新 profile。前三次排查证明字段级修改可以恢复 renderer；第四次进一步补齐了更新入口验收：
 
 - renderer 从 0 恢复为多个正常进程；首次最终检测到 8 个，第二次在普通网页和内置页复测后检测到 6 个。
 - 网页 renderer 与扩展 renderer 都能稳定存活。
@@ -627,8 +891,10 @@ Copy-Item -LiteralPath "<上一步输出的 .bak 文件>" `
 - Breadcrumbs 出现 `FinishNav` 和 `PageLoad`；第二次复测新增 3 次 `FinishNav` 和 3 次 `PageLoad`，没有新增 `RenderProcessGone` 或 `ERR_ABORTED`。
 - `edge.mitigation_manager` 由当前版本自动重建，旧版状态不再保留；第二次重建后不兼容版本更新为 151，兼容计数归零。
 - 书签、历史、Cookie、密码和扩展目录没有重置。
+- 第四次修复后根入口和 `pv` 均为 `151.0.4129.107`，`opv` 为空，`new_msedge.exe` 消失，只保留 `.107` 版本目录。
+- 第四次连续两次冷启动均得到 7 个 renderer；5 个注册入口和 3 个快捷方式全部指向根入口，没有旧版本专属路径。
 
-验证重点不是“窗口能打开”，而是同一组 before/after 信号：
+验证重点不是“窗口能打开”，甚至也不能止于“renderer 恢复”，而是同一组 before/after 信号：
 
 ```powershell
 $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
@@ -639,7 +905,7 @@ $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
 ).Count
 ```
 
-还要分别打开一个普通网页和一个 `edge://` 内置页，确认网页与浏览器内部 UI 两条渲染路径都恢复。
+还要分别打开一个普通网页和一个 `edge://` 内置页，确认网页与浏览器内部 UI 两条渲染路径都恢复；再核对根入口版本、`pv/opv`、`new_msedge.exe` 和第二次冷启动，避免再次把状态恢复误判成完整修复。
 
 完整备份和单文件回滚副本先保留几天。确认 Edge 多次冷启动、系统重启和后续自动更新都正常后，再手动决定是否清理；修复脚本不应自动删除备份。
 
@@ -647,14 +913,14 @@ $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
 
 ## 能确认什么，不能确认什么
 
-三次排查可以确认：
+四次排查可以确认：
 
 - 多个扩展同时报错是 renderer 整体死亡后的结果，不是单个扩展的直接证据。
-- 149→150、150→151 和 151.0.4129.72→151.0.4129.93 三次更新都实际存在程序未完成切换的问题。
+- 149→150、150→151、151.0.4129.72→151.0.4129.93，以及名义 `.101→.107` 但实际入口仍为 `.72` 的第四次样本，都存在程序未完成切换的问题。
 - 原 `Local State` 可以在隔离环境中单独复现 renderer 归零。
 - 在同一副本中只移除 `edge.mitigation_manager` 可以恢复渲染。
 - 相同最小修改应用到原配置后，页面和扩展均恢复。
-- 这组“程序切换失败 + renderer 兼容状态残留”的故障链在同一设备的三次更新（两次大版本更新和一次同主版本补丁更新）中可以重复出现。
+- 这组“程序切换失败 + renderer 兼容状态残留”的故障链在同一设备四次出现；第四次还证明 renderer 恢复不能替代版本入口收敛验收。
 
 但不能把它扩大成：
 
@@ -664,11 +930,13 @@ $edgeProcesses = Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'"
 - `edge.mitigation_manager` 的结构和行为在后续版本中保持不变。
 - 看到扩展崩溃通知就能排除扩展问题。
 
-截至 2026-08-11，微软已知问题页面列出了 Edge 150、151 的其他问题，但没有登记本文这组“更新错配、全部 renderer 退出、多个扩展同时崩溃”的精确组合。本文已经通过 Edge 内置反馈提交脱敏报告，但提交本身不代表微软已受理、确认根因或安排修复。因此，最稳妥的做法仍是保留证据链：先做临时 profile 对照，再缩小到单个文件和字段，最后执行可回退的最小修复。
+截至 2026-08-28，微软已知问题页面列出了 Edge 的其他问题，但没有登记本文这组“更新错配、全部 renderer 退出、多个扩展同时崩溃”的精确组合；`.107` 发布说明也没有点名 renderer 状态或更新切换修复。本文已经通过 Edge 内置反馈提交脱敏报告，但提交本身不代表微软已受理、确认根因或安排修复。因此，最稳妥的做法仍是保留证据链：先做临时 profile 对照，再缩小到单个文件和字段，最后分别验收版本入口与 renderer。
 
 ## 参考
 
 - [Microsoft Learn：Edge 无响应、空白或无法启动的排障顺序](https://learn.microsoft.com/en-us/troubleshoot/microsoft-edge/performance/edge-crashes-fails-to-launch)
 - [Microsoft Learn：Edge 安装、更新与回滚失败排查](https://learn.microsoft.com/en-us/troubleshoot/microsoft-edge/manageability/update-install-rollback-failures)
+- [Microsoft Learn：Microsoft Edge Stable Channel 发布说明](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-stable-channel)
 - [Microsoft Learn：Microsoft Edge 当前已知问题](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-known-issues)
 - [Microsoft Q&A：所有标签页、设置页和扩展同时崩溃的相似报告](https://learn.microsoft.com/en-us/answers/questions/2398262/microsoft-edge-every-tab-crashes-instantly-includi)
+- [Reddit：更新后空白页与 `Local State` 相关的社区同类报告](https://www.reddit.com/r/MicrosoftEdge/comments/1pmtril/edge_goes_to_blank_page_for_any_user_that_logs_in/)

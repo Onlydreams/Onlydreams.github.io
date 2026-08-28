@@ -2,6 +2,7 @@
 
 require "date"
 require "minitest/autorun"
+require "tmpdir"
 require "time"
 require "yaml"
 
@@ -194,6 +195,65 @@ class ContentHealthTest < Minitest::Test
       assert_equal expected, match[1].gsub("\r\n", "\n"),
         "embedded script in #{relative_path} must match tools/repair-edge-renderer.ps1 byte for byte; " \
         "run `ruby bin/embed_article_scripts.rb` to re-embed"
+    end
+  end
+
+  def test_article_script_embedding_preserves_backslash_sequences_literally
+    Dir.mktmpdir do |directory|
+      script_path = File.join(directory, "sample.ps1")
+      article_path = File.join(directory, "article.md")
+      script = '$path.TrimEnd("\\") + "\\"' + "\n"
+      article = "before\n<div>\n#{EmbedArticleScripts::OPEN_BLOCK}old#{EmbedArticleScripts::CLOSE_BLOCK}\n</div>\n</details>\nafter\n"
+      File.binwrite(script_path, script)
+      File.binwrite(article_path, article)
+
+      EmbedArticleScripts.embed_one!(article_path: article_path, script_path: script_path)
+
+      expected = "before\n<div>\n#{EmbedArticleScripts.embedded_block(script_path)}\n</div>\n</details>\nafter\n"
+      assert_equal expected, File.binread(article_path)
+    end
+  end
+
+  def test_edge_repair_script_guards_the_complete_update_switch
+    script = File.read(File.join(ROOT, "tools", "repair-edge-renderer.ps1"))
+
+    backup_index = script.index("Copy-EdgeBackup -UserDataPath")
+    update_index = script.index("winget install --id Microsoft.Edge")
+
+    refute_nil backup_index
+    refute_nil update_index
+    assert_operator backup_index, :<, update_index,
+      "the complete User Data backup must finish before the repair invokes Edge Update"
+    assert_includes script, "version_switch_complete"
+    assert_includes script, "OldProductVersion"
+    assert_includes script, "NewMsedgeExists"
+    assert_includes script, "停止修改 Local State"
+    assert_includes script, "firstColdStartRenderers"
+    assert_includes script, "secondColdStartRenderers"
+    assert_includes script, "Remove-TemporaryDirectory"
+    assert_includes script, "Test-EdgeEntrypointTargets"
+    assert_includes script, "VersionDirectories"
+    assert_includes script, "pageConfirmation"
+    assert_includes script, "完整修复验收完成"
+  end
+
+  def test_edge_repair_articles_require_version_and_renderer_convergence
+    expectations = {
+      "_posts/2026-07-25-microsoft-edge-blank-pages-renderer-state-repair.md" =>
+        ["151.0.4129.107", "`opv` 必须清空", "连续两次冷启动", "输入 `YES`"],
+      "_english_posts/microsoft-edge-blank-pages-renderer-state-repair.md" =>
+        ["151.0.4129.107", "`opv` must be empty", "two consecutive cold starts", "entering `YES`"]
+    }
+
+    articles = posts + english_posts
+    expectations.each do |relative_path, required_texts|
+      article = articles.find { |candidate| candidate[:relative_path] == relative_path }
+      refute_nil article, "#{relative_path} must exist"
+
+      required_texts.each do |required_text|
+        assert_includes article[:body], required_text,
+          "#{relative_path} must document the complete update-switch acceptance test"
+      end
     end
   end
 
