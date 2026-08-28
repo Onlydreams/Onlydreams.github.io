@@ -63,7 +63,7 @@ foreach ($failureCase in $failureCases) {
     "Version convergence must reject: $($failureCase.Name)."
 }
 
-$launcher = Join-Path $env:TEMP "Edge\Application\msedge.exe"
+$launcher = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 $validEntrypoints = @(
   [pscustomobject]@{ Type = "Registry"; Location = "app-path"; Target = "`"$launcher`" --single-argument %1" },
   [pscustomobject]@{ Type = "Shortcut"; Location = "start-menu"; Target = $launcher }
@@ -72,7 +72,7 @@ $validEntrypointState = Test-EdgeEntrypointTargets -Launcher $launcher -Entrypoi
 Assert-Equal $true $validEntrypointState.IsComplete "Matching registry and shortcut targets must pass."
 Assert-Equal 2 $validEntrypointState.CheckedCount "Every supplied entry point must be counted."
 
-$launcherWithWildcardCharacters = Join-Path $env:TEMP "Edge[runner]\Application\msedge.exe"
+$launcherWithWildcardCharacters = "C:\Edge[runner]\Application\msedge.exe"
 $wildcardEntrypoints = @(
   [pscustomobject]@{ Type = "Registry"; Location = "app-path"; Target = "`"$launcherWithWildcardCharacters`" --single-argument %1" },
   [pscustomobject]@{ Type = "Shortcut"; Location = "start-menu"; Target = $launcherWithWildcardCharacters }
@@ -83,7 +83,7 @@ Assert-Equal $true `
 
 $staleEntrypoints = @(
   [pscustomobject]@{ Type = "Registry"; Location = "app-path"; Target = "`"$launcher`"" },
-  [pscustomobject]@{ Type = "Shortcut"; Location = "desktop"; Target = (Join-Path $env:TEMP "Edge\Application\151.0.4129.72\msedge.exe") }
+  [pscustomobject]@{ Type = "Shortcut"; Location = "desktop"; Target = "C:\Program Files (x86)\Microsoft\Edge\Application\151.0.4129.72\msedge.exe" }
 )
 $staleEntrypointState = Test-EdgeEntrypointTargets -Launcher $launcher -Entrypoints $staleEntrypoints
 Assert-Equal $false $staleEntrypointState.IsComplete "A version-specific stale shortcut must fail."
