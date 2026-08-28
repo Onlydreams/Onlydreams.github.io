@@ -193,14 +193,23 @@ function Test-EdgeEntrypointTargets {
   )
 
   $expectedLauncher = [System.IO.Path]::GetFullPath($Launcher)
+  $quotedLauncher = &#39;&quot;&#39; + $expectedLauncher + &#39;&quot;&#39;
   $staleEntries = @(
     foreach ($entry in $Entrypoints) {
-      $matches = if ($entry.Type -eq &quot;Shortcut&quot;) {
-        [System.IO.Path]::GetFullPath($entry.Target) -eq $expectedLauncher
+      $targetMatches = if ($entry.Type -eq &quot;Shortcut&quot;) {
+        [string]::Equals(
+          [System.IO.Path]::GetFullPath([string]$entry.Target),
+          $expectedLauncher,
+          [System.StringComparison]::OrdinalIgnoreCase
+        )
       } else {
-        [string]$entry.Target -like &quot;*$expectedLauncher*&quot;
+        $target = ([string]$entry.Target).Trim()
+        [string]::Equals($target, $expectedLauncher, [System.StringComparison]::OrdinalIgnoreCase) -or
+          $target.StartsWith($expectedLauncher + &quot; &quot;, [System.StringComparison]::OrdinalIgnoreCase) -or
+          [string]::Equals($target, $quotedLauncher, [System.StringComparison]::OrdinalIgnoreCase) -or
+          $target.StartsWith($quotedLauncher + &quot; &quot;, [System.StringComparison]::OrdinalIgnoreCase)
       }
-      if (-not $matches) {
+      if (-not $targetMatches) {
         $entry
       }
     }

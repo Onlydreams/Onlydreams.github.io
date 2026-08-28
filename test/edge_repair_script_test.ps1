@@ -72,6 +72,15 @@ $validEntrypointState = Test-EdgeEntrypointTargets -Launcher $launcher -Entrypoi
 Assert-Equal $true $validEntrypointState.IsComplete "Matching registry and shortcut targets must pass."
 Assert-Equal 2 $validEntrypointState.CheckedCount "Every supplied entry point must be counted."
 
+$launcherWithWildcardCharacters = Join-Path $env:TEMP "Edge[runner]\Application\msedge.exe"
+$wildcardEntrypoints = @(
+  [pscustomobject]@{ Type = "Registry"; Location = "app-path"; Target = "`"$launcherWithWildcardCharacters`" --single-argument %1" },
+  [pscustomobject]@{ Type = "Shortcut"; Location = "start-menu"; Target = $launcherWithWildcardCharacters }
+)
+Assert-Equal $true `
+  (Test-EdgeEntrypointTargets -Launcher $launcherWithWildcardCharacters -Entrypoints $wildcardEntrypoints).IsComplete `
+  "Entry-point matching must treat launcher paths as literals, not wildcard patterns."
+
 $staleEntrypoints = @(
   [pscustomobject]@{ Type = "Registry"; Location = "app-path"; Target = "`"$launcher`"" },
   [pscustomobject]@{ Type = "Shortcut"; Location = "desktop"; Target = (Join-Path $env:TEMP "Edge\Application\151.0.4129.72\msedge.exe") }
