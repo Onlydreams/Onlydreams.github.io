@@ -4,19 +4,37 @@ lang: en
 translation_key: global-agents-context
 title: "AGENTS.md Guide: A Practical Global Configuration for Codex and Other Coding Agents"
 date: 2026-07-28 00:02:00 +0800
-updated: 2026-08-11
+updated: 2026-09-05
 categories: [AI]
 tags: [agent, codex, claude, rules, workflow]
 status:
   label: 当前可用
-  verified: 2026-08-11
-  environment: Codex AGENTS.md / GLOBAL_AGENTS.md v2.4
-  risk: This is a personal collaboration template, not a universal policy. Remove machine-specific paths, tool preferences, and authorization boundaries before reuse, and do not promote repository rules to global scope by accident.
+  verified: 2026-09-05
+  environment: Windows / Codex AGENTS.md / GLOBAL_AGENTS.md v2.5; source and deployed-copy consistency and loading in the current task checked
+  risk: Individual rule effects have not undergone behavioral regression tests, and loading or behavior in other tools has not been verified. Adapt personal preferences and authorization boundaries before reuse, and keep repository rules within their project scope.
 ---
 
-A global `AGENTS.md` can give coding agents consistent collaboration preferences without duplicating repository-specific build commands or architecture rules. In this setup, `GLOBAL_AGENTS.md` in a Git repository is the versioned authority, while `AGENTS.md` in Codex home is an explicitly deployed copy.
+A global `AGENTS.md` can give coding agents consistent collaboration preferences, but stronger instruction following makes unclear conditions and conflicting rules more consequential. Version 2.5 clarifies when to proceed, when to confirm, and when verification is complete. `GLOBAL_AGENTS.md` in Git remains the authority and Codex's `AGENTS.md` its deployed copy; checking those files and their loading does not establish the behavioral effect of every rule.
 
 ---
+
+## What prompted the v2.5 review
+
+As checked on September 5, 2026, OpenAI's [GPT-6 Astra behavior guidance](https://developers.openai.com/api/docs/guides/latest-model#gpt-6-astra-behavior) describes stronger general instruction following, greater sensitivity to skills and `AGENTS.md`, and strongly recommends auditing existing instructions. It also notes that smaller coding tasks may trigger broader testing. Its [instruction-following guidance](https://developers.openai.com/api/docs/guides/latest-model#instruction-following) says unclear or conflicting skill guidance can cause pauses or blocks and recommends making the priority of user instructions over skills explicit.
+
+That supports reviewing conditions, conflicts, and completion criteria. The same guidance says GPT-6 Astra can follow longer instructions; it does not prescribe a target word count or justify removing testing or security boundaries. The seven changes below are my own revisions from v2.4 to v2.5, rather than clauses prescribed by OpenAI.
+
+| Area | What v2.5 clarifies |
+|---|---|
+| Authorization and clarification | State a reasonable assumption and proceed on low-risk ambiguity; ask only about material risk or scope that existing authorization does not cover. |
+| Credentials | Use the conventions of the current language and runtime, keep real secrets out of files and output, and use placeholders in examples. |
+| Public redaction | Remove private environment details while preserving public versions, reproduction steps, code, and implementation details needed to understand the issue. |
+| Errors | Propagate or handle failures at the appropriate layer; do not swallow them or require a repeated catch at every layer. |
+| Testing | Run checks relevant to changed behavior and those required by the project; expand or repeat them only for new changes, failures, or unresolved risks. |
+| Rule maintenance | Only an explicit request to update global behavior rules or global `AGENTS.md` triggers its maintenance workflow; authorized cleanup includes merging duplicates without asking again. |
+| Precedence | Within system and platform constraints, explicit current user instructions take priority over personal defaults and skills; applicable project rules override corresponding global defaults. |
+
+I also merged overlapping instructions about minimal implementations, reuse, and native capabilities so that investigation stays proportional to the task. Repeated confirmations and excessive testing are risks these revisions aim to reduce. This update checked the source and deployed copy for consistency and confirmed that the current task loaded v2.5; it did not run a behavioral regression test for each rule, so those risks should not be presented as proven causes or measured improvements.
 
 ## Separate the authority from the loading entry point
 
@@ -47,13 +65,13 @@ For Codex, the default personal path remains:
 ~/.codex/AGENTS.md
 ```
 
-The following is an English adaptation of the global configuration I use. Copy it as a starting point, then delete aggressively.
+The following is an English adaptation of the global configuration I use, retaining the English edition's language choices. Adapt it to your own preferences, remove rules that do not apply, and consolidate duplicates without weakening the boundaries you intend to keep.
 
 ## GLOBAL AGENTS.md — personal defaults
 
-> Version: v2.4
+> Version: v2.5
 >
-> Last updated: 2026-08-10
+> Last updated: 2026-09-05
 >
 > Scope: all sessions, including work outside repositories
 >
@@ -72,8 +90,8 @@ The following is an English adaptation of the global configuration I use. Copy i
 - Inspect the current environment instead of assuming macOS, Linux, or Windows.
 - On Windows, use PowerShell 7 (`pwsh`) by default unless a command genuinely requires `cmd.exe`.
 - Prefer commands, code, and short operational paths that can be used directly from a terminal or editor.
-- Before coding, identify the goal, constraints, and acceptance criteria. Surface uncertainty before making a high-risk assumption.
-- For high-risk or irreversible decisions, present two or three concrete options and wait for confirmation. Handle low-risk implementation details conservatively using repository conventions.
+- Before coding, identify the goal, constraints, and acceptance criteria from the current request and project context. For low-risk ambiguity, state a reasonable assumption and continue; handle implementation details conservatively using repository conventions.
+- For high-risk, irreversible, or out-of-scope decisions not already authorized, explain the impact and wait for confirmation; provide options when there are materially different approaches. Do not ask again for existing explicit authorization unless a new material risk or scope exceeds it.
 - Split multi-step work into verifiable increments. Report what was tested, what was not tested, and any residual risk.
 - Recheck time-sensitive facts such as prices, plans, regulations, product rules, sports information, recommendations, and rankings. Separate official confirmation, third-party evidence, and unresolved claims.
 - When I provide a screenshot, filename, error, or log, start with the most likely diagnosis and next action, then explain the reasoning and fallback.
@@ -83,35 +101,32 @@ The following is an English adaptation of the global configuration I use. Copy i
 - Diagnose network, VPN, TUN, remote-access, or throughput problems before optimizing, then retest on the real or closest representative path.
 - During review, debugging, or optimization, separate confirmed defects from possible risks. If I ask for a final artifact, converge on a usable deliverable instead of stopping at commentary.
 - Before posting a public issue or bug report, search for an existing report and add precise environment, reproduction, and evidence to the best matching thread.
-- Before publishing articles, prompts, issues, or technical notes, remove secrets, personal paths, private endpoints, account identifiers, and other environment details that do not need to be public.
+- Before publishing articles, prompts, issues, feedback, or technical notes, check for sensitive information. Remove real credentials, identifying local paths, private nodes, and other non-public environment details. Preserve public versions, reproduction steps, code, and implementation details needed to understand the issue, using placeholders or redacted examples where necessary.
 
 ### 3. Coding conventions
 
 - Make the smallest implementation that satisfies the requested scope. Do not refactor, move files, add abstractions, or introduce configuration without a concrete need.
 - Mention unrelated bugs or dead code, but do not modify them unless they block the task or were introduced by the current change.
-- Prefer a clear direct solution over additional layers.
+- First establish that a change is needed; reuse existing code and suitable standard-library, native-platform, or installed dependency capabilities. Avoid duplicate implementations and unnecessary dependencies, and keep investigation proportional to the task.
 - Use descriptive names instead of context-free abbreviations.
-- Handle errors explicitly around asynchronous work, I/O, networks, databases, and external services.
+- Propagate or handle errors from asynchronous work, I/O, networks, databases, and external services according to project conventions. Never swallow exceptions or ignore failed results; there is no need to catch the same failure again at every calling layer.
 - Write comments that explain why a decision exists, not what the next line does.
 - Follow the repository's existing formatter, linter, type checker, and test conventions.
-- Before writing a helper, check—in order—whether the work is necessary, whether the repository already has a pattern, whether the standard library or platform provides it, and whether an installed dependency already covers it.
 - Fix bugs at the shared root cause after checking callers. Do not place a small patch in the wrong layer merely to minimize line count.
-- Prefer native platform capabilities over a new component or dependency.
 - If an implementation is intentionally simplified, leave a short boundary note and a plausible upgrade path.
 
 ### 4. Testing
 
-- When implementing a feature in a repository with a test suite, add or update the relevant tests.
-- Reuse the existing framework and commands.
-- Assert observable behavior and important edge cases.
+- For new or changed behavior, reuse the project's existing test framework and commands, add necessary tests, and assert specific behavior and important boundaries. Boolean assertions are allowed when appropriate.
 - Do not add a new test dependency unless the task requires it and I approve.
-- Leave at least one runnable check for non-trivial logic. Branches, loops, parsing, money, permissions, security, I/O, concurrency, and migrations require verification.
-- Do not force a test for a trivial one-line text replacement when metadata and behavior are unchanged.
+- Leave at least one runnable check for non-trivial logic. If no test framework exists, use a minimal self-check, assertion example, or script to verify key branches.
+- Do not require new tests for simple text edits or one-line replacements that leave behavior unchanged. Branches, loops, parsing, money, permissions, security, I/O, concurrency, and migrations require relevant verification.
+- Complete checks relevant to the change and those required by the project, then stop when they pass. Expand or repeat verification only for new changes, failures, or unresolved risks.
 
 ### 5. Security
 
-- Never generate or store hard-coded secrets, tokens, or passwords.
-- Refer to environment variables symbolically, such as `process.env.API_TOKEN`, or document placeholders in `.env.example`.
+- Never hard-code real secrets, tokens, or passwords in code, documentation, or example files, or expose them in logs, command output, or public content.
+- Read configuration and credentials using the conventions of the current language and runtime. Use placeholders for sensitive values in example files such as `.env.example`; never include real credentials.
 - Call out insecure dependencies or implementation patterns and propose a scoped correction.
 
 ### 6. Data and concurrency
@@ -121,35 +136,35 @@ The following is an English adaptation of the global configuration I use. Copy i
 
 ### 7. Maintaining the rules
 
-- If the same preference conflict repeats, ask whether it should become durable guidance.
+- If the same preference conflict repeats, you may ask whether it should become durable guidance. Do not edit this file without explicit authorization.
 - Do not edit repository-level `AGENTS.md`, `CLAUDE.md`, or agent rule files without explicit authorization.
-- When asked to update global rules, edit the versioned `<my-skills-repo>/GLOBAL_AGENTS.md` first, deploy it to `<codex-home>/AGENTS.md`, and verify both copies. Stop if the authority repository is unavailable.
-- Add new rules by default, but consolidate, replace, or retire stale and conflicting rules only with explicit confirmation.
-- Prefer one authoritative source for cross-tool rules. Compatibility files should point to that source instead of duplicating it.
+- When explicitly asked to update global behavior rules or global `AGENTS.md`, edit the versioned `<my-skills-repo>/GLOBAL_AGENTS.md` first, deploy it to `<codex-home>/AGENTS.md`, and verify that the contents match. Do not edit only the deployed copy. Stop and explain if the authority repository is unavailable. For other requests to change global configuration, first identify the appropriate configuration file; edit project rules only when explicitly requested.
+- Once rule updates or cleanup are explicitly authorized, prefer merging existing rules and eliminating duplicates and conflicts. Cleanup that preserves the original intent needs no further confirmation. Ask again if a proposed change to preferences or security boundaries exceeds that authorization.
+- Keep one authoritative source for cross-tool rules or project guidance. Generate required deployed copies from it; other explanations or compatibility entry points should point to that source instead of being independently maintained copies.
 - Keep reusable skills and documentation tool-neutral unless a target tool genuinely requires dedicated metadata.
-- Remove, replace, or consolidate rules when they become stale or contradictory; do not let a global file grow by append-only habit.
 
 ### 8. Scope and precedence
 
 - This file defines personal defaults across sessions.
-- Repository and nested guidance override global defaults for the code they govern.
-- Tool-specific files such as `CLAUDE.md` participate only for tools that actually load them; Codex does not treat those filenames as part of its automatic `AGENTS.md` chain.
-- A current-task prompt can narrow the requested scope but should not silently weaken safety boundaries.
-- Put durable behavior in the narrowest location where it remains true.
+- Within system and platform constraints, explicit current user instructions take precedence over this file and skill guidance. Skills must not expand the task scope or change authorization the user has already granted.
+- Applicable project-level `CLAUDE.md`, `AGENTS.md`, or `.claude/rules/*.md` guidance takes precedence over corresponding global defaults; preserve the communication and role preferences here where possible. These files participate only when the tool actually loads them, and Codex does not automatically discover `CLAUDE.md` or `.claude/rules/*.md` through its `AGENTS.md` chain.
+- Keep global rules as tool-neutral behavior wherever possible. Put tool-specific rules in dedicated sections or the relevant tool's own configuration.
 
 ## Update and deployment workflow
 
-Keep modification, deployment, and verification as separate steps:
+After an explicit request to update global behavior rules or global `AGENTS.md`, use this workflow:
 
 ```text
 Edit the authoritative GLOBAL_AGENTS.md in Git
 → deploy it to <codex-home>/AGENTS.md
 → compare content or SHA-256
 → start a new Codex task to confirm the rule is loaded
-→ commit and push the authority repository when needed
+→ commit and push the authority repository when explicitly authorized
 ```
 
 Codex builds the instruction chain when a task starts. Do not assume an already running task has reloaded every rule after the file changes.
+
+On September 5, 2026, the authority source and deployed copy on this Windows machine were both v2.5 and had identical SHA-256 hashes; the current verification task also loaded that version. This establishes local file consistency and loading in this task. It does not establish per-rule behavioral effects or synchronization to other machines or tools.
 
 Skill distribution and `AGENTS.md` deployment are also separate paths. The complete setup is documented in [Synchronizing Codex AGENTS.md and Agent Skills Across Machines with GitHub and Skillshare](/en/posts/github-skillshare-cross-machine-sync/); general Skillshare commands are covered in the [Skillshare guide](/en/posts/skillshare-guide/).
 
@@ -163,8 +178,9 @@ Instead, define conditions and outcomes:
 Create a specification when the task has multiple plausible designs,
 changes a public interface, or includes an irreversible decision.
 
-Add tests for new non-trivial behavior and run the repository's required
-validation before completion.
+Add necessary tests for new or changed behavior and run the repository's
+required validation. After relevant checks pass, expand or repeat them only
+for new changes, failures, or unresolved risks.
 
 Delegate only when the work can be divided into independent review or
 implementation scopes.
@@ -196,19 +212,21 @@ Good repository guidance usually contains:
 
 ## Keep the file practical
 
-Official Codex guidance recommends concise, scoped instructions and supports layered `AGENTS.md` files. A shorter file based on repeated real mistakes is more useful than a catalog of generic best practices.
+Official Codex guidance supports scoped instructions and layered `AGENTS.md` files. Keep rules that address recurring needs and make their triggers clear; a lower word count alone does not establish that the file is better.
 
 Review the file periodically:
 
-1. Remove rules that the model or repository tooling already enforces reliably.
+1. Check whether each rule still addresses a real need and whether its trigger conflicts with another rule; do not remove testing or security boundaries merely because the model is more capable.
 2. Move project facts into the applicable repository.
 3. Replace vague preferences with observable acceptance criteria.
 4. Split specialized repeatable workflows into skills when they need references, scripts, or dedicated triggers.
 5. Keep mechanical enforcement in linters, hooks, tests, or permissions instead of relying only on prose.
 
-`AGENTS.md` works best as a compact contract between the user, the agent, and the repository—not as an encyclopedia of every way software could be developed.
+Once cleanup is authorized, consolidate duplicate or conflicting wording while preserving its intent. Ask again only if a proposed change to preferences or security boundaries exceeds that authorization. Judge the result by clear scope, consistent priorities, and usable completion criteria.
 
 Official references:
 
 - [Custom instructions with AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 - [Build skills](https://learn.chatgpt.com/docs/build-skills)
+- [GPT-6 Astra behavior](https://developers.openai.com/api/docs/guides/latest-model#gpt-6-astra-behavior)
+- [Instruction following](https://developers.openai.com/api/docs/guides/latest-model#instruction-following)

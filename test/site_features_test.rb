@@ -99,7 +99,6 @@ class SiteFeaturesTest < Minitest::Test
     assert_includes html, "/posts/github-skillshare-cross-machine-sync/"
     assert_includes html, "/posts/worldcup-predictor-agent-skill/"
     assert_includes html, "/posts/macos-homebrew-acceleration/"
-    assert_includes html, "Codex AGENTS.md / GLOBAL_AGENTS.md v2.4"
     assert_includes html, "USTC 镜像的连通性、Git 协议和远端提交已核验，但尚未重新完成一次 brew update"
     assert_includes html, 'class="status-post-list"'
     assert_includes html, 'class="status-post-risk"'
@@ -111,6 +110,7 @@ class SiteFeaturesTest < Minitest::Test
     needs_review_section = html[/<section class="status-section" id="status-待复核">.*?<\/section>/m]
     refute_nil current_status_section
     refute_nil needs_review_section
+    assert_includes current_status_section, "Windows / Codex / GLOBAL_AGENTS.md v2.5"
     assert_includes current_status_section, "/posts/global-agents-context/"
     assert_includes current_status_section, "/posts/github-skillshare-cross-machine-sync/"
     assert_includes current_status_section, "/posts/worldcup-predictor-agent-skill/"
@@ -323,21 +323,23 @@ class SiteFeaturesTest < Minitest::Test
 
   def test_post_pages_render_status_block_when_status_front_matter_exists
     html = read_site("posts/global-agents-context/index.html")
+    status_block = html[/<section class="post-status".*?<\/section>/m]
     styles = read_scss_sources
 
-    assert_includes html, 'class="post-status"'
-    assert_includes html, 'class="post-status-heading"'
-    assert_includes html, 'class="post-status-badge post-status-badge--current"'
-    assert_includes html, 'class="post-status-title"'
-    assert_includes html, "文章状态"
-    assert_includes html, "状态"
-    assert_includes html, "当前可用"
-    assert_includes html, "最后验证"
-    assert_includes html, "2026-08-10"
-    assert_includes html, "适用环境"
-    assert_includes html, "Codex AGENTS.md / GLOBAL_AGENTS.md v2.4"
-    assert_includes html, "风险提示"
-    assert_includes html, "这是个人协作规则模板"
+    refute_nil status_block
+    assert_includes status_block, 'class="post-status"'
+    assert_includes status_block, 'class="post-status-heading"'
+    assert_includes status_block, 'class="post-status-badge post-status-badge--current"'
+    assert_includes status_block, 'class="post-status-title"'
+    assert_includes status_block, "文章状态"
+    assert_includes status_block, "状态"
+    assert_includes status_block, "当前可用"
+    assert_includes status_block, "最后验证"
+    assert_includes status_block, "2026-09-05"
+    assert_includes status_block, "适用环境"
+    assert_includes status_block, "Windows / Codex / GLOBAL_AGENTS.md v2.5"
+    assert_includes status_block, "风险提示"
+    assert_includes status_block, "未逐条进行规则效果的行为回归"
     assert_includes styles, ".post-status"
     assert_includes styles, ".post-status-title"
     assert_includes styles, ".post-status-list"
