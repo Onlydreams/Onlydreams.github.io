@@ -42,7 +42,7 @@ Windows 音频服务、提示音文件、系统声音的音量都查过，没有
 
 按[微软的 PortCls 文档](https://learn.microsoft.com/en-us/windows-hardware/drivers/audio/portcls-registry-power-settings)，`PerformanceIdleTime` 设为 0 就会禁用接电状态下的空闲管理。4 秒是配置里的超时时间，实际什么时候进入省电状态，这次没有测量。
 
-因为测试时一直接着电，我只把 `PerformanceIdleTime` 改为 `00 00 00 00`，其余两个值没动。重新加载 NVIDIA 音频设备，停止播放，等约 30 秒，再试提示音——这次听完整了。等到约 2 分钟再试，也有声音。
+因为测试时一直接着电，我只把 `PerformanceIdleTime` 改为 `00 00 00 00`，其余两个值没动。重新加载 NVIDIA 音频设备，停止播放，等约 30 秒，再试提示音。这次听完整了。等到约 2 分钟再试，也有声音。
 
 但这还不够，修改参数和重新加载设备是一起做的，也可能只是后者让声音暂时恢复。
 

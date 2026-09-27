@@ -25,7 +25,7 @@ status:
 
 第一个问题看起来只是自动点击，但脚本不能持续强制状态。用户手动取消后，本页就应该尊重这次选择；点击小红书右下角的原生刷新也不能再次替用户开启。只有浏览器硬刷新创建了新文档，脚本才重新尝试一次。
 
-第二个问题真正麻烦的不是关键词匹配，而是过滤后的瀑布流。项目最初讨论 MVP 时，我也考虑过直接给命中卡片设置 `display: none`，再触发一次 `resize`。真实页面实验很快否定了这个思路：卡片使用绝对定位和内联 `transform`，容器高度也由网站计算，单独隐藏一张卡片只会留下明显空洞，网站并不会可靠地替脚本重新排版。
+标题过滤还需要处理隐藏卡片后的瀑布流布局。项目最初讨论 MVP 时，我也考虑过直接给命中卡片设置 `display: none`，再触发一次 `resize`。真实页面实验很快否定了这个思路：卡片使用绝对定位和内联 `transform`，容器高度也由网站计算，单独隐藏一张卡片只会留下明显空洞，网站并不会可靠地替脚本重新排版。
 
 项目地址：[Onlydreams/xiaohongshu-web-enhancer](https://github.com/Onlydreams/xiaohongshu-web-enhancer)
 
@@ -169,7 +169,7 @@ Chrome 真实页面复现给出了完整状态链：
 - 预隐藏 CSS 因而命中这个既无 `ready`、也无 `bypass` 的原生根，将背景设为 `visibility:hidden`；
 - 关闭详情返回 `/explore` 后，脚本重新提交布局，信息流才恢复。
 
-错误来自一个看似合理、实际不成立的假设：离开精确的 `/explore` 就不会再有信息流根。小红书详情不是替换首页，而是在同一份首页 DOM 上叠加遮罩；背景信息流本身也是原生交互的一部分。
+错误来自一个看似合理、实际不成立的假设：离开精确的 `/explore` 就不会再有信息流根。小红书详情页在原首页 DOM 上叠加遮罩，背景信息流仍参与原生交互。
 
 更值得警惕的是，原有测试把“非目标路由仍保留 active class”写成了正确预期，因此测试全绿反而固化了错误模型。`0.2.1` 把 active 严格限定在精确 `/explore`：离开时先撤 active，再恢复根和卡片；返回首页后才重新添加 active，并通过既有 `bypass/ready` 交接重新接管。
 
@@ -219,4 +219,4 @@ Firefox 与 Violentmonkey 尚未纳入兼容性验收，因此不应据此视为
 - 问题反馈：[GitHub Issues](https://github.com/Onlydreams/xiaohongshu-web-enhancer/issues)
 - Tampermonkey 安装说明：[官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q102)
 
-项目采用 MIT License。它是本地页面增强工具，与小红书官方没有隶属或代表关系。反馈兼容问题时，最有价值的信息不是一句“失效了”，而是浏览器、Userscript 管理器、页面路由、进入路径、当前列数、是否经过 SPA 跳转，以及问题发生时根是否带有 `.layout-frozen`、`ready` 或 `bypass` 状态。
+项目采用 MIT License。它是本地页面增强工具，与小红书官方没有隶属或代表关系。反馈兼容问题时，请提供浏览器、Userscript 管理器、页面路由、进入路径、当前列数、是否经过 SPA 跳转，以及问题发生时根是否带有 `.layout-frozen`、`ready` 或 `bypass` 状态。
